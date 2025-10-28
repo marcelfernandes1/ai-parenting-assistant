@@ -50,13 +50,14 @@ class AppDelegate: RCTAppDelegate {
 
   /**
    * Helper method to construct the bundle URL based on build configuration
-   * DEBUG builds use Metro bundler at localhost:8081 for development with hot reload
+   * DEBUG builds use Metro bundler at localhost:8083 for development with hot reload
    * RELEASE builds use the main.jsbundle file packaged with the app
    */
   override func bundleURL() -> URL? {
 #if DEBUG
-    // Development: Load JS from Metro bundler running on localhost:8081
+    // Development: Load JS from Metro bundler running on localhost:8083
     // The "index" parameter refers to index.js as the entry point
+    // Metro port is configured in metro.config.js (using 8083 to avoid conflicts)
     return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
 #else
     // Production: Load pre-packaged JS bundle from app resources
