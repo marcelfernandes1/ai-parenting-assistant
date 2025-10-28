@@ -21,7 +21,313 @@ datasource db {
 }
 
 // ===========================
+// Enums
+// ===========================
+
+// Subscription tier levels for users
+// FREE: Limited usage (10 messages/day, 10 voice minutes/day, 100 photos)
+// PREMIUM: Unlimited usage with priority support
+enum SubscriptionTier {
+  FREE
+  PREMIUM
+}
+
+// Current status of user subscription
+// ACTIVE: Subscription is valid and active
+// CANCELLED: User cancelled but still has access until expiry
+// EXPIRED: Subscription has expired, no access to premium features
+// TRIALING: Free trial period
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  TRIALING
+}
+
+// User mode - determines AI assistant behavior
+// PREGNANCY: User is pregnant, AI focuses on pregnancy guidance
+// PARENTING: User has a baby, AI focuses on parenting guidance
+enum UserMode {
+  PREGNANCY
+  PARENTING
+}
+
+// Baby gender options
+enum BabyGender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+// Message role in conversation
+// USER: Message sent by the user
+// ASSISTANT: Response from AI assistant
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+// Type of message content
+// TEXT: Standard text message
+// VOICE: Voice message (transcribed to text)
+// IMAGE: Image with optional text
+enum MessageContentType {
+  TEXT
+  VOICE
+  IMAGE
+}
+
+// Milestone types for baby development tracking
+enum MilestoneType {
+  PHYSICAL    // Rolling over, crawling, walking, etc.
+  FEEDING     // First solid food, self-feeding, etc.
+  SLEEP       // Sleeping through night, sleep schedule, etc.
+  SOCIAL      // First smile, waving, playing with others, etc.
+  HEALTH      // Vaccinations, checkups, etc.
+}
+
+// ===========================
 // Database Models
 // ===========================
-// Models will be defined in Phase 1
-// This file is ready for model definitions
+
+// User account model
+// Stores authentication and subscription information
+model User {
+  // Primary identifier - UUID for security and scalability
+  id        String   @id @default(uuid())
+
+  // Authentication fields
+  // Email is unique and used for login
+  email     String   @unique
+
+  // Password stored as bcrypt hash (never store plain text)
+  // Hash uses 10 salt rounds for security
+  passwordHash String
+
+  // Subscription information
+  // Determines user's access level and features
+  subscriptionTier      SubscriptionTier   @default(FREE)
+  subscriptionStatus    SubscriptionStatus @default(ACTIVE)
+
+  // When premium subscription expires (null for FREE tier)
+  // Used to enforce access control and trigger renewals
+  subscriptionExpiresAt DateTime?
+
+  // Stripe customer ID for payment processing
+  // Stored for subscription management and billing
+  stripeCustomerId      String?  @unique
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  // One user has one profile (1:1 relationship)
+  profile        UserProfile?
+
+  // One user has many messages (1:N relationship)
+  messages       Message[]
+
+  // One user has many milestones (1:N relationship)
+  milestones     Milestone[]
+
+  // One user has many photos (1:N relationship)
+  photos         Photo[]
+
+  // One user has many usage tracking records (1:N relationship)
+  usageTracking  UsageTracking[]
+
+  // Indexes for fast queries
+  // Email is frequently queried for login
+  @@index([email])
+}
+
+// User profile model
+// Stores personal information and preferences for AI personalization
+model UserProfile {
+  // Primary identifier
+  id     String @id @default(uuid())
+
+  // Foreign key to User (one-to-one relationship)
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // User mode determines AI assistant behavior
+  mode UserMode @default(PARENTING)
+
+  // Pregnancy/baby information
+  // dueDate: Expected delivery date (for PREGNANCY mode)
+  // babyBirthDate: Actual birth date (for PARENTING mode)
+  dueDate       DateTime?
+  babyBirthDate DateTime?
+
+  // Baby details for personalization
+  babyName   String?
+  babyGender BabyGender?
+
+  // User preferences for AI personalization
+  // parentingPhilosophy: e.g., {"style": "attachment", "discipline": "gentle"}
+  // religiousViews: e.g., {"religion": "Christian", "observance": "moderate"}
+  parentingPhilosophy Json?
+  religiousViews      Json?
+
+  // Cultural background for culturally-sensitive advice
+  culturalBackground String?
+
+  // User concerns to prioritize in AI responses
+  // e.g., ["sleep training", "breastfeeding", "development delays"]
+  concerns String[]
+
+  // Notification preferences
+  // e.g., {"pushEnabled": true, "milestoneReminders": true, "dailyTips": false}
+  notificationPreferences Json?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Message model
+// Stores conversation history between user and AI assistant
+model Message {
+  // Primary identifier
+  id String @id @default(uuid())
+
+  // Foreign key to User
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Session ID groups related messages in a conversation
+  // Used to provide context for AI (last 10 messages in session)
+  sessionId String
+
+  // Message metadata
+  role        MessageRole        // USER or ASSISTANT
+  content     String             @db.Text // Message text (can be very long)
+  contentType MessageContentType // TEXT, VOICE, or IMAGE
+
+  // Media URLs for voice recordings or images
+  // Array of S3 URLs for associated media files
+  mediaUrls String[]
+
+  // Token usage for cost tracking
+  // Number of OpenAI tokens used for this message (for AI responses only)
+  tokensUsed Int @default(0)
+
+  // Timestamp for ordering and analytics
+  timestamp DateTime @default(now())
+
+  // Indexes for fast queries
+  // Frequently query by userId to get user's chat history
+  // Order by timestamp for chronological display
+  @@index([userId, timestamp])
+  @@index([sessionId])
+}
+
+// Milestone model
+// Tracks baby development milestones
+model Milestone {
+  // Primary identifier
+  id String @id @default(uuid())
+
+  // Foreign key to User
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Milestone classification
+  type MilestoneType
+
+  // Milestone details
+  name         String   // e.g., "First steps", "First word"
+  achievedDate DateTime // When milestone was achieved
+  notes        String?  @db.Text // Optional notes from parent
+
+  // Associated photos (array of S3 URLs)
+  photoUrls String[]
+
+  // AI suggestion tracking
+  // aiSuggested: true if AI recommended tracking this milestone
+  // confirmed: true if parent confirmed the milestone was achieved
+  aiSuggested Boolean @default(false)
+  confirmed   Boolean @default(true)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  photos Photo[]
+
+  // Indexes for fast queries
+  // Query by userId and achievedDate for timeline view
+  @@index([userId, achievedDate])
+}
+
+// Photo model
+// Stores baby photos with AI analysis
+model Photo {
+  // Primary identifier
+  id String @id @default(uuid())
+
+  // Foreign key to User
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Foreign key to Milestone (optional - photo may not be tied to milestone)
+  milestoneId String?
+  milestone   Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+
+  // Album ID for organizing photos (optional)
+  albumId String?
+
+  // S3 storage key (unique identifier for file in S3)
+  // Format: userId/timestamp-filename.jpg
+  s3Key String @unique
+
+  // Upload timestamp
+  uploadedAt DateTime @default(now())
+
+  // Photo metadata (EXIF data, dimensions, etc.)
+  // e.g., {"width": 1920, "height": 1080, "camera": "iPhone 13", "dateTaken": "..."}
+  metadata Json?
+
+  // AI analysis results from OpenAI Vision API
+  // e.g., {"description": "Baby smiling...", "emotions": ["happy"], "activities": ["playing"]}
+  analysisResults Json?
+
+  // Indexes for fast queries
+  // Query by userId and uploadedAt for photo gallery
+  @@index([userId, uploadedAt])
+}
+
+// UsageTracking model
+// Tracks daily usage for enforcing free tier limits
+model UsageTracking {
+  // Primary identifier
+  id String @id @default(uuid())
+
+  // Foreign key to User
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Date for this usage record (one record per user per day)
+  date DateTime @db.Date
+
+  // Usage counters
+  // messagesUsed: Number of messages sent today
+  // voiceMinutesUsed: Minutes of voice mode used today
+  // photosStored: Total photos stored (cumulative, not daily)
+  messagesUsed     Int   @default(0)
+  voiceMinutesUsed Float @default(0)
+  photosStored     Int   @default(0)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Unique constraint: one record per user per day
+  // Prevents duplicate entries and enables efficient updates
+  @@unique([userId, date])
+  @@index([userId, date])
+}

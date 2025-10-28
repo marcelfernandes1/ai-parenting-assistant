@@ -10,12 +10,12 @@
 
 ### Define Prisma Schema Models
 
-- [ ] Create `User` model in schema.prisma
+- [x] Create `User` model in schema.prisma
   - Fields: id (UUID), email (unique), passwordHash, createdAt, updatedAt
   - Fields: subscriptionTier (enum: FREE, PREMIUM), subscriptionStatus (enum), subscriptionExpiresAt
   - Add indexes on email for fast lookup
 
-- [ ] Create `UserProfile` model
+- [x] Create `UserProfile` model
   - Fields: userId (FK to User), mode (enum: PREGNANCY, PARENTING)
   - Fields: dueDate (nullable DateTime), babyBirthDate (nullable DateTime)
   - Fields: babyName (nullable), babyGender (nullable enum)
@@ -23,32 +23,32 @@
   - Fields: concerns (String array), notificationPreferences (Json)
   - One-to-one relation with User
 
-- [ ] Create `Message` model
+- [x] Create `Message` model
   - Fields: id (UUID), userId (FK), sessionId (UUID for grouping)
   - Fields: role (enum: USER, ASSISTANT), content (text)
   - Fields: contentType (enum: TEXT, VOICE, IMAGE)
   - Fields: mediaUrls (String array), tokensUsed (Int), timestamp (DateTime)
   - Index on userId and timestamp for fast chat history queries
 
-- [ ] Create `Milestone` model
+- [x] Create `Milestone` model
   - Fields: id (UUID), userId (FK), type (enum: PHYSICAL, FEEDING, SLEEP, SOCIAL, HEALTH)
   - Fields: name (String), achievedDate (DateTime), notes (text, nullable)
   - Fields: photoUrls (String array), aiSuggested (Boolean), confirmed (Boolean)
   - Index on userId and achievedDate
 
-- [ ] Create `Photo` model
+- [x] Create `Photo` model
   - Fields: id (UUID), userId (FK), milestoneId (FK, nullable), albumId (nullable)
   - Fields: s3Key (unique String), uploadedAt (DateTime)
   - Fields: metadata (Json for EXIF data), analysisResults (Json, nullable)
   - Index on userId and uploadedAt
 
-- [ ] Create `UsageTracking` model
+- [x] Create `UsageTracking` model
   - Fields: id (UUID), userId (FK), date (Date)
   - Fields: messagesUsed (Int default 0), voiceMinutesUsed (Float default 0)
   - Fields: photosStored (Int default 0)
   - Unique constraint on userId + date (one record per user per day)
 
-- [ ] Run initial Prisma migration
+- [x] Run initial Prisma migration
   - Execute `npx prisma migrate dev --name init`
   - Verify all tables created in database
   - Generate Prisma Client: `npx prisma generate`
