@@ -9,6 +9,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
+import userRoutes from './routes/user';
 import { authenticateToken, AuthenticatedRequest } from './middleware/auth';
 
 // Load environment variables from .env file
@@ -78,6 +79,7 @@ app.get('/', (_req: Request, res: Response) => {
     endpoints: {
       health: '/health',
       auth: '/auth/*',
+      user: '/user/*',
     },
   });
 });
@@ -88,6 +90,14 @@ app.get('/', (_req: Request, res: Response) => {
  * All auth endpoints are prefixed with /auth
  */
 app.use('/auth', authRoutes);
+
+/**
+ * User profile routes
+ * Handles user profile management and onboarding data
+ * All user endpoints are prefixed with /user
+ * Requires authentication
+ */
+app.use('/user', userRoutes);
 
 /**
  * Protected test endpoint
