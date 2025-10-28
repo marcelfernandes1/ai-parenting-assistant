@@ -8,6 +8,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import authRoutes from './routes/auth';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -73,8 +74,19 @@ app.get('/', (_req: Request, res: Response) => {
     name: 'AI Parenting Assistant API',
     version: '1.0.0',
     description: 'Backend API for AI-powered parenting guidance',
+    endpoints: {
+      health: '/health',
+      auth: '/auth/*',
+    },
   });
 });
+
+/**
+ * Authentication routes
+ * Handles user registration, login, and token management
+ * All auth endpoints are prefixed with /auth
+ */
+app.use('/auth', authRoutes);
 
 // ===========================
 // Error Handling Middleware
