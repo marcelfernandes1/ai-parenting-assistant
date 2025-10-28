@@ -59,43 +59,43 @@
 
 ### Backend Auth API
 
-- [ ] Install authentication dependencies
+- [x] Install authentication dependencies
   - `npm install bcrypt jsonwebtoken express-validator`
   - `npm install @types/bcrypt @types/jsonwebtoken --save-dev`
 
-- [ ] Create `POST /auth/register` endpoint
+- [x] Create `POST /auth/register` endpoint
   - Validate email format and password strength (min 8 chars, 1 number)
   - Hash password with bcrypt (10 salt rounds)
   - Create User and UserProfile records in transaction
   - Return success message (do NOT auto-login, require email verification)
   - Handle duplicate email error gracefully
 
-- [ ] Create `POST /auth/login` endpoint
+- [x] Create `POST /auth/login` endpoint
   - Validate email and password fields present
   - Look up user by email
   - Compare password with bcrypt
   - Generate JWT access token (7-day expiry) and refresh token (30-day)
   - Return tokens and basic user info (id, email, subscriptionTier)
 
-- [ ] Create JWT generation utility
+- [x] Create JWT generation utility
   - Function `generateAccessToken(userId, email)` returns signed JWT
   - Function `generateRefreshToken(userId)` returns refresh token
   - Use separate secrets for access and refresh tokens (env variables)
   - Include userId and email in access token payload
 
-- [ ] Create JWT verification middleware
+- [x] Create JWT verification middleware
   - Middleware `authenticateToken(req, res, next)`
   - Extract token from `Authorization: Bearer <token>` header
   - Verify token with jwt.verify()
   - Attach decoded user data to `req.user`
   - Return 401 if token invalid or expired
 
-- [ ] Create `POST /auth/verify-email` endpoint (stub for now)
+- [x] Create `POST /auth/verify-email` endpoint (stub for now)
   - Accept token parameter
   - For MVP: simple implementation or skip (mark as TODO)
   - Return success if token valid
 
-- [ ] Create `POST /auth/reset-password` endpoint (stub for now)
+- [x] Create `POST /auth/reset-password` endpoint (stub for now)
   - Accept email parameter
   - For MVP: simple implementation or skip (mark as TODO)
   - Return success message
