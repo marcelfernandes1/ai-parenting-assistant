@@ -113,7 +113,7 @@
   - Store JWT tokens in AsyncStorage
   - Provide `isAuthenticated`, `user`, `loading` states
 
-- [ ] Create Login screen UI
+- [x] Create Login screen UI
   - Email input field (keyboard type: email-address, autoCapitalize: none)
   - Password input field (secureTextEntry: true)
   - "Login" button (disabled while loading)
