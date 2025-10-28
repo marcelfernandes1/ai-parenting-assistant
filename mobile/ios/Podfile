@@ -20,7 +20,9 @@ target 'AIParentingAssistant' do
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
+    # Disable the New Architecture for now to avoid build issues
+    :fabric_enabled => false
   )
 
   post_install do |installer|
