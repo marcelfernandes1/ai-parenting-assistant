@@ -1,0 +1,92 @@
+# GitHub Actions CI workflow for backend
+# Runs on pull requests and pushes to main branch
+# Performs linting, type checking, and build verification
+
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+# Set working directory for all backend jobs
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  # Linting and type checking job
+  lint-and-typecheck:
+    name: Lint and Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Setup Node.js environment with caching
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Run ESLint to check code quality
+      - name: Run ESLint
+        run: npm run lint
+
+      # Run TypeScript compiler to check for type errors
+      - name: Type check
+        run: npm run build
+
+  # Build verification job (separate for better error isolation)
+  build:
+    name: Build Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Setup Node.js with caching
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Generate Prisma Client (required for build)
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      # Build the application
+      - name: Build
+        run: npm run build
+
+      # Upload build artifacts for debugging (optional)
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: backend-build
+          path: backend/dist
+          retention-days: 7
