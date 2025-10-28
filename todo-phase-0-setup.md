@@ -18,7 +18,7 @@
   - Enable `strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`
   - Add path aliases for cleaner imports (`@components`, `@utils`, `@api`, etc.)
 
-- [ ] Set up ESLint and Prettier
+- [x] Set up ESLint and Prettier
   - Install `@react-native-community/eslint-config`
   - Configure Prettier with 2-space indentation, single quotes
   - Add Husky pre-commit hooks for linting
