@@ -22,7 +22,7 @@
     "react-native-config": "^1.5.1",
     "react-native-gesture-handler": "^2.20.2",
     "react-native-safe-area-context": "^5.5.2",
-    "react-native-screens": "^3.34.0"
+    "react-native-screens": "^3.31.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
