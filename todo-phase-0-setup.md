@@ -24,12 +24,12 @@
   - Add Husky pre-commit hooks for linting
   - Create `.prettierrc` and `.eslintrc.js` files
 
-- [ ] Initialize Git repository with proper .gitignore
+- [x] Initialize Git repository with proper .gitignore
   - Use React Native template .gitignore
   - Add `.env*` files to gitignore
   - Create initial commit with base project structure
 
-- [ ] Set up backend Node.js project
+- [x] Set up backend Node.js project
   - Initialize separate `/backend` directory with TypeScript
   - Use Express.js 4.x framework
   - Configure `tsconfig.json` for Node.js (commonjs modules)
