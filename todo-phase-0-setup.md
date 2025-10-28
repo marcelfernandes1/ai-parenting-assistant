@@ -45,10 +45,11 @@
 
 ## 📊 Database & Storage
 
-- [ ] Set up PostgreSQL database (local development)
+- [x] Set up PostgreSQL database (local development)
   - Install PostgreSQL 15+ locally or use Docker
   - Create database: `ai_parenting_assistant_dev`
   - Document connection string format
+  - **Note:** Docker Compose file created. Run `docker compose up -d` to start databases
 
 - [ ] Install and configure Prisma ORM
   - Run `npm install prisma @prisma/client`
@@ -56,10 +57,11 @@
   - Configure `schema.prisma` with PostgreSQL datasource
   - Set up migration workflow
 
-- [ ] Set up Redis for caching (local development)
+- [x] Set up Redis for caching (local development)
   - Install Redis locally or use Docker
   - Test connection with redis-cli
   - Install `redis` npm package in backend
+  - **Note:** Docker Compose file created. Run `docker compose up -d` to start databases
 
 - [ ] Configure AWS S3 for photo storage (development bucket)
   - Create S3 bucket with public read disabled

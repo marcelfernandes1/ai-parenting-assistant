@@ -1,0 +1,58 @@
+# Docker Compose configuration for AI Parenting Assistant development databases
+# This file sets up PostgreSQL and Redis for local development
+
+version: '3.8'
+
+services:
+  # PostgreSQL database service
+  # Stores user data, messages, photos, subscriptions, etc.
+  postgres:
+    image: postgres:15-alpine
+    container_name: ai-parenting-postgres
+    environment:
+      # Database credentials (for development only - use secure values in production)
+      POSTGRES_DB: ai_parenting_assistant_dev
+      POSTGRES_USER: ai_parenting_user
+      POSTGRES_PASSWORD: dev_password
+    ports:
+      # Map container port 5432 to host port 5432
+      # Access via: postgresql://ai_parenting_user:dev_password@localhost:5432/ai_parenting_assistant_dev
+      - "5432:5432"
+    volumes:
+      # Persist database data across container restarts
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # Check if PostgreSQL is ready to accept connections
+      test: ["CMD-SHELL", "pg_isready -U ai_parenting_user -d ai_parenting_assistant_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis cache service
+  # Used for session storage, rate limiting, and temporary data caching
+  redis:
+    image: redis:7-alpine
+    container_name: ai-parenting-redis
+    ports:
+      # Map container port 6379 to host port 6379
+      # Access via: redis://localhost:6379
+      - "6379:6379"
+    volumes:
+      # Persist Redis data across container restarts
+      - redis_data:/data
+    healthcheck:
+      # Check if Redis is responding to PING commands
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+# Named volumes for data persistence
+# Data survives container deletion but can be removed with: docker-compose down -v
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
