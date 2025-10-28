@@ -25,9 +25,9 @@ const USER_DATA_KEY = '@AIParenting:userData';
 
 /**
  * API base URL from environment variable
- * Defaults to localhost for development
+ * Defaults to localhost:3001 for development (changed from 3000 to avoid port conflicts)
  */
-const API_URL = process.env.API_URL || 'http://localhost:3000';
+const API_URL = process.env.API_URL || 'http://localhost:3001';
 
 /**
  * Flag to prevent multiple simultaneous refresh attempts
