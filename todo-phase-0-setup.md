@@ -13,7 +13,7 @@
   - Verify iOS and Android builds work on fresh install
   - Document Node.js version (20.x LTS) and package manager (npm/yarn)
 
-- [ ] Configure TypeScript strict mode
+- [x] Configure TypeScript strict mode
   - Set `strict: true` in tsconfig.json
   - Enable `strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`
   - Add path aliases for cleaner imports (`@components`, `@utils`, `@api`, etc.)
