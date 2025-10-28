@@ -6,7 +6,8 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
-    "start": "react-native start --port 8083",
+    "start": "react-native start --port 8083 --reset-cache",
+    "start:clean": "rm -rf $TMPDIR/metro-* $TMPDIR/haste-* node_modules/.cache 2>/dev/null || true && react-native start --port 8083 --reset-cache",
     "test": "jest",
     "prepare": "husky"
   },
