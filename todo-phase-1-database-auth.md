@@ -159,67 +159,67 @@
 
 ### Onboarding Screens
 
-- [ ] Create onboarding navigation stack
+- [x] Create onboarding navigation stack
   - Install React Navigation 6.x: `@react-navigation/native`, `@react-navigation/stack`
   - Create `OnboardingNavigator.tsx` with 7 screens
   - Configure screen transitions (slide animations)
 
-- [ ] Create Welcome screen (Step 1)
+- [x] Create Welcome screen (Step 1)
   - Display app logo and tagline
   - Brief intro text (2-3 sentences about app value)
   - Medical disclaimer text (small font): "Not medical advice..."
   - "Get Started" button
   - Skip onboarding option (small text link)
 
-- [ ] Create Current Stage screen (Step 2)
+- [x] Create Current Stage screen (Step 2)
   - Radio button group: "I am currently pregnant" / "I am already a parent"
   - Store selection in local state
   - "Next" button (disabled until selection made)
   - "Back" button
 
-- [ ] Create Timeline Input screen (Step 3)
+- [x] Create Timeline Input screen (Step 3)
   - Conditional rendering based on previous answer
   - If pregnant: DatePicker for due date (future dates only)
   - If parent: DatePicker for baby birth date (past dates only, max 24 months ago)
   - "Next" button validates date selected
 
-- [ ] Create Baby Info screen (Step 4)
+- [x] Create Baby Info screen (Step 4)
   - Only shown if user selected "Already a parent"
   - Text input: Baby's name (optional, placeholder: "You can add this later")
   - Radio buttons: Male / Female / Prefer not to say (optional)
   - "Next" button always enabled
 
-- [ ] Create Parenting Philosophy screen (Step 5 - Question 1)
+- [x] Create Parenting Philosophy screen (Step 5 - Question 1)
   - Single-select radio buttons
   - Options: Gentle/Attachment, Structured/Scheduled, Balanced/Flexible, Still figuring it out, Prefer not to say
   - "Next" button enabled after selection
 
-- [ ] Create Religious Background screen (Step 5 - Question 2)
+- [x] Create Religious Background screen (Step 5 - Question 2)
   - Multi-select checkboxes
   - Options: Christian (expandable sub-options), Muslim, Jewish, Hindu, Buddhist, Secular, Spiritual, Prefer not to say
   - Allow multiple selections
   - "Next" button always enabled
 
-- [ ] Create Cultural Background screen (Step 5 - Question 3)
+- [x] Create Cultural Background screen (Step 5 - Question 3)
   - Optional text area input (multiline)
   - Placeholder: "e.g., Latin American, South Asian, etc."
   - Character limit: 200
   - "Next" button always enabled
 
-- [ ] Create Concerns screen (Step 5 - Question 4)
+- [x] Create Concerns screen (Step 5 - Question 4)
   - Multi-select checkboxes (max 3 selections)
   - Options: Sleep, Feeding, Development, Health, Crying, Postpartum recovery, Work/parenting balance, Partner coordination
   - Show counter: "Selected: 2/3"
   - "Next" button enabled after at least 1 selection
 
-- [ ] Create Notification Preferences screen (Step 6)
+- [x] Create Notification Preferences screen (Step 6)
   - Toggle switches for each preference
   - "Daily milestone updates" (default: ON)
   - "Weekly tips and guidance" (default: ON)
   - "Reminder to log milestones" (default: ON)
   - "Next" button always enabled
 
-- [ ] Create Usage Limits Explanation screen (Step 7)
+- [x] Create Usage Limits Explanation screen (Step 7)
   - Visual explanation of free tier: "10 messages/day + 10 minutes voice/day"
   - List of premium benefits with checkmarks
   - Two buttons: "Start Free Trial" (primary), "Continue with Free" (secondary)
@@ -227,7 +227,7 @@
 
 ### Onboarding Backend Integration
 
-- [ ] Create `PUT /user/profile` endpoint
+- [x] Create `PUT /user/profile` endpoint
   - Accept all onboarding data in request body
   - Validate userId from JWT token
   - Update UserProfile record with onboarding answers
@@ -247,7 +247,7 @@
 
 ---
 
-**Progress:** ⬜ 0/44 tasks completed
+**Progress:** ✅ 42/44 tasks completed
 
 **Previous Phase:** [Phase 0: Setup](todo-phase-0-setup.md)
 **Next Phase:** [Phase 2: Chat & Voice](todo-phase-2-chat-voice.md)
