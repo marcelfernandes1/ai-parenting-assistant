@@ -77,7 +77,7 @@ const UsageLimitsExplanationScreen: React.FC<OnboardingNavigationProps> = ({
       });
 
       // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise<void>(resolve => setTimeout(() => resolve(), 1000));
 
       // Mark onboarding as complete in AsyncStorage
       // TODO: Implement AsyncStorage persistence
