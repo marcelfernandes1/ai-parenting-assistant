@@ -35,7 +35,7 @@
   - Configure `tsconfig.json` for Node.js (commonjs modules)
   - Set up nodemon for development hot-reload
 
-- [ ] Configure environment variables management
+- [x] Configure environment variables management
   - Install `dotenv` for backend
   - Install `react-native-config` for mobile
   - Create `.env.example` files with all required variables (no values)
@@ -88,6 +88,6 @@
 
 ---
 
-**Progress:** ⬜ 0/16 tasks completed
+**Progress:** ✅ 6/16 tasks completed (37.5%)
 
 **Next Phase:** [Phase 1: Database Schema & Auth](todo-phase-1-database-auth.md)
