@@ -107,7 +107,7 @@
 
 ### Frontend Auth Screens
 
-- [ ] Create authentication context with React Context API
+- [x] Create authentication context with React Context API
   - Create `AuthContext.tsx` with user state and auth methods
   - Methods: `login(email, password)`, `register(email, password)`, `logout()`
   - Store JWT tokens in AsyncStorage
