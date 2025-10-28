@@ -128,27 +128,27 @@
   - "Already have an account? Login" link
   - Display error messages
 
-- [ ] Implement login flow
+- [x] Implement login flow
   - Call `POST /auth/login` API on button press
   - Store tokens in AsyncStorage on success
   - Update AuthContext user state
   - Navigate to onboarding or home screen
   - Show error toast/alert on failure
 
-- [ ] Implement registration flow
+- [x] Implement registration flow
   - Validate passwords match on frontend
   - Call `POST /auth/register` API
   - Show success message: "Check your email to verify account"
   - Navigate to login screen
   - Show error toast/alert on failure
 
-- [ ] Create token refresh mechanism
+- [x] Create token refresh mechanism
   - Axios interceptor to catch 401 responses
   - Attempt to refresh token with `POST /auth/refresh` (create endpoint)
   - Retry failed request with new token
   - Logout user if refresh fails
 
-- [ ] Implement logout functionality
+- [x] Implement logout functionality
   - Clear AsyncStorage tokens
   - Reset AuthContext state
   - Navigate to login screen

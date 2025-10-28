@@ -16,6 +16,7 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { apiClient, setAuthToken, clearAuthToken } from '../services/apiClient';
 
 /**
  * User data structure returned from backend API
@@ -122,6 +123,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setAccessToken(storedAccessToken);
         setRefreshToken(storedRefreshToken);
         setUser(JSON.parse(storedUserData));
+
+        // Set auth token in API client for subsequent requests
+        setAuthToken(storedAccessToken);
       }
     } catch (error) {
       // If loading fails, log error but continue (user will see login screen)
@@ -254,6 +258,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Store auth data in AsyncStorage and state
       await storeAuth(accessToken, refreshToken, userData);
 
+      // Set auth token in API client for subsequent requests
+      setAuthToken(accessToken);
+
       console.log('Login successful');
     } catch (error: any) {
       // Handle login errors
@@ -284,6 +291,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       // Clear all auth data
       await clearAuth();
+
+      // Clear auth token from API client
+      clearAuthToken();
+
       console.log('Logout successful');
     } catch (error) {
       // Log error but still complete logout
