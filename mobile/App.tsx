@@ -1,113 +1,51 @@
 /**
  * AI Parenting Assistant - Main App Entry Point
- * React Native 0.74 compatible implementation
+ * React Native 0.74 compatible implementation with authentication and navigation
  *
  * @format
  */
 
 import React from 'react';
-import {
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { StatusBar, useColorScheme } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+// Authentication context provider
+import { AuthProvider } from './mobile/src/context/AuthContext';
+
+// Main navigation component
+import AppNavigator from './mobile/src/navigation/AppNavigator';
 
 /**
  * Main App component
- * Sets up the app with SafeAreaProvider for proper screen insets
- * and StatusBar configuration based on color scheme
+ * Sets up the app with all necessary providers and navigation
+ *
+ * Provider hierarchy (outer to inner):
+ * 1. GestureHandlerRootView - Required for react-native-gesture-handler
+ * 2. SafeAreaProvider - Handles safe area insets (notches, home indicators)
+ * 3. AuthProvider - Provides authentication context to entire app
+ * 4. AppNavigator - Handles navigation between screens based on auth state
  */
 function App() {
   // Detect if user has dark mode enabled for proper StatusBar styling
   const isDarkMode = useColorScheme() === 'dark';
 
   return (
-    <SafeAreaProvider>
-      {/* Configure status bar style based on color scheme */}
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
+    // GestureHandlerRootView must wrap the entire app for gesture-based navigation
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      {/* SafeAreaProvider enables safe area context for all child components */}
+      <SafeAreaProvider>
+        {/* Configure status bar style based on color scheme */}
+        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+
+        {/* AuthProvider makes authentication state available throughout the app */}
+        <AuthProvider>
+          {/* AppNavigator handles all screen navigation and routing */}
+          <AppNavigator />
+        </AuthProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
-
-/**
- * AppContent component - Main content area
- * Uses safe area insets to avoid notches, home indicators, etc.
- */
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const isDarkMode = useColorScheme() === 'dark';
-
-  // Create background and text colors based on color scheme
-  const backgroundColor = isDarkMode ? '#1a1a1a' : '#ffffff';
-  const textColor = isDarkMode ? '#ffffff' : '#000000';
-
-  return (
-    <View style={[styles.container, { backgroundColor }]}>
-      <View
-        style={[
-          styles.content,
-          {
-            paddingTop: safeAreaInsets.top || 20,
-            paddingBottom: safeAreaInsets.bottom || 20,
-            paddingLeft: safeAreaInsets.left || 20,
-            paddingRight: safeAreaInsets.right || 20,
-          },
-        ]}
-      >
-        {/* Welcome screen - placeholder for actual app screens */}
-        <Text style={[styles.title, { color: textColor }]}>
-          AI Parenting Assistant
-        </Text>
-        <Text style={[styles.subtitle, { color: textColor }]}>
-          Welcome! 👶
-        </Text>
-        <Text style={[styles.description, { color: textColor, opacity: 0.7 }]}>
-          Your AI-powered parenting companion is ready.
-        </Text>
-        <Text style={[styles.description, { color: textColor, opacity: 0.7 }]}>
-          React Native 0.74 running successfully!
-        </Text>
-      </View>
-    </View>
-  );
-}
-
-/**
- * Component styles
- * Following a clean, centered layout for the welcome screen
- */
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 48,
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  description: {
-    fontSize: 16,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-});
 
 export default App;
