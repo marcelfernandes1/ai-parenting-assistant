@@ -120,7 +120,7 @@
   - "Don't have an account? Sign up" link
   - Display error messages below form (red text)
 
-- [ ] Create Register screen UI
+- [x] Create Register screen UI
   - Email input field
   - Password input field with strength indicator
   - Confirm password field
