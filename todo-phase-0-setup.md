@@ -51,11 +51,12 @@
   - Document connection string format
   - **Note:** Docker Compose file created. Run `docker compose up -d` to start databases
 
-- [ ] Install and configure Prisma ORM
+- [x] Install and configure Prisma ORM
   - Run `npm install prisma @prisma/client`
   - Initialize Prisma: `npx prisma init`
   - Configure `schema.prisma` with PostgreSQL datasource
   - Set up migration workflow
+  - **Note:** Models will be defined in Phase 1
 
 - [x] Set up Redis for caching (local development)
   - Install Redis locally or use Docker
@@ -90,6 +91,6 @@
 
 ---
 
-**Progress:** ✅ 6/16 tasks completed (37.5%)
+**Progress:** ✅ 9/16 tasks completed (56.25%)
 
 **Next Phase:** [Phase 1: Database Schema & Auth](todo-phase-1-database-auth.md)

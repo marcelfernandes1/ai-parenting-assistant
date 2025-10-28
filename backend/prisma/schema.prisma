@@ -1,0 +1,27 @@
+// Prisma Schema for AI Parenting Assistant
+// This file defines the database schema using Prisma ORM.
+// Models will be added in Phase 1 (Database & Auth).
+//
+// To apply changes:
+// 1. Edit this file to add/modify models
+// 2. Run: npx prisma migrate dev --name description_of_changes
+// 3. Run: npx prisma generate (to update Prisma Client)
+
+// Prisma Client generator configuration
+// Generates TypeScript client for database access
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Database connection configuration
+// Uses PostgreSQL with connection string from .env file
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================
+// Database Models
+// ===========================
+// Models will be defined in Phase 1
+// This file is ready for model definitions
