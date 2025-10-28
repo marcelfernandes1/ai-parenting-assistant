@@ -100,7 +100,7 @@
   - For MVP: simple implementation or skip (mark as TODO)
   - Return success message
 
-- [ ] Add rate limiting to auth endpoints
+- [x] Add rate limiting to auth endpoints
   - Install `express-rate-limit`
   - Limit login to 5 attempts per 15 minutes per IP
   - Limit register to 3 attempts per hour per IP

@@ -18,6 +18,11 @@ import {
   verifyEmail,
   resetPassword,
 } from '../controllers/authController';
+import {
+  loginRateLimiter,
+  registerRateLimiter,
+  authRateLimiter,
+} from '../middleware/rateLimiter';
 
 // Create Express router for auth routes
 const router = Router();
@@ -39,6 +44,8 @@ const router = Router();
  */
 router.post(
   '/register',
+  // Apply rate limiter: 3 attempts per hour per IP
+  registerRateLimiter,
   [
     // Validate email field
     // normalizeEmail() converts to lowercase and removes dots from Gmail addresses
@@ -77,6 +84,8 @@ router.post(
  */
 router.post(
   '/login',
+  // Apply rate limiter: 5 attempts per 15 minutes per IP
+  loginRateLimiter,
   [
     // Validate email field
     body('email')
@@ -108,6 +117,8 @@ router.post(
  */
 router.post(
   '/refresh',
+  // Apply general auth rate limiter: 10 attempts per 15 minutes
+  authRateLimiter,
   [
     // Validate refresh token is provided
     body('refreshToken').notEmpty().withMessage('Refresh token is required'),
@@ -129,6 +140,8 @@ router.post(
  */
 router.post(
   '/verify-email',
+  // Apply general auth rate limiter: 10 attempts per 15 minutes
+  authRateLimiter,
   [
     // Validate token is provided
     body('token').notEmpty().withMessage('Verification token is required'),
@@ -150,6 +163,8 @@ router.post(
  */
 router.post(
   '/reset-password',
+  // Apply general auth rate limiter: 10 attempts per 15 minutes
+  authRateLimiter,
   [
     // Validate email is provided
     body('email')

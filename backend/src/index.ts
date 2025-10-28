@@ -9,6 +9,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
+import { authenticateToken, AuthenticatedRequest } from './middleware/auth';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -87,6 +88,21 @@ app.get('/', (_req: Request, res: Response) => {
  * All auth endpoints are prefixed with /auth
  */
 app.use('/auth', authRoutes);
+
+/**
+ * Protected test endpoint
+ * Used to verify authentication middleware is working correctly
+ * Requires valid JWT token in Authorization header
+ */
+app.get('/protected-test', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+  res.status(200).json({
+    message: 'Authentication successful',
+    user: {
+      userId: req.user?.userId,
+      email: req.user?.email,
+    },
+  });
+});
 
 // ===========================
 // Error Handling Middleware
