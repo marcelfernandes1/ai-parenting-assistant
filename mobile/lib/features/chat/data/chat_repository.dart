@@ -148,6 +148,67 @@ class ChatRepository {
     }
   }
 
+  /// Sends a voice message for transcription and AI response.
+  ///
+  /// Parameters:
+  /// - audioFilePath: Path to the recorded audio file
+  /// - sessionId: The conversation session ID
+  ///
+  /// Returns: Map containing transcription text, user message, and assistant response
+  /// Throws: DioException on network errors, Exception on other errors
+  Future<Map<String, dynamic>> sendVoiceMessage({
+    required String audioFilePath,
+    required String sessionId,
+  }) async {
+    try {
+      // Upload audio file using multipart form data
+      final response = await _apiClient.uploadFile(
+        '/chat/voice',
+        audioFilePath,
+        'audio',
+        additionalData: {
+          'sessionId': sessionId,
+        },
+      );
+
+      // Check response status
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        // Parse user voice message (with transcribed text)
+        final userMessage = ChatMessage.fromJson({
+          ...data['userMessage'],
+          'role': 'USER',
+          'contentType': 'VOICE',
+          'sessionId': sessionId,
+        });
+
+        // Parse assistant text response
+        final assistantMessage = ChatMessage.fromJson({
+          ...data['assistantMessage'],
+          'role': 'ASSISTANT',
+          'contentType': 'TEXT',
+          'sessionId': sessionId,
+        });
+
+        return {
+          'transcription': data['transcription'] as String,
+          'userMessage': userMessage,
+          'assistantMessage': assistantMessage,
+        };
+      } else if (response.statusCode == 429) {
+        // Daily limit reached
+        throw Exception(
+            response.data['message'] ?? 'Daily message limit reached');
+      } else {
+        throw Exception(
+            response.data['error'] ?? 'Failed to process voice message');
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
   /// Gets today's usage statistics.
   ///
   /// Returns: Map containing messagesUsed, voiceMinutesUsed, photosStored

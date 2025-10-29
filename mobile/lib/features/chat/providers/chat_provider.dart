@@ -136,6 +136,46 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
   }
 
+  /// Sends a voice message for transcription and receives AI response
+  /// Uploads audio file, gets transcription, and displays both messages
+  Future<void> sendVoiceMessage(String audioFilePath) async {
+    // Set sending state
+    state = state.copyWith(isSendingMessage: true, error: null);
+
+    try {
+      // Call API to upload and transcribe voice message
+      final result = await _chatRepository.sendVoiceMessage(
+        audioFilePath: audioFilePath,
+        sessionId: state.sessionId,
+      );
+
+      // Add both user (voice) and assistant (text) messages to state
+      final updatedMessages = [
+        ...state.messages,
+        result['userMessage'] as ChatMessage,
+        result['assistantMessage'] as ChatMessage,
+      ];
+
+      state = state.copyWith(
+        messages: updatedMessages,
+        isSendingMessage: false,
+      );
+    } catch (e) {
+      // Handle error (e.g., transcription failed, daily limit reached)
+      state = state.copyWith(
+        isSendingMessage: false,
+        error: e.toString(),
+      );
+
+      // Clear error after 5 seconds
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted) {
+          state = state.copyWith(error: null);
+        }
+      });
+    }
+  }
+
   /// Starts a new conversation by clearing messages and generating new session ID
   Future<void> newConversation() async {
     state = state.copyWith(isLoading: true, error: null);
