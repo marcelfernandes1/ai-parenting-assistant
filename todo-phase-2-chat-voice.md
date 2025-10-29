@@ -133,16 +133,18 @@
 
 ### Frontend Voice Recording
 
-- [ ] Install audio recording library
-  - `npm install react-native-audio-recorder-player`
-  - Link native dependencies for iOS and Android
-  - Request microphone permissions (iOS: Info.plist, Android: AndroidManifest.xml)
+- [x] Install audio recording library
+  - Installed `record: ^5.1.2` package (modern alternative to flutter_sound)
+  - Native dependencies link automatically with Flutter
+  - Microphone permissions already configured in Info.plist and AndroidManifest.xml
 
-- [ ] Create voice recording hook
-  - Custom hook `useVoiceRecorder()`
-  - State: isRecording, recordingPath, duration
-  - Methods: startRecording(), stopRecording(), cancelRecording()
-  - Use react-native-audio-recorder-player for recording
+- [x] Create voice recording provider
+  - Created `VoiceRecorderNotifier` using Riverpod StateNotifier
+  - State: RecordingState (idle, recording, stopped, error), filePath, duration, errorMessage
+  - Methods: startRecording(), stopRecording(), cancelRecording(), checkPermission()
+  - Uses `record` package for audio recording with m4a format
+  - Auto-stops recording after 2 minutes
+  - Automatic duration timer updates every second
 
 - [ ] Add microphone button to chat input
   - Icon button next to text input
@@ -282,7 +284,7 @@
 
 ---
 
-**Progress:** ✅ 17/40 tasks completed
+**Progress:** ✅ 19/40 tasks completed
 
 **Previous Phase:** [Phase 1: Database & Auth](todo-phase-1-database-auth.md)
 **Next Phase:** [Phase 3: Photos & Milestones](todo-phase-3-photos-milestones.md)
