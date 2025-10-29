@@ -233,21 +233,21 @@
   - Update UserProfile record with onboarding answers
   - Return updated profile data
 
-- [ ] Save onboarding data to backend
+- [x] Save onboarding data to backend
   - Call API after Step 7 completion
   - Send all collected data in single request
   - Handle errors gracefully (allow retry)
   - Store data in AuthContext on success
 
-- [ ] Navigate to main app after onboarding
+- [x] Navigate to main app after onboarding
   - Check if user has completed onboarding on app launch
   - If not, show onboarding flow
   - If completed, go to home screen
-  - Store onboarding completion flag in AsyncStorage
+  - Router automatically handles redirect based on onboardingComplete flag
 
 ---
 
-**Progress:** ✅ 42/44 tasks completed
+**Progress:** ✅ 44/44 tasks completed
 
 **Previous Phase:** [Phase 0: Setup](todo-phase-0-setup.md)
 **Next Phase:** [Phase 2: Chat & Voice](todo-phase-2-chat-voice.md)

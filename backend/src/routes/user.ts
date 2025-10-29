@@ -109,18 +109,40 @@ router.put('/profile', authenticateToken, async (req: Request, res: Response) =>
       },
     });
 
-    // Return success response with updated profile
+    // Mark onboarding as complete in User model
+    // This flag is checked by the router to determine if user should see onboarding
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        onboardingComplete: true,
+        updatedAt: new Date(),
+      },
+    });
+
+    // Return success response with updated user data (not profile)
+    // Frontend expects 'user' field with User model data including onboardingComplete flag
     return res.status(200).json({
       message: 'Profile updated successfully',
-      profile: {
-        ...updatedProfile,
-        // Parse JSON fields back to objects for response
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        subscriptionTier: updatedUser.subscriptionTier,
+        onboardingComplete: updatedUser.onboardingComplete,
+        // Include profile data in user response
+        mode: updatedProfile.mode,
+        babyName: updatedProfile.babyName,
+        babyBirthDate: updatedProfile.babyBirthDate?.toISOString() || null,
         parentingPhilosophy: updatedProfile.parentingPhilosophy
           ? JSON.parse(updatedProfile.parentingPhilosophy as string)
           : null,
         religiousViews: updatedProfile.religiousViews
           ? JSON.parse(updatedProfile.religiousViews as string)
           : null,
+        primaryConcerns: updatedProfile.concerns,
+        createdAt: updatedUser.createdAt,
+        updatedAt: updatedUser.updatedAt,
       },
     });
   } catch (error) {

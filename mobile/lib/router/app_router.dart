@@ -29,9 +29,6 @@ import '../features/onboarding/presentation/usage_limits_explanation_screen.dart
 /// Provider for GoRouter instance
 /// Watches auth state to determine route redirection
 final routerProvider = Provider<GoRouter>((ref) {
-  // Watch authentication state for navigation guards
-  final authState = ref.watch(authProvider);
-
   return GoRouter(
     // Initial route when app launches
     initialLocation: '/login',
@@ -39,10 +36,21 @@ final routerProvider = Provider<GoRouter>((ref) {
     // Redirect logic based on authentication state
     // This runs before every navigation to ensure users are on correct screens
     redirect: (context, state) {
-      // Get current auth state
+      // Read current auth state (use read instead of watch to avoid rebuilding router)
+      final authState = ref.read(authProvider);
       final isAuthenticated = authState is AuthStateAuthenticated;
       final hasCompletedOnboarding = isAuthenticated &&
           (authState as AuthStateAuthenticated).user.onboardingComplete;
+
+      // Debug logging
+      print('🔍 Router Debug:');
+      print('  Location: ${state.matchedLocation}');
+      print('  isAuthenticated: $isAuthenticated');
+      print('  hasCompletedOnboarding: $hasCompletedOnboarding');
+      if (isAuthenticated) {
+        final user = (authState as AuthStateAuthenticated).user;
+        print('  User: ${user.email}, onboardingComplete: ${user.onboardingComplete}');
+      }
 
       // Get current location
       final isOnAuthScreen = state.matchedLocation.startsWith('/login') ||
@@ -102,9 +110,10 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       /// Onboarding flow - multi-step user profile setup
       /// Base path: /onboarding
+      /// Shows welcome screen by default (no redirect to avoid conflicts)
       GoRoute(
         path: '/onboarding',
-        redirect: (context, state) => '/onboarding/welcome',
+        builder: (context, state) => const WelcomeScreen(),
         routes: [
           /// Welcome screen - introduces app features and benefits
           /// Path: /onboarding/welcome

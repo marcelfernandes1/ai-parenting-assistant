@@ -87,14 +87,23 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       },
     });
 
-    // Return 201 Created with success message
-    // Note: Do NOT auto-login user - require email verification (future feature)
+    // Generate JWT tokens for auto-login after registration
+    const accessToken = generateAccessToken(user.id, user.email);
+    const refreshToken = generateRefreshToken(user.id);
+
+    // Return 201 Created with tokens and user data
+    // Auto-login user after successful registration
     res.status(201).json({
       message: 'Registration successful',
+      accessToken,
+      refreshToken,
       user: {
         id: user.id,
         email: user.email,
+        subscriptionTier: user.subscriptionTier,
+        onboardingComplete: user.onboardingComplete, // Always false for new users
         createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       },
     });
   } catch (error) {
@@ -187,10 +196,17 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         email: user.email,
         subscriptionTier: user.subscriptionTier,
         subscriptionStatus: user.subscriptionStatus,
-        profile: {
-          mode: user.profile?.mode,
-          babyName: user.profile?.babyName,
-        },
+        // Use onboardingComplete field from User model
+        onboardingComplete: user.onboardingComplete,
+        // Include profile data if available
+        mode: user.profile?.mode,
+        babyName: user.profile?.babyName,
+        babyBirthDate: user.profile?.babyBirthDate?.toISOString() || null,
+        parentingPhilosophy: user.profile?.parentingPhilosophy,
+        religiousViews: user.profile?.religiousViews,
+        primaryConcerns: user.profile?.concerns,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       },
     });
   } catch (error) {

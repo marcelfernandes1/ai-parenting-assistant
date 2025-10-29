@@ -31,7 +31,8 @@ class ApiConfig {
   static const String updateProfileEndpoint = '/user/profile';
 
   /// Onboarding endpoints
-  static const String completeOnboardingEndpoint = '/user/onboarding';
+  /// Uses the same endpoint as updateProfile since onboarding is just a profile update
+  static const String completeOnboardingEndpoint = '/user/profile';
 
   /// Chat endpoints
   static const String chatMessagesEndpoint = '/chat/messages';

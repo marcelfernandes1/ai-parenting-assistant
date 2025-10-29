@@ -47,7 +47,11 @@ class UsageLimitsExplanationScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
-    final isLoading = authState is AuthStateLoading;
+    // Use Freezed's maybeWhen for type-safe state checking
+    final isLoading = authState.maybeWhen(
+      loading: () => true,
+      orElse: () => false,
+    );
 
     return Scaffold(
       body: SafeArea(

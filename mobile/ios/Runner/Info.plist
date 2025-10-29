@@ -45,5 +45,13 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to capture photos of your baby for milestone tracking and AI-powered analysis.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to select and upload photos of your baby.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>We need permission to save photos to your library.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to your microphone for voice chat with the AI parenting assistant.</string>
 </dict>
 </plist>
