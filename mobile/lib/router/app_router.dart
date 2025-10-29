@@ -25,6 +25,7 @@ import '../features/onboarding/presentation/cultural_background_screen.dart';
 import '../features/onboarding/presentation/concerns_screen.dart';
 import '../features/onboarding/presentation/notification_preferences_screen.dart';
 import '../features/onboarding/presentation/usage_limits_explanation_screen.dart';
+import '../features/chat/presentation/chat_screen.dart';
 
 /// Provider for GoRouter instance
 /// Watches auth state to determine route redirection
@@ -199,13 +200,13 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // ===== Main App Routes =====
 
-      /// Home screen - main app entry after authentication and onboarding
+      /// Home screen - AI chat interface
       /// Path: /home
-      /// TODO: Replace with actual home screen when chat/voice features are built
+      /// Main chat screen with message history and AI responses
       GoRoute(
         path: '/home',
         name: 'home',
-        builder: (context, state) => const _HomeScreenPlaceholder(),
+        builder: (context, state) => const ChatScreen(),
       ),
     ],
 
@@ -240,111 +241,3 @@ final routerProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
-
-/// Temporary home screen placeholder
-/// This will be replaced with actual main app screens (chat, voice, photos, milestones)
-class _HomeScreenPlaceholder extends ConsumerWidget {
-  const _HomeScreenPlaceholder();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Get current user from auth state
-    final authState = ref.watch(authProvider);
-    final user = authState is AuthStateAuthenticated ? authState.user : null;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('AI Parenting Assistant'),
-        actions: [
-          // Logout button
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              // Call logout on auth provider
-              await ref.read(authProvider.notifier).logout();
-              // Router will automatically redirect to login
-            },
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Welcome icon
-                Icon(
-                  Icons.celebration,
-                  size: 80,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(height: 24),
-
-                // Welcome message
-                Text(
-                  'Welcome to AI Parenting Assistant!',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-
-                // User email display
-                if (user != null) ...[
-                  Text(
-                    'Logged in as:',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    user.email,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                ],
-
-                // Coming soon message
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.construction,
-                          size: 40,
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Main app features coming soon!',
-                          style: Theme.of(context).textTheme.titleMedium,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Chat, Voice, Photos, and Milestone tracking features will appear here.',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
