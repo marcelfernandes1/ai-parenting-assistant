@@ -81,6 +81,47 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 - Comments before each major code block explaining its purpose
 - Explain edge cases, error handling, and security considerations
 
+### Library-First Principle (MANDATORY)
+**ALWAYS search for existing libraries/APIs/frameworks BEFORE writing custom code:**
+
+When implementing ANY feature, follow this workflow:
+1. **Search First:** Look for existing npm packages, React Native libraries, or APIs
+2. **Evaluate Options:** Check library popularity, maintenance, and documentation
+3. **Use Battle-Tested Solutions:** Prefer well-maintained packages over custom code
+4. **Only Custom Code as Last Resort:** Write custom implementations ONLY if no suitable library exists
+
+**Why This Matters:**
+- Saves development time (hours → minutes)
+- Reduces bugs (battle-tested code vs. new code)
+- Better maintenance (community support vs. maintaining custom code)
+- More features (libraries often have edge cases covered)
+
+**Where to Search:**
+- **npm/yarn:** `npm search <feature>` or https://www.npmjs.com
+- **React Native Directory:** https://reactnative.directory (curated RN libraries)
+- **GitHub:** Search for repos with high stars/recent commits
+- **Official Docs:** React Native, Expo, framework-specific solutions
+- **Stack Overflow:** Check what the community recommends
+
+**Examples:**
+- ❌ DON'T write custom date formatting → ✅ USE `date-fns` or `dayjs`
+- ❌ DON'T write custom form validation → ✅ USE `react-hook-form` + `zod`
+- ❌ DON'T write custom image picker → ✅ USE `react-native-image-picker`
+- ❌ DON'T write custom HTTP client → ✅ USE `axios` or `fetch`
+- ❌ DON'T write custom state management → ✅ USE `zustand` or `redux`
+
+**When Custom Code is Acceptable:**
+- Business logic specific to this app (e.g., parenting advice algorithm)
+- Simple utilities (2-3 lines) that don't warrant a dependency
+- No existing library meets the exact requirements after thorough search
+- Existing libraries are unmaintained (last update >2 years ago)
+
+**Before Writing Custom Code, Ask:**
+1. "Has someone else solved this problem already?"
+2. "Is there an npm package for this?"
+3. "What does the React Native community recommend?"
+4. "Can I accomplish this with existing dependencies?"
+
 ---
 
 ## Project Structure
@@ -410,16 +451,17 @@ Full product requirements in `PRD_MVP.md` including:
 
 ## Important Reminders
 
-1. **TypeScript Strict Mode is ON** - No `any` types, handle all nulls
-2. **Test IMMEDIATELY after each task** - Don't accumulate untested code
-3. **Mark todos with [x]** - Essential for progress tracking
-4. **Document EVERYTHING** - Every function, every code block
-5. **Use exact versions** - No ^ or ~ in package.json
-6. **Error handling required** - try-catch all async operations
-7. **Commit AND push after each task** - Run `git push` after every commit (enables easy rollback)
-8. **One phase at a time** - Don't jump ahead or mix phases
-9. **Security first** - Never commit secrets, always validate inputs
-10. **Mobile: test iOS AND Android** - Platform-specific bugs are common
+1. **Library-First Principle** - Search for existing libraries BEFORE writing custom code
+2. **TypeScript Strict Mode is ON** - No `any` types, handle all nulls
+3. **Test IMMEDIATELY after each task** - Don't accumulate untested code
+4. **Mark todos with [x]** - Essential for progress tracking
+5. **Document EVERYTHING** - Every function, every code block
+6. **Use exact versions** - No ^ or ~ in package.json
+7. **Error handling required** - try-catch all async operations
+8. **Commit AND push after each task** - Run `git push` after every commit (enables easy rollback)
+9. **One phase at a time** - Don't jump ahead or mix phases
+10. **Security first** - Never commit secrets, always validate inputs
+11. **Mobile: test iOS AND Android** - Platform-specific bugs are common
 
 ---
 
