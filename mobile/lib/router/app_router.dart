@@ -27,12 +27,39 @@ import '../features/onboarding/presentation/notification_preferences_screen.dart
 import '../features/onboarding/presentation/usage_limits_explanation_screen.dart';
 import '../features/chat/presentation/chat_screen.dart';
 
+/// ChangeNotifier that listens to auth state changes and notifies GoRouter.
+/// This makes the router reactive to authentication state changes.
+class GoRouterNotifier extends ChangeNotifier {
+  final Ref _ref;
+
+  GoRouterNotifier(this._ref) {
+    // Listen to auth provider changes and notify listeners (GoRouter)
+    _ref.listen(
+      authProvider,
+      (previous, next) {
+        // Notify GoRouter to re-run redirect logic when auth state changes
+        notifyListeners();
+      },
+    );
+  }
+}
+
+/// Provider for GoRouterNotifier instance
+final goRouterNotifierProvider = Provider<GoRouterNotifier>((ref) {
+  return GoRouterNotifier(ref);
+});
+
 /// Provider for GoRouter instance
 /// Watches auth state to determine route redirection
 final routerProvider = Provider<GoRouter>((ref) {
+  // Get the notifier that listens to auth changes
+  final notifier = ref.watch(goRouterNotifierProvider);
   return GoRouter(
     // Initial route when app launches
     initialLocation: '/login',
+
+    // Listen to auth state changes to re-run redirect logic
+    refreshListenable: notifier,
 
     // Redirect logic based on authentication state
     // This runs before every navigation to ensure users are on correct screens
