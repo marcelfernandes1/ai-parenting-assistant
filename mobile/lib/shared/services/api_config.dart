@@ -35,8 +35,8 @@ class ApiConfig {
   static const String completeOnboardingEndpoint = '/user/profile';
 
   /// Chat endpoints
-  static const String chatMessagesEndpoint = '/chat/messages';
-  static const String sendMessageEndpoint = '/chat/send';
+  static const String chatMessagesEndpoint = '/chat/history';
+  static const String sendMessageEndpoint = '/chat/message';
 
   /// Photo endpoints
   static const String uploadPhotoEndpoint = '/photos/upload';

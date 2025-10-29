@@ -1,0 +1,199 @@
+/// Chat repository for handling all chat-related API calls.
+/// Provides methods for sending messages, fetching history, and managing sessions.
+library;
+
+import 'package:dio/dio.dart';
+import '../../../shared/services/api_client.dart';
+import '../../../shared/services/api_config.dart';
+import '../domain/chat_message.dart';
+
+/// Repository class handling chat API calls and session management.
+/// Uses ApiClient for network requests with automatic authentication.
+class ChatRepository {
+  final ApiClient _apiClient;
+
+  /// Constructor accepts ApiClient dependency
+  ChatRepository(this._apiClient);
+
+  /// Sends a message and receives AI response.
+  ///
+  /// Parameters:
+  /// - content: The message text to send
+  /// - sessionId: The conversation session ID
+  ///
+  /// Returns: Both the user message and assistant response
+  /// Throws: DioException on network errors, Exception on other errors
+  Future<Map<String, ChatMessage>> sendMessage({
+    required String content,
+    required String sessionId,
+  }) async {
+    try {
+      // Call backend chat endpoint
+      final response = await _apiClient.post(
+        ApiConfig.sendMessageEndpoint,
+        data: {
+          'content': content,
+          'sessionId': sessionId,
+        },
+      );
+
+      // Check response status
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        // Parse user and assistant messages from response
+        final userMessage = ChatMessage.fromJson({
+          ...data['userMessage'],
+          'role': 'USER',
+          'contentType': 'TEXT',
+          'sessionId': sessionId,
+        });
+
+        final assistantMessage = ChatMessage.fromJson({
+          ...data['assistantMessage'],
+          'role': 'ASSISTANT',
+          'contentType': 'TEXT',
+          'sessionId': sessionId,
+        });
+
+        return {
+          'userMessage': userMessage,
+          'assistantMessage': assistantMessage,
+        };
+      } else if (response.statusCode == 429) {
+        // Daily limit reached
+        throw Exception(
+            response.data['message'] ?? 'Daily message limit reached');
+      } else {
+        throw Exception(
+            response.data['error'] ?? 'Failed to send message');
+      }
+    } on DioException catch (e) {
+      // Handle network errors
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Fetches chat message history.
+  ///
+  /// Parameters:
+  /// - sessionId: Optional - filter by specific session
+  /// - limit: Number of messages to fetch (default: 50)
+  /// - offset: Pagination offset (default: 0)
+  ///
+  /// Returns: List of chat messages ordered by timestamp (newest first)
+  Future<List<ChatMessage>> getHistory({
+    String? sessionId,
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    try {
+      // Build query parameters
+      final queryParams = {
+        'limit': limit.toString(),
+        'offset': offset.toString(),
+      };
+
+      if (sessionId != null) {
+        queryParams['sessionId'] = sessionId;
+      }
+
+      // Call backend history endpoint
+      final response = await _apiClient.get(
+        ApiConfig.chatMessagesEndpoint,
+        queryParameters: queryParams,
+      );
+
+      // Check response status
+      if (response.statusCode == 200) {
+        final messages = (response.data['messages'] as List)
+            .map((json) => ChatMessage.fromJson(json as Map<String, dynamic>))
+            .toList();
+
+        return messages;
+      } else {
+        throw Exception(
+            response.data['error'] ?? 'Failed to fetch history');
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Deletes all messages in a conversation session.
+  ///
+  /// Parameters:
+  /// - sessionId: The session ID to delete
+  ///
+  /// Returns: Number of messages deleted
+  Future<int> deleteSession(String sessionId) async {
+    try {
+      // Call backend delete session endpoint
+      final response = await _apiClient.delete(
+        '/chat/session',
+        data: {
+          'sessionId': sessionId,
+        },
+      );
+
+      // Check response status
+      if (response.statusCode == 200) {
+        return response.data['deletedCount'] as int? ?? 0;
+      } else {
+        throw Exception(
+            response.data['error'] ?? 'Failed to delete session');
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Gets today's usage statistics.
+  ///
+  /// Returns: Map containing messagesUsed, voiceMinutesUsed, photosStored
+  Future<Map<String, dynamic>> getTodayUsage() async {
+    try {
+      // Call backend usage endpoint
+      final response = await _apiClient.get(ApiConfig.usageEndpoint);
+
+      // Check response status
+      if (response.statusCode == 200) {
+        return {
+          'messagesUsed': response.data['messagesUsed'] as int? ?? 0,
+          'voiceMinutesUsed':
+              (response.data['voiceMinutesUsed'] as num?)?.toDouble() ?? 0.0,
+          'photosStored': response.data['photosStored'] as int? ?? 0,
+        };
+      } else {
+        throw Exception(
+            response.data['error'] ?? 'Failed to fetch usage');
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Converts DioException to user-friendly error message
+  Exception _handleDioError(DioException error) {
+    if (error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.receiveTimeout) {
+      return Exception('Connection timeout. Please check your internet.');
+    }
+
+    if (error.type == DioExceptionType.connectionError) {
+      return Exception('No internet connection. Please try again.');
+    }
+
+    // Extract error message from response
+    final response = error.response;
+    if (response != null && response.data is Map) {
+      final errorMessage = response.data['error'] as String?;
+      if (errorMessage != null) {
+        return Exception(errorMessage);
+      }
+    }
+
+    // Generic error message
+    return Exception('An unexpected error occurred. Please try again.');
+  }
+}
