@@ -10,19 +10,19 @@
 
 ### Backend Chat API
 
-- [ ] Install OpenAI SDK
+- [x] Install OpenAI SDK
   - `npm install openai`
   - Configure API key in .env file
   - Create OpenAI client instance in `services/openai.ts`
 
-- [ ] Create chat service utility
+- [x] Create chat service utility
   - Function `generateChatResponse(messages, userProfile)`
   - Build system prompt from user profile data
   - Include last 10 messages for context
   - Call OpenAI GPT-4 Turbo API
   - Return assistant response and token count
 
-- [ ] Create `POST /chat/message` endpoint
+- [x] Create `POST /chat/message` endpoint
   - Authenticate with JWT middleware
   - Validate message content (not empty, max 2000 chars)
   - Check daily usage limit for user (query UsageTracking)
@@ -33,20 +33,20 @@
   - Update UsageTracking messagesUsed count
   - Return assistant response
 
-- [ ] Create `GET /chat/history` endpoint
+- [x] Create `GET /chat/history` endpoint
   - Authenticate with JWT middleware
   - Paginate messages (limit: 50, offset: query param)
   - Filter by userId from token
   - Order by timestamp descending
   - Return array of messages
 
-- [ ] Create `DELETE /chat/session` endpoint
+- [x] Create `DELETE /chat/session` endpoint
   - Authenticate with JWT middleware
   - Delete all messages for user's current sessionId
   - Generate new sessionId for next conversation
   - Return success message
 
-- [ ] Create `GET /usage/today` endpoint
+- [x] Create `GET /usage/today` endpoint
   - Authenticate with JWT middleware
   - Query UsageTracking for today's date
   - Return messagesUsed, voiceMinutesUsed, photosStored
@@ -282,7 +282,7 @@
 
 ---
 
-**Progress:** ⬜ 0/40 tasks completed
+**Progress:** ✅ 6/40 tasks completed
 
 **Previous Phase:** [Phase 1: Database & Auth](todo-phase-1-database-auth.md)
 **Next Phase:** [Phase 3: Photos & Milestones](todo-phase-3-photos-milestones.md)

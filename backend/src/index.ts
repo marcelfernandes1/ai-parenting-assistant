@@ -10,6 +10,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
+import chatRoutes from './routes/chat';
+import usageRoutes from './routes/usage';
 import { authenticateToken, AuthenticatedRequest } from './middleware/auth';
 
 // Load environment variables from .env file
@@ -80,6 +82,8 @@ app.get('/', (_req: Request, res: Response) => {
       health: '/health',
       auth: '/auth/*',
       user: '/user/*',
+      chat: '/chat/*',
+      usage: '/usage/*',
     },
   });
 });
@@ -98,6 +102,22 @@ app.use('/auth', authRoutes);
  * Requires authentication
  */
 app.use('/user', userRoutes);
+
+/**
+ * Chat routes
+ * Handles AI chat messaging with personalized responses
+ * All chat endpoints are prefixed with /chat
+ * Requires authentication
+ */
+app.use('/chat', chatRoutes);
+
+/**
+ * Usage tracking routes
+ * Handles usage statistics and daily limits
+ * All usage endpoints are prefixed with /usage
+ * Requires authentication
+ */
+app.use('/usage', usageRoutes);
 
 /**
  * Protected test endpoint
