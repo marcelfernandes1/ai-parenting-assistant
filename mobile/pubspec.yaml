@@ -32,7 +32,7 @@ dependencies:
   # Media & Camera
   image_picker: ^1.1.1
   cached_network_image: ^3.3.1
-  # flutter_sound: ^9.2.13  # TODO: Re-add when iOS 18 compatible version available
+  record: ^5.1.2  # Audio recording (modern alternative to flutter_sound for iOS 18)
   permission_handler: ^11.3.1
 
   # UI & Design
