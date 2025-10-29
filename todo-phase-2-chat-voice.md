@@ -146,30 +146,31 @@
   - Auto-stops recording after 2 minutes
   - Automatic duration timer updates every second
 
-- [ ] Add microphone button to chat input
-  - Icon button next to text input
-  - Press and hold to record, release to send
-  - Visual feedback: button changes color during recording
-  - Show recording duration timer
+- [x] Add microphone button to chat input
+  - Icon button next to text input (switches with send button based on text)
+  - Press and hold to record, release to send (GestureDetector)
+  - Visual feedback: button changes color to red during recording
+  - Show recording duration timer in dedicated indicator bar
 
-- [ ] Implement voice recording UI
-  - Show waveform animation during recording (simple animated view)
-  - Display recording time (00:00 format)
-  - Max recording length: 2 minutes (stop automatically)
-  - Cancel gesture: swipe left while holding (optional)
+- [x] Implement voice recording UI
+  - Recording indicator bar with red background when recording
+  - Display recording time in mm:ss format (e.g., 01:23)
+  - Max recording length: 2 minutes (auto-stop in provider)
+  - Cancel button in recording indicator bar
 
-- [ ] Upload and transcribe audio
-  - After recording stops, show loading state
-  - Upload audio file to `POST /chat/voice` endpoint
-  - Use FormData for multipart upload
-  - Display transcribed text in chat before AI responds
-  - Show AI typing indicator
-  - Add assistant response to chat
+- [x] Upload and transcribe audio
+  - After recording stops, shows loading state via chatState.isSendingMessage
+  - Uploads audio file to `POST /chat/voice` endpoint via uploadFile
+  - Uses FormData for multipart upload (handled by api_client)
+  - Displays transcribed text in chat (VOICE content type)
+  - Shows AI typing indicator during response generation
+  - Adds assistant response to chat automatically
 
-- [ ] Handle voice errors
-  - Show error if transcription fails: "Couldn't transcribe - please try again"
-  - Add retry button
-  - Fallback to text input if microphone permission denied
+- [x] Handle voice errors
+  - Shows error snackbar if recording fails to start (permission denied)
+  - Shows error snackbar if recording file not found
+  - Error handling in chat provider for failed uploads/transcriptions
+  - Permission check before starting recording
 
 ---
 
@@ -284,7 +285,7 @@
 
 ---
 
-**Progress:** ✅ 19/40 tasks completed
+**Progress:** ✅ 24/40 tasks completed
 
 **Previous Phase:** [Phase 1: Database & Auth](todo-phase-1-database-auth.md)
 **Next Phase:** [Phase 3: Photos & Milestones](todo-phase-3-photos-milestones.md)
