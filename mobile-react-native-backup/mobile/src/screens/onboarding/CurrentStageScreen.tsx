@@ -48,8 +48,8 @@ const CurrentStageScreen: React.FC<OnboardingNavigationProps> = ({ navigation })
   const handleNext = () => {
     if (!selectedStage) return;
 
-    // Navigate to Timeline screen with selected stage
-    navigation.navigate('Timeline', { mode: selectedStage });
+    // Navigate to TimelineInput screen with selected stage
+    navigation.navigate('TimelineInput', { mode: selectedStage });
   };
 
   /**

@@ -159,16 +159,50 @@ function MainNavigator() {
  * 1. If not authenticated -> Show AuthNavigator (Login/Register)
  * 2. If authenticated but no profile -> Show OnboardingNavigator
  * 3. If authenticated with profile -> Show MainNavigator
- *
- * TODO: Add logic to check if user has completed onboarding
- * For now, we'll show onboarding after login (can be skipped for testing)
  */
 export default function AppNavigator() {
   const { user, loading } = useAuth();
+  const [hasProfile, setHasProfile] = React.useState<boolean | null>(null);
+  const [checkingProfile, setCheckingProfile] = React.useState(true);
 
-  // Show nothing while checking authentication status
+  // Check if user has a profile when they log in
+  React.useEffect(() => {
+    async function checkUserProfile() {
+      if (!user) {
+        setHasProfile(null);
+        setCheckingProfile(false);
+        return;
+      }
+
+      try {
+        // Import apiClient dynamically to avoid circular dependency
+        const { apiClient } = await import('../services/apiClient');
+
+        // Attempt to fetch user's profile
+        const response = await apiClient.get('/user/profile');
+
+        // If we get a profile back, user has completed onboarding
+        setHasProfile(response.data && response.data.profile);
+      } catch (error: any) {
+        // If we get a 404, user doesn't have a profile yet
+        if (error.response?.status === 404) {
+          setHasProfile(false);
+        } else {
+          // For other errors, log and assume no profile to be safe
+          console.error('Error checking user profile:', error);
+          setHasProfile(false);
+        }
+      } finally {
+        setCheckingProfile(false);
+      }
+    }
+
+    checkUserProfile();
+  }, [user]);
+
+  // Show nothing while checking authentication status or profile
   // This prevents flash of wrong screen during initial load
-  if (loading) {
+  if (loading || checkingProfile) {
     return null;
   }
 
@@ -177,13 +211,12 @@ export default function AppNavigator() {
       {!user ? (
         // User not logged in -> Show auth screens
         <AuthNavigator />
-      ) : (
-        // User logged in -> Show onboarding or main app
-        // TODO: Check if user has completed onboarding profile
-        // For now, we'll go straight to main app after login
-        // You can uncomment OnboardingNavigator to test onboarding flow
+      ) : hasProfile ? (
+        // User logged in with profile -> Show main app
         <MainNavigator />
-        // <OnboardingNavigator />
+      ) : (
+        // User logged in without profile -> Show onboarding
+        <OnboardingNavigator />
       )}
     </NavigationContainer>
   );

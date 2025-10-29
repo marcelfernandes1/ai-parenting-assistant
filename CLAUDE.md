@@ -6,15 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**AI Parenting Assistant** - A cross-platform mobile app (React Native) with Node.js/Express backend providing AI-powered parenting guidance through chat, voice, milestone tracking, and photo analysis.
+**AI Parenting Assistant** - A cross-platform mobile app (Flutter) with Node.js/Express backend providing AI-powered parenting guidance through chat, voice, milestone tracking, and photo analysis.
 
 **Tech Stack:**
-- **Frontend:** React Native 0.74+ (TypeScript), React Navigation, Zustand/Redux
+- **Frontend:** Flutter 3.24+ (Dart), go_router, Riverpod (state management), Material 3
 - **Backend:** Node.js 20.x (TypeScript), Express.js, Prisma ORM
 - **Database:** PostgreSQL 15+, Redis (caching)
 - **AI:** OpenAI GPT-4/GPT-4o, Whisper (transcription), Vision API (photo analysis)
 - **Storage:** AWS S3 (photos), CloudFront (CDN)
-- **Payments:** Stripe subscriptions, react-native-iap
+- **Payments:** Stripe subscriptions, in_app_purchase
 - **Infrastructure:** AWS (RDS, ElastiCache, S3) or managed platform (Render, Railway)
 
 ---
@@ -29,23 +29,61 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Code Documentation (MANDATORY)
 **EVERY piece of code MUST be documented:**
-```typescript
-// Example of required documentation style
 
-/**
- * Generates a JWT access token for authenticated users
- * @param userId - UUID of the user from database
- * @param email - User's email address for token payload
- * @returns Signed JWT token string with 7-day expiry
- */
-function generateAccessToken(userId: string, email: string): string {
-  // Include userId and email in token payload for user identification
-  const payload = { userId, email };
+**Flutter/Dart Example:**
+```dart
+/// Riverpod provider that manages authentication state.
+/// Provides access to current user and auth methods.
+/// Automatically refreshes token when expired.
+final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  // Create auth notifier with API service dependency
+  return AuthNotifier(ref.watch(apiServiceProvider));
+});
 
-  // Sign token with secret from environment variable, expires in 7 days
-  return jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '7d' });
+/// State notifier for authentication logic.
+/// Handles login, logout, token refresh, and session management.
+class AuthNotifier extends StateNotifier<AuthState> {
+  final ApiService _apiService;
+
+  AuthNotifier(this._apiService) : super(const AuthState.initial());
+
+  /// Authenticates user with email and password.
+  /// Stores JWT token in secure storage for persistent sessions.
+  /// Returns true if login successful, false otherwise.
+  Future<bool> login(String email, String password) async {
+    try {
+      // Set loading state to show UI feedback
+      state = const AuthState.loading();
+
+      // Call backend authentication endpoint
+      final response = await _apiService.post('/auth/login', {
+        'email': email,
+        'password': password,
+      });
+
+      // Extract JWT tokens from response
+      final accessToken = response.data['accessToken'] as String;
+      final refreshToken = response.data['refreshToken'] as String;
+
+      // Store tokens securely for session persistence
+      await _secureStorage.write(key: 'access_token', value: accessToken);
+      await _secureStorage.write(key: 'refresh_token', value: refreshToken);
+
+      // Update state with authenticated user data
+      state = AuthState.authenticated(user: User.fromJson(response.data['user']));
+
+      return true;
+    } catch (e) {
+      // Set error state with user-friendly message
+      state = AuthState.error(message: 'Invalid credentials');
+      return false;
+    }
+  }
 }
+```
 
+**Backend (Node.js/TypeScript) Example:**
+```typescript
 /**
  * Middleware to verify JWT tokens on protected routes
  * Extracts token from Authorization header, verifies signature,
@@ -76,7 +114,8 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 ```
 
 **Documentation Requirements:**
-- Function-level JSDoc comments explaining purpose, parameters, return values
+- **Dart:** Use `///` dartdoc comments for classes, methods, and important properties
+- **TypeScript:** Use JSDoc comments for functions and complex logic
 - Inline comments explaining WHY (not what) for complex logic
 - Comments before each major code block explaining its purpose
 - Explain edge cases, error handling, and security considerations
@@ -85,8 +124,8 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 **ALWAYS search for existing libraries/APIs/frameworks BEFORE writing custom code:**
 
 When implementing ANY feature, follow this workflow:
-1. **Search First:** Look for existing npm packages, React Native libraries, or APIs
-2. **Evaluate Options:** Check library popularity, maintenance, and documentation
+1. **Search First:** Look for existing Flutter packages, pub.dev packages, or APIs
+2. **Evaluate Options:** Check library popularity (pub points, likes), maintenance, and documentation
 3. **Use Battle-Tested Solutions:** Prefer well-maintained packages over custom code
 4. **Only Custom Code as Last Resort:** Write custom implementations ONLY if no suitable library exists
 
@@ -97,18 +136,22 @@ When implementing ANY feature, follow this workflow:
 - More features (libraries often have edge cases covered)
 
 **Where to Search:**
-- **npm/yarn:** `npm search <feature>` or https://www.npmjs.com
-- **React Native Directory:** https://reactnative.directory (curated RN libraries)
+- **pub.dev:** https://pub.dev (official Dart package repository)
+- **Flutter Favorites:** https://pub.dev/flutter-favorites (curated high-quality packages)
+- **Flutter Community:** https://flutter.dev/community
 - **GitHub:** Search for repos with high stars/recent commits
-- **Official Docs:** React Native, Expo, framework-specific solutions
+- **Official Docs:** Flutter.dev, framework-specific solutions
 - **Stack Overflow:** Check what the community recommends
 
-**Examples:**
-- ❌ DON'T write custom date formatting → ✅ USE `date-fns` or `dayjs`
-- ❌ DON'T write custom form validation → ✅ USE `react-hook-form` + `zod`
-- ❌ DON'T write custom image picker → ✅ USE `react-native-image-picker`
-- ❌ DON'T write custom HTTP client → ✅ USE `axios` or `fetch`
-- ❌ DON'T write custom state management → ✅ USE `zustand` or `redux`
+**Flutter Examples:**
+- ❌ DON'T write custom date formatting → ✅ USE `intl` package
+- ❌ DON'T write custom form validation → ✅ USE `flutter_form_builder` + `form_builder_validators`
+- ❌ DON'T write custom image picker → ✅ USE `image_picker` (official)
+- ❌ DON'T write custom HTTP client → ✅ USE `dio` or `http`
+- ❌ DON'T write custom state management → ✅ USE `riverpod`, `bloc`, or `provider`
+- ❌ DON'T write custom routing → ✅ USE `go_router` or `auto_route`
+- ❌ DON'T write custom animations → ✅ USE `flutter_animate` or built-in `AnimatedWidget`
+- ❌ DON'T write custom image caching → ✅ USE `cached_network_image`
 
 **When Custom Code is Acceptable:**
 - Business logic specific to this app (e.g., parenting advice algorithm)
@@ -118,8 +161,8 @@ When implementing ANY feature, follow this workflow:
 
 **Before Writing Custom Code, Ask:**
 1. "Has someone else solved this problem already?"
-2. "Is there an npm package for this?"
-3. "What does the React Native community recommend?"
+2. "Is there a pub.dev package for this?"
+3. "What does the Flutter community recommend?"
 4. "Can I accomplish this with existing dependencies?"
 
 ---
@@ -149,20 +192,33 @@ This project uses **phase-based todo files** to manage development:
 
 ### Architecture Overview
 
-**Monorepo Structure (to be created):**
+**Monorepo Structure:**
 ```
 ai-parenting-assistant/
-├── mobile/                    # React Native app
-│   ├── src/
-│   │   ├── screens/          # Screen components
-│   │   ├── components/       # Reusable UI components
-│   │   ├── navigation/       # React Navigation config
-│   │   ├── context/          # Auth, Subscription contexts
-│   │   ├── services/         # API client, utilities
-│   │   ├── hooks/            # Custom React hooks
-│   │   └── theme/            # Design system (colors, fonts)
+├── mobile/                    # Flutter app
+│   ├── lib/
+│   │   ├── main.dart         # App entry point
+│   │   ├── features/         # Feature-based architecture
+│   │   │   ├── auth/         # Authentication feature
+│   │   │   │   ├── data/     # API calls, repositories
+│   │   │   │   ├── domain/   # Models, entities
+│   │   │   │   ├── presentation/ # Screens, widgets
+│   │   │   │   └── providers/    # Riverpod providers
+│   │   │   ├── chat/         # Chat feature
+│   │   │   ├── voice/        # Voice recording feature
+│   │   │   ├── photos/       # Photo upload feature
+│   │   │   └── profile/      # User profile feature
+│   │   ├── shared/           # Shared utilities
+│   │   │   ├── widgets/      # Reusable UI components
+│   │   │   ├── models/       # Shared data models
+│   │   │   ├── services/     # API client, storage
+│   │   │   ├── providers/    # Global providers
+│   │   │   └── theme/        # Material 3 theme
+│   │   └── router/           # go_router configuration
 │   ├── ios/                  # Native iOS code
-│   └── android/              # Native Android code
+│   ├── android/              # Native Android code
+│   ├── test/                 # Unit & widget tests
+│   └── pubspec.yaml          # Dependencies
 │
 ├── backend/                   # Node.js/Express API
 │   ├── src/
@@ -179,38 +235,55 @@ ai-parenting-assistant/
 
 **Key Architectural Patterns:**
 
-1. **Authentication Flow:**
-   - JWT tokens (7-day access, 30-day refresh)
-   - Stored in AsyncStorage on mobile
-   - Axios interceptor for token refresh on 401
+1. **Flutter State Management (Riverpod):**
+   - Feature-based provider organization
+   - `StateNotifierProvider` for complex state with business logic
+   - `FutureProvider` for async data fetching
+   - `StreamProvider` for real-time WebSocket data
+   - Code generation with `riverpod_generator` for type safety
 
-2. **AI Integration:**
+2. **Authentication Flow:**
+   - JWT tokens (7-day access, 30-day refresh) from backend
+   - Stored in `flutter_secure_storage` on mobile (encrypted keychain)
+   - Dio interceptor for automatic token refresh on 401
+   - Riverpod `authProvider` manages auth state globally
+
+3. **Navigation (go_router):**
+   - Declarative routing with type-safe route definitions
+   - Authentication-aware routing (redirect to login if unauthenticated)
+   - Deep linking support for notifications
+   - Bottom navigation with nested routes
+
+4. **AI Integration:**
    - OpenAI client in `backend/src/services/openai.ts`
    - System prompt built dynamically from user profile
    - Last 10 messages included for context
    - Token counting for cost tracking
 
-3. **Usage Limiting:**
+5. **Usage Limiting:**
    - `UsageTracking` table with daily records (userId + date unique)
-   - Middleware checks limits before processing requests
-   - 429 error triggers paywall on frontend
+   - Backend middleware checks limits before processing requests
+   - 429 error triggers paywall modal in Flutter app
+   - Real-time usage display with progress indicators
 
-4. **Subscription Model:**
+6. **Subscription Model:**
    - Free tier: 10 messages/day, 10 voice minutes/day, 100 photos
    - Premium: Unlimited everything
    - Stripe webhooks update subscription status
-   - react-native-iap handles cross-platform purchases
+   - `in_app_purchase` package handles iOS/Android purchases
 
-5. **Photo Flow:**
-   - Upload to S3 with userId prefix for organization
+7. **Photo Flow:**
+   - `image_picker` for camera/gallery selection
+   - Upload to S3 via backend API
    - Image compression on server (Sharp library)
+   - `cached_network_image` for efficient image loading
    - Presigned URLs with 24-hour expiry for security
-   - Photo metadata stored in PostgreSQL
 
-6. **Real-Time Voice:**
-   - Socket.io WebSocket connections
-   - Audio chunks streamed from client
-   - Server buffers → Whisper transcription → GPT response → TTS
+8. **Real-Time Voice:**
+   - `socket_io_client` for WebSocket connections
+   - `flutter_sound` for audio recording
+   - Audio chunks streamed to backend
+   - Server: buffers → Whisper transcription → GPT response → TTS
    - Session duration tracked for billing
 
 ---
@@ -226,9 +299,10 @@ ai-parenting-assistant/
 ### Testing Requirements
 After completing EACH task:
 1. **Backend:** Test endpoint with curl or Postman
-2. **Frontend:** Run on iOS simulator AND Android emulator
-3. **Database:** Verify migrations applied correctly
-4. **Integration:** Test full flow end-to-end
+2. **Flutter:** Run on iOS simulator AND Android emulator (hot reload for quick testing)
+3. **Flutter Tests:** Run `flutter test` for unit and widget tests
+4. **Database:** Verify migrations applied correctly
+5. **Integration:** Test full flow end-to-end on both platforms
 
 ### Commit and Push Strategy (MANDATORY)
 **ALWAYS commit AND push to GitHub after each completed task:**
@@ -402,15 +476,53 @@ STRIPE_PUBLISHABLE_KEY=pk_test_...
 - `@aws-sdk/client-s3@3.450.0` - S3 uploads
 - `redis@4.6.10` - Caching
 
-**Frontend (exact versions to use):**
-- `react-native@0.74.0` - Mobile framework
-- `@react-navigation/native@6.1.9` - Navigation
-- `react-native-iap@12.13.0` - In-app purchases
-- `socket.io-client@4.6.1` - WebSocket client
-- `axios@1.6.2` - HTTP client
-- `react-native-image-picker@7.1.0` - Photo picker
-- `react-native-audio-recorder-player@3.6.3` - Voice recording
-- `react-native-fast-image@8.6.3` - Image caching
+**Flutter Frontend (pub.dev packages):**
+
+**Core Flutter & State Management:**
+- `flutter_riverpod: ^2.5.1` - Riverpod state management
+- `riverpod_annotation: ^2.3.5` - Code generation annotations
+- `freezed: ^2.5.2` - Immutable models with code generation
+- `freezed_annotation: ^2.4.1` - Freezed annotations
+
+**Routing & Navigation:**
+- `go_router: ^14.2.0` - Declarative routing (Flutter team recommended)
+
+**HTTP & Networking:**
+- `dio: ^5.4.3` - HTTP client with interceptors
+- `socket_io_client: ^2.0.3` - WebSocket for real-time voice
+- `http: ^1.2.1` - Backup HTTP client (if needed)
+
+**Storage:**
+- `flutter_secure_storage: ^9.2.2` - Encrypted storage for tokens
+- `shared_preferences: ^2.2.3` - Simple key-value storage
+- `path_provider: ^2.1.3` - File system paths
+
+**Media & Camera:**
+- `image_picker: ^1.1.1` - Camera/gallery picker (official Flutter package)
+- `cached_network_image: ^3.3.1` - Image caching and loading
+- `flutter_sound: ^9.2.13` - Audio recording and playback
+- `permission_handler: ^11.3.1` - Runtime permissions
+
+**UI & Design:**
+- `flutter_animate: ^4.5.0` - Beautiful declarative animations
+- `shimmer: ^3.0.0` - Loading skeleton animations
+- `flutter_svg: ^2.0.10` - SVG rendering
+
+**Payments:**
+- `in_app_purchase: ^3.2.0` - Official in-app purchases (iOS/Android)
+- `flutter_stripe: ^11.0.0` - Stripe SDK integration
+
+**Utilities:**
+- `intl: ^0.19.0` - Internationalization and date formatting
+- `uuid: ^4.4.0` - UUID generation
+- `url_launcher: ^6.3.0` - Open URLs and deep links
+
+**Dev Dependencies (code generation):**
+- `build_runner: ^2.4.11` - Code generation runner
+- `riverpod_generator: ^2.4.0` - Riverpod code generation
+- `json_serializable: ^6.8.0` - JSON serialization code gen
+- `flutter_launcher_icons: ^0.13.1` - App icon generation
+- `flutter_native_splash: ^2.4.1` - Splash screen generation
 
 ---
 
@@ -451,17 +563,19 @@ Full product requirements in `PRD_MVP.md` including:
 
 ## Important Reminders
 
-1. **Library-First Principle** - Search for existing libraries BEFORE writing custom code
-2. **TypeScript Strict Mode is ON** - No `any` types, handle all nulls
+1. **Library-First Principle** - Search for existing Flutter packages on pub.dev BEFORE writing custom code
+2. **Dart Type Safety** - Enable null safety, avoid `dynamic`, use strict typing
 3. **Test IMMEDIATELY after each task** - Don't accumulate untested code
 4. **Mark todos with [x]** - Essential for progress tracking
-5. **Document EVERYTHING** - Every function, every code block
-6. **Use exact versions** - No ^ or ~ in package.json
-7. **Error handling required** - try-catch all async operations
+5. **Document EVERYTHING** - Every function, every code block (use `///` dartdoc)
+6. **Use exact versions in pubspec.yaml** - Pin versions or use ^ for patch updates only
+7. **Error handling required** - try-catch all async operations, handle null cases
 8. **Commit AND push after each task** - Run `git push` after every commit (enables easy rollback)
 9. **One phase at a time** - Don't jump ahead or mix phases
-10. **Security first** - Never commit secrets, always validate inputs
-11. **Mobile: test iOS AND Android** - Platform-specific bugs are common
+10. **Security first** - Never commit secrets, always validate inputs, use `flutter_secure_storage`
+11. **Flutter: test iOS AND Android** - Platform-specific bugs are common, use hot reload for rapid testing
+12. **Code Generation** - Run `dart run build_runner build` after model changes
+13. **Riverpod Best Practices** - Use code generation, avoid global state mutation
 
 ---
 
