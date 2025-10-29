@@ -54,50 +54,50 @@
 
 ### Frontend Chat UI
 
-- [ ] Create Chat screen layout
+- [x] Create Chat screen layout
   - Header: Display baby name and age (or pregnancy week)
-  - Message list: FlatList for scrollable chat history
-  - Input area: TextInput with send button
+  - Message list: ListView for scrollable chat history
+  - Input area: TextField with send button
   - Footer: Medical disclaimer text (small, gray)
 
-- [ ] Create Message component
+- [x] Create Message component
   - User messages: right-aligned, blue background
   - Assistant messages: left-aligned, gray background
-  - Show timestamp (formatted with date-fns)
+  - Show timestamp (formatted with intl)
   - Word-wrap long messages
   - Different styling for loading state
 
-- [ ] Implement send message functionality
+- [x] Implement send message functionality
   - Disable input while message is sending
-  - Add user message to local state immediately (optimistic UI)
-  - Call `POST /chat/message` API
+  - Clear input field immediately (optimistic UI)
+  - Call `POST /chat/message` API via provider
   - Add assistant response to message list
   - Scroll to bottom after new message
-  - Handle errors (show retry button)
+  - Handle errors (show error banner)
 
-- [ ] Implement chat history loading
-  - Fetch messages on screen mount
+- [x] Implement chat history loading
+  - Fetch messages on screen mount via provider
   - Call `GET /chat/history` API
-  - Display in FlatList (reverse chronological order)
+  - Display in ListView (chronological order)
   - Add pull-to-refresh gesture
   - Add loading indicator
 
-- [ ] Add typing indicator
-  - Show "AI is typing..." animation while waiting for response
-  - Use animated dots component
+- [x] Add typing indicator
+  - Show animated dots while waiting for response
+  - Use TypingIndicator widget with staggered animation
   - Display below last message
 
-- [ ] Add "New Conversation" button
-  - Header right button
-  - Call `DELETE /chat/session` API
+- [x] Add "New Conversation" button
+  - Header right button with confirmation dialog
+  - Call `DELETE /chat/session` API via provider
   - Clear local message state
-  - Generate new sessionId on frontend
+  - Generate new sessionId in provider
 
-- [ ] Display usage counter
-  - Fetch current usage from backend on screen mount
+- [x] Display usage counter
+  - Fetch current usage from backend via usageProvider
   - Call `GET /usage/today` endpoint
-  - Show badge in header: "7/10 messages today"
-  - Update counter after each message sent
+  - Show badge in header: "7/10 today"
+  - Updates automatically when watching provider
 
 ---
 
@@ -282,7 +282,7 @@
 
 ---
 
-**Progress:** ✅ 6/40 tasks completed
+**Progress:** ✅ 13/40 tasks completed
 
 **Previous Phase:** [Phase 1: Database & Auth](todo-phase-1-database-auth.md)
 **Next Phase:** [Phase 3: Photos & Milestones](todo-phase-3-photos-milestones.md)
