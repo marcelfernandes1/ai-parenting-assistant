@@ -195,3 +195,40 @@ export async function generateChatResponse(
     throw new Error('Failed to generate AI response');
   }
 }
+
+/**
+ * Transcribes audio file to text using OpenAI Whisper API.
+ *
+ * Accepts audio file path and returns transcribed text.
+ * Supports formats: mp3, mp4, m4a, wav, webm
+ *
+ * @param audioFilePath - Path to audio file on disk
+ * @returns Transcribed text
+ */
+export async function transcribeAudio(audioFilePath: string): Promise<string> {
+  try {
+    // Import fs to create readable stream for Whisper API
+    const fs = await import('fs');
+
+    // Call OpenAI Whisper API for transcription
+    // whisper-1 is the only model available for transcription
+    const transcription = await openai.audio.transcriptions.create({
+      file: fs.createReadStream(audioFilePath),
+      model: 'whisper-1',
+      language: 'en', // English language for better accuracy
+      response_format: 'text', // Return plain text instead of JSON
+    });
+
+    // Whisper returns string directly when response_format is 'text'
+    return (transcription as unknown as string).trim();
+  } catch (error) {
+    // Log error for debugging
+    console.error('Whisper API error:', error);
+
+    // Throw user-friendly error
+    if (error instanceof Error) {
+      throw new Error(`Failed to transcribe audio: ${error.message}`);
+    }
+    throw new Error('Failed to transcribe audio');
+  }
+}
