@@ -168,7 +168,7 @@ class AuthRepository {
   /// Marks onboardingComplete as true in backend.
   Future<User> completeOnboarding(Map<String, dynamic> onboardingData) async {
     try {
-      final response = await _apiClient.post(
+      final response = await _apiClient.put(
         ApiConfig.completeOnboardingEndpoint,
         data: onboardingData,
       );
