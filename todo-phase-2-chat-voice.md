@@ -105,11 +105,11 @@
 
 ### Backend Voice Transcription
 
-- [ ] Install Multer for file uploads
+- [x] Install Multer for file uploads
   - `npm install multer`
   - `npm install @types/multer --save-dev`
 
-- [ ] Create `POST /chat/voice` endpoint
+- [x] Create `POST /chat/voice` endpoint
   - Authenticate with JWT middleware
   - Accept audio file upload (multipart/form-data)
   - Use Multer middleware for file handling
@@ -117,13 +117,13 @@
   - Max file size: 25MB (Whisper API limit)
   - Check daily voice usage limit (message count, NOT minutes for Whisper)
 
-- [ ] Implement Whisper API integration
+- [x] Implement Whisper API integration
   - Call OpenAI Whisper API with audio file
   - Use `whisper-1` model
   - Set language to 'en' for better accuracy
   - Return transcribed text
 
-- [ ] Process transcribed message
+- [x] Process transcribed message
   - After successful transcription, treat as regular text message
   - Call chat service to generate AI response
   - Save user message with contentType: VOICE
@@ -282,7 +282,7 @@
 
 ---
 
-**Progress:** ✅ 13/40 tasks completed
+**Progress:** ✅ 17/40 tasks completed
 
 **Previous Phase:** [Phase 1: Database & Auth](todo-phase-1-database-auth.md)
 **Next Phase:** [Phase 3: Photos & Milestones](todo-phase-3-photos-milestones.md)
