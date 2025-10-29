@@ -1,0 +1,341 @@
+/// Main application router using go_router package.
+/// Handles navigation between authentication, onboarding, and main app flows.
+///
+/// Navigation Logic:
+/// - Unauthenticated users → Login/Register screens
+/// - Authenticated users without profile → Onboarding flow
+/// - Authenticated users with profile → Main app
+library;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../features/auth/providers/auth_provider.dart';
+import '../features/auth/domain/auth_state.dart';
+import '../features/auth/presentation/login_screen.dart';
+import '../features/auth/presentation/register_screen.dart';
+import '../features/onboarding/presentation/welcome_screen.dart';
+import '../features/onboarding/presentation/current_stage_screen.dart';
+import '../features/onboarding/presentation/timeline_input_screen.dart';
+import '../features/onboarding/presentation/baby_info_screen.dart';
+import '../features/onboarding/presentation/parenting_philosophy_screen.dart';
+import '../features/onboarding/presentation/religious_background_screen.dart';
+import '../features/onboarding/presentation/cultural_background_screen.dart';
+import '../features/onboarding/presentation/concerns_screen.dart';
+import '../features/onboarding/presentation/notification_preferences_screen.dart';
+import '../features/onboarding/presentation/usage_limits_explanation_screen.dart';
+
+/// Provider for GoRouter instance
+/// Watches auth state to determine route redirection
+final routerProvider = Provider<GoRouter>((ref) {
+  // Watch authentication state for navigation guards
+  final authState = ref.watch(authProvider);
+
+  return GoRouter(
+    // Initial route when app launches
+    initialLocation: '/login',
+
+    // Redirect logic based on authentication state
+    // This runs before every navigation to ensure users are on correct screens
+    redirect: (context, state) {
+      // Get current auth state
+      final isAuthenticated = authState is AuthStateAuthenticated;
+      final hasCompletedOnboarding = isAuthenticated &&
+          (authState as AuthStateAuthenticated).user.onboardingComplete;
+
+      // Get current location
+      final isOnAuthScreen = state.matchedLocation.startsWith('/login') ||
+                             state.matchedLocation.startsWith('/register');
+      final isOnOnboardingScreen = state.matchedLocation.startsWith('/onboarding');
+      final isOnMainScreen = state.matchedLocation == '/home';
+
+      // Redirect logic:
+      // 1. If not authenticated and not on auth screen → redirect to login
+      if (!isAuthenticated && !isOnAuthScreen) {
+        return '/login';
+      }
+
+      // 2. If authenticated but on auth screen → redirect to appropriate flow
+      if (isAuthenticated && isOnAuthScreen) {
+        if (!hasCompletedOnboarding) {
+          return '/onboarding/welcome';
+        }
+        return '/home';
+      }
+
+      // 3. If authenticated but hasn't completed onboarding and trying to access main app → redirect to onboarding
+      if (isAuthenticated && !hasCompletedOnboarding && isOnMainScreen) {
+        return '/onboarding/welcome';
+      }
+
+      // 4. If authenticated with completed onboarding but on onboarding screens → redirect to home
+      if (isAuthenticated && hasCompletedOnboarding && isOnOnboardingScreen) {
+        return '/home';
+      }
+
+      // No redirect needed, allow navigation
+      return null;
+    },
+
+    // Define all routes
+    routes: [
+      // ===== Authentication Routes =====
+
+      /// Login screen route
+      /// Path: /login
+      GoRoute(
+        path: '/login',
+        name: 'login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+
+      /// Register screen route
+      /// Path: /register
+      GoRoute(
+        path: '/register',
+        name: 'register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
+
+      // ===== Onboarding Routes =====
+
+      /// Onboarding flow - multi-step user profile setup
+      /// Base path: /onboarding
+      GoRoute(
+        path: '/onboarding',
+        redirect: (context, state) => '/onboarding/welcome',
+        routes: [
+          /// Welcome screen - introduces app features and benefits
+          /// Path: /onboarding/welcome
+          GoRoute(
+            path: 'welcome',
+            name: 'onboarding-welcome',
+            builder: (context, state) => const WelcomeScreen(),
+          ),
+
+          /// Current stage screen - pregnancy vs parent selection
+          /// Path: /onboarding/current-stage
+          GoRoute(
+            path: 'current-stage',
+            name: 'onboarding-current-stage',
+            builder: (context, state) => const CurrentStageScreen(),
+          ),
+
+          /// Timeline input screen - due date or birth date entry
+          /// Path: /onboarding/timeline-input
+          GoRoute(
+            path: 'timeline-input',
+            name: 'onboarding-timeline-input',
+            builder: (context, state) => const TimelineInputScreen(),
+          ),
+
+          /// Baby info screen - baby name, gender, etc.
+          /// Path: /onboarding/baby-info
+          GoRoute(
+            path: 'baby-info',
+            name: 'onboarding-baby-info',
+            builder: (context, state) => const BabyInfoScreen(),
+          ),
+
+          /// Parenting philosophy screen - parenting style preferences
+          /// Path: /onboarding/parenting-philosophy
+          GoRoute(
+            path: 'parenting-philosophy',
+            name: 'onboarding-parenting-philosophy',
+            builder: (context, state) => const ParentingPhilosophyScreen(),
+          ),
+
+          /// Religious background screen - religious views and preferences
+          /// Path: /onboarding/religious-background
+          GoRoute(
+            path: 'religious-background',
+            name: 'onboarding-religious-background',
+            builder: (context, state) => const ReligiousBackgroundScreen(),
+          ),
+
+          /// Cultural background screen - cultural traditions and values
+          /// Path: /onboarding/cultural-background
+          GoRoute(
+            path: 'cultural-background',
+            name: 'onboarding-cultural-background',
+            builder: (context, state) => const CulturalBackgroundScreen(),
+          ),
+
+          /// Concerns screen - primary parenting concerns and topics
+          /// Path: /onboarding/concerns
+          GoRoute(
+            path: 'concerns',
+            name: 'onboarding-concerns',
+            builder: (context, state) => const ConcernsScreen(),
+          ),
+
+          /// Notification preferences screen - push notification settings
+          /// Path: /onboarding/notification-preferences
+          GoRoute(
+            path: 'notification-preferences',
+            name: 'onboarding-notification-preferences',
+            builder: (context, state) => const NotificationPreferencesScreen(),
+          ),
+
+          /// Usage limits explanation screen - explain free tier limits
+          /// Path: /onboarding/usage-limits
+          GoRoute(
+            path: 'usage-limits',
+            name: 'onboarding-usage-limits',
+            builder: (context, state) => const UsageLimitsExplanationScreen(),
+          ),
+        ],
+      ),
+
+      // ===== Main App Routes =====
+
+      /// Home screen - main app entry after authentication and onboarding
+      /// Path: /home
+      /// TODO: Replace with actual home screen when chat/voice features are built
+      GoRoute(
+        path: '/home',
+        name: 'home',
+        builder: (context, state) => const _HomeScreenPlaceholder(),
+      ),
+    ],
+
+    // Error handling - shown when route doesn't exist
+    errorBuilder: (context, state) => Scaffold(
+      appBar: AppBar(title: const Text('Page Not Found')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 80, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              'Page not found',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              state.uri.path,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => context.go('/login'),
+              child: const Text('Go to Login'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+});
+
+/// Temporary home screen placeholder
+/// This will be replaced with actual main app screens (chat, voice, photos, milestones)
+class _HomeScreenPlaceholder extends ConsumerWidget {
+  const _HomeScreenPlaceholder();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Get current user from auth state
+    final authState = ref.watch(authProvider);
+    final user = authState is AuthStateAuthenticated ? authState.user : null;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('AI Parenting Assistant'),
+        actions: [
+          // Logout button
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              // Call logout on auth provider
+              await ref.read(authProvider.notifier).logout();
+              // Router will automatically redirect to login
+            },
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Welcome icon
+                Icon(
+                  Icons.celebration,
+                  size: 80,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(height: 24),
+
+                // Welcome message
+                Text(
+                  'Welcome to AI Parenting Assistant!',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+
+                // User email display
+                if (user != null) ...[
+                  Text(
+                    'Logged in as:',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    user.email,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+
+                // Coming soon message
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.construction,
+                          size: 40,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Main app features coming soon!',
+                          style: Theme.of(context).textTheme.titleMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Chat, Voice, Photos, and Milestone tracking features will appear here.',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
