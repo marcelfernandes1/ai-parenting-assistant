@@ -29,6 +29,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final FocusNode _inputFocusNode = FocusNode();
 
   @override
+  void initState() {
+    super.initState();
+
+    // Add listener to text controller to update UI when text changes
+    _messageController.addListener(() {
+      setState(() {
+        // Rebuilds widget to update mic/send button visibility
+      });
+    });
+  }
+
+  @override
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
@@ -366,10 +378,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       maxLines: null,
                       textInputAction: TextInputAction.send,
                       onSubmitted: (_) => _sendMessage(),
-                      onChanged: (_) {
-                        // Rebuild to update mic/send button visibility
-                        setState(() {});
-                      },
                     ),
                   ),
 
