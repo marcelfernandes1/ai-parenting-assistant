@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/chat_provider.dart';
 import '../../../onboarding/providers/onboarding_provider.dart';
+import '../../../photos/presentation/photos_screen.dart';
 
 /// Main app navigation drawer
 /// Displays user profile, chat history, and navigation options
@@ -141,11 +142,10 @@ class AppDrawer extends ConsumerWidget {
                     subtitle: const Text('View baby photos'),
                     onTap: () {
                       Navigator.pop(context);
-                      // TODO: Navigate to photos screen
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Photos screen coming soon!'),
-                          duration: Duration(seconds: 2),
+                      // Navigate to photos screen
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const PhotosScreen(),
                         ),
                       );
                     },
