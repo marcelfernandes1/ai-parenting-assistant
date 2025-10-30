@@ -167,6 +167,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final showMicButton = _messageController.text.isEmpty &&
         voiceState.state != RecordingState.recording;
 
+    // Debug logging
+    print('🎤 DEBUG: text isEmpty = ${_messageController.text.isEmpty}');
+    print('🎤 DEBUG: voiceState = ${voiceState.state}');
+    print('🎤 DEBUG: showMicButton = $showMicButton');
+
     // Watch usage state for usage counter
     final usageState = ref.watch(usageProvider);
 
