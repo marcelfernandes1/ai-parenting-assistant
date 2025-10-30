@@ -34,13 +34,13 @@
   - Check free user photo limit (100 photos max) ✓
   - Return array of uploaded photo objects (id, url, s3Key) ✓
 
-- [ ] Create `GET /photos/list` endpoint
-  - Authenticate user with JWT middleware
-  - Support pagination (limit, offset query params)
-  - Support filtering by milestoneId, albumId (optional filters)
-  - Order by uploadedAt descending
-  - Generate presigned URLs for each photo (24-hour expiry)
-  - Return array of photos with metadata
+- [x] Create `GET /photos/list` endpoint
+  - Authenticate user with JWT middleware ✓
+  - Support pagination (limit, offset query params) ✓
+  - Support filtering by milestoneId, albumId (optional filters) ✓
+  - Order by uploadedAt descending ✓
+  - Generate presigned URLs for each photo (24-hour expiry) ✓
+  - Return array of photos with metadata ✓
 
 - [ ] Create `DELETE /photos/:id` endpoint
   - Authenticate user

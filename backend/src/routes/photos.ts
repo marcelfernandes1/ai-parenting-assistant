@@ -153,4 +153,100 @@ router.post(
   }
 );
 
+/**
+ * GET /photos/list
+ * Retrieve user's photo list with pagination and optional filters
+ *
+ * Query params:
+ * - limit: number of photos per page (default: 20, max: 100)
+ * - offset: number of photos to skip (default: 0)
+ * - milestoneId: filter by specific milestone (optional)
+ * - albumId: filter by specific album (optional)
+ *
+ * Returns photos with presigned URLs for immediate display.
+ */
+router.get(
+  '/list',
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+
+      // Parse pagination parameters with validation
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 100); // Max 100 photos per request
+      const offset = parseInt(req.query.offset as string) || 0;
+
+      // Parse optional filter parameters
+      const milestoneId = req.query.milestoneId as string | undefined;
+      const albumId = req.query.albumId as string | undefined;
+
+      console.log(`📸 Fetching photos for user ${userId} (limit: ${limit}, offset: ${offset})`);
+
+      // Build where clause with userId and optional filters
+      const whereClause: any = { userId };
+
+      if (milestoneId) {
+        whereClause.milestoneId = milestoneId;
+      }
+
+      if (albumId) {
+        whereClause.albumId = albumId;
+      }
+
+      // Fetch photos from database with pagination
+      const photos = await prisma.photo.findMany({
+        where: whereClause,
+        orderBy: { uploadedAt: 'desc' }, // Most recent photos first
+        take: limit,
+        skip: offset,
+        select: {
+          id: true,
+          s3Key: true,
+          uploadedAt: true,
+          metadata: true,
+          milestoneId: true,
+          albumId: true,
+          analysisResults: true,
+        },
+      });
+
+      // Generate presigned URLs for all photos (24-hour expiry)
+      const photosWithUrls = await Promise.all(
+        photos.map(async (photo) => {
+          const url = await getPresignedUrl(photo.s3Key);
+
+          return {
+            id: photo.id,
+            url,
+            s3Key: photo.s3Key,
+            uploadedAt: photo.uploadedAt,
+            metadata: photo.metadata,
+            milestoneId: photo.milestoneId,
+            albumId: photo.albumId,
+            analysisResults: photo.analysisResults,
+          };
+        })
+      );
+
+      // Get total count for pagination (helps frontend know if there are more pages)
+      const totalCount = await prisma.photo.count({ where: whereClause });
+
+      res.status(200).json({
+        photos: photosWithUrls,
+        pagination: {
+          limit,
+          offset,
+          total: totalCount,
+          hasMore: offset + photos.length < totalCount,
+        },
+      });
+
+      console.log(`✅ Returned ${photos.length} photos (total: ${totalCount})`);
+    } catch (error) {
+      console.error('Error fetching photos:', error);
+      res.status(500).json({ error: 'Failed to fetch photos' });
+    }
+  }
+);
+
 export default router;
