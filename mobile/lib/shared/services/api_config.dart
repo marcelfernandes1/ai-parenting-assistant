@@ -49,6 +49,14 @@ class ApiConfig {
   static const String getPhotosEndpoint = photosEndpoint;
   static const String analyzePhotoEndpoint = photosAnalyzeEndpoint;
 
+  /// Milestone endpoints
+  static const String milestonesEndpoint = '/milestones';  // Base endpoint for milestone operations
+  static const String milestonesListEndpoint = '/milestones';  // GET all milestones
+  static const String milestonesCreateEndpoint = '/milestones';  // POST new milestone
+  static const String milestonesUpdateEndpoint = '/milestones';  // PUT update milestone (needs /:id)
+  static const String milestonesDeleteEndpoint = '/milestones';  // DELETE milestone (needs /:id)
+  static const String milestonesSuggestionsEndpoint = '/milestones/suggestions';  // GET AI suggestions
+
   /// Subscription endpoints
   static const String subscriptionsEndpoint = '/subscriptions';
   static const String createSubscriptionEndpoint = '/subscriptions/create';
