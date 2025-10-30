@@ -53,9 +53,35 @@ router.put('/profile', authenticateToken, async (req: Request, res: Response) =>
       culturalBackground,
       concerns,
       notificationPreferences,
+      skipOnboarding, // New flag to allow skipping onboarding without providing all data
     } = req.body;
 
-    // Validate required field: mode
+    // If skipOnboarding is true, just mark onboarding as complete without updating profile
+    if (skipOnboarding === true) {
+      const updatedUser = await prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          onboardingComplete: true,
+          updatedAt: new Date(),
+        },
+      });
+
+      return res.status(200).json({
+        message: 'Onboarding skipped successfully',
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          subscriptionTier: updatedUser.subscriptionTier,
+          onboardingComplete: updatedUser.onboardingComplete,
+          createdAt: updatedUser.createdAt,
+          updatedAt: updatedUser.updatedAt,
+        },
+      });
+    }
+
+    // Validate required field: mode (only if not skipping)
     if (!mode || !['PREGNANCY', 'PARENTING'].includes(mode)) {
       return res.status(400).json({
         error: 'Invalid or missing mode (must be PREGNANCY or PARENTING)',

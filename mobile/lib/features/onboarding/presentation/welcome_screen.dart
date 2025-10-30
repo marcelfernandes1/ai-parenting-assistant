@@ -12,13 +12,15 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../auth/providers/auth_provider.dart';
 
 /// WelcomeScreen Component
 ///
 /// Entry point for the onboarding flow.
 /// Introduces the app and its benefits to new users.
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});
 
   /// Navigate to next onboarding screen (Current Stage)
@@ -27,20 +29,53 @@ class WelcomeScreen extends StatelessWidget {
   }
 
   /// Skip onboarding and go to main app
+  /// Marks onboarding as complete without collecting profile data
   /// User can complete onboarding later from settings
-  void _handleSkip(BuildContext context) {
-    // For now, just show a snackbar
-    // In production, this would mark onboarding as skipped and navigate to home
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Onboarding skipped - you can complete it later from settings'),
-      ),
-    );
-    context.go('/home');
+  Future<void> _handleSkip(BuildContext context, WidgetRef ref) async {
+    try {
+      // Show loading indicator in snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Skipping onboarding...'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+
+      // Call backend to mark onboarding as skipped
+      // This sets onboardingComplete flag without requiring profile data
+      await ref.read(authProvider.notifier).completeOnboarding({
+        'skipOnboarding': true,
+      });
+
+      // Show success message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Onboarding skipped - you can complete it later from settings'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        // Navigate to home screen
+        // Router will allow this now since onboardingComplete is true
+        context.go('/home');
+      }
+    } catch (e) {
+      // Show error message if skip fails
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to skip onboarding: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -173,7 +208,7 @@ class WelcomeScreen extends StatelessWidget {
 
               // Skip Button
               TextButton(
-                onPressed: () => _handleSkip(context),
+                onPressed: () => _handleSkip(context, ref),
                 child: Text(
                   'Skip for now',
                   style: TextStyle(
