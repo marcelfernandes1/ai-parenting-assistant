@@ -5,6 +5,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/services/api_client.dart';
 import '../../../shared/services/api_config.dart';
+import '../../../shared/providers/service_providers.dart';
 import '../domain/milestone_model.dart';
 
 /// Provider for MilestoneRepository.
