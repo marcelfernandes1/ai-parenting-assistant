@@ -9,6 +9,7 @@ import '../../subscription/presentation/subscription_management_screen.dart';
 import 'change_email_screen.dart';
 import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
+import 'toggle_mode_screen.dart';
 
 /// Main Settings screen
 /// Displays list of settings options and account information
@@ -27,6 +28,15 @@ class SettingsScreen extends ConsumerWidget {
       initial: () => null,
       loading: () => null,
       error: (message) => null,  // Return null on error state
+    );
+
+    // Get user mode from auth state
+    final userMode = authState.when(
+      authenticated: (user) => user.mode,
+      unauthenticated: () => null,
+      initial: () => null,
+      loading: () => null,
+      error: (message) => null,
     );
 
     return Scaffold(
@@ -64,6 +74,22 @@ class SettingsScreen extends ConsumerWidget {
               );
             },
           ),
+
+          // Mode toggle (only for PREGNANCY mode users)
+          if (userMode == 'PREGNANCY')
+            _buildListTile(
+              context,
+              Icons.child_care,
+              'Baby Has Arrived',
+              'Switch to Parenting mode',
+              () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ToggleModeScreen(),
+                  ),
+                );
+              },
+            ),
 
           const Divider(height: 32),
 
