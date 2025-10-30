@@ -73,15 +73,13 @@ class PhotoRepository {
       final response = await _apiClient.post(
         ApiConfig.photosUploadEndpoint,
         data: formData,
-        options: Options(
+        onSendProgress: (sent, total) {
           // Progress callback for upload tracking
-          onSendProgress: (sent, total) {
-            if (onProgress != null && total > 0) {
-              final progress = sent / total;
-              onProgress(progress);
-            }
-          },
-        ),
+          if (onProgress != null && total > 0) {
+            final progress = sent / total;
+            onProgress(progress);
+          }
+        },
       );
 
       // Check response status

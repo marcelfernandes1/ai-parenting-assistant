@@ -28,18 +28,26 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Checks if user has stored authentication session
   /// Called on app startup to restore session
   Future<void> _checkAuthStatus() async {
+    print('🔐 Auth Check: Starting auth status check...');
     try {
       // Check if valid session exists in secure storage
       final hasSession = await _authRepository.hasStoredSession();
+      print('🔐 Auth Check: Has stored session = $hasSession');
+
       if (hasSession) {
         // Fetch current user from backend to verify token is still valid
+        print('🔐 Auth Check: Fetching current user from backend...');
         final user = await _authRepository.getCurrentUser();
+        print('🔐 Auth Check: User fetched successfully: ${user.email}');
         state = AuthState.authenticated(user: user);
+        print('🔐 Auth Check: State set to authenticated');
       } else {
+        print('🔐 Auth Check: No stored session found, setting unauthenticated');
         state = const AuthState.unauthenticated();
       }
     } catch (e) {
       // If session check fails, mark as unauthenticated
+      print('🔐 Auth Check: Error during auth check: $e');
       state = const AuthState.unauthenticated();
     }
   }

@@ -193,17 +193,20 @@ class ApiClient {
 
   /// POST request helper method
   /// Throws DioException on network errors
+  /// Optional onSendProgress callback for tracking upload progress
   Future<Response> post(
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
     Options? options,
+    void Function(int, int)? onSendProgress,
   }) async {
     return await _dio.post(
       path,
       data: data,
       queryParameters: queryParameters,
       options: options,
+      onSendProgress: onSendProgress,
     );
   }
 

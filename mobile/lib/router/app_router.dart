@@ -66,12 +66,22 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       // Read current auth state (use read instead of watch to avoid rebuilding router)
       final authState = ref.read(authProvider);
+
+      // Handle loading/initial states - don't redirect while auth check is in progress
+      // This prevents premature redirects before we know the user's auth status
+      if (authState is AuthStateInitial || authState is AuthStateLoading) {
+        print('🔍 Router Debug: Auth state is ${authState.runtimeType}, staying at ${state.matchedLocation}');
+        // Stay where we are until auth check completes
+        return null;
+      }
+
       final isAuthenticated = authState is AuthStateAuthenticated;
       final hasCompletedOnboarding = isAuthenticated &&
           (authState as AuthStateAuthenticated).user.onboardingComplete;
 
       // Debug logging
       print('🔍 Router Debug:');
+      print('  Auth State: ${authState.runtimeType}');
       print('  Location: ${state.matchedLocation}');
       print('  isAuthenticated: $isAuthenticated');
       print('  hasCompletedOnboarding: $hasCompletedOnboarding');
@@ -89,28 +99,34 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Redirect logic:
       // 1. If not authenticated and not on auth screen → redirect to login
       if (!isAuthenticated && !isOnAuthScreen) {
+        print('🔍 Router: Not authenticated and not on auth screen → redirecting to /login');
         return '/login';
       }
 
       // 2. If authenticated but on auth screen → redirect to appropriate flow
       if (isAuthenticated && isOnAuthScreen) {
         if (!hasCompletedOnboarding) {
+          print('🔍 Router: Authenticated but onboarding incomplete → redirecting to /onboarding/welcome');
           return '/onboarding/welcome';
         }
+        print('🔍 Router: Authenticated and onboarding complete → redirecting to /home');
         return '/home';
       }
 
       // 3. If authenticated but hasn't completed onboarding and trying to access main app → redirect to onboarding
       if (isAuthenticated && !hasCompletedOnboarding && isOnMainScreen) {
+        print('🔍 Router: Trying to access main app without completing onboarding → redirecting to /onboarding/welcome');
         return '/onboarding/welcome';
       }
 
       // 4. If authenticated with completed onboarding but on onboarding screens → redirect to home
       if (isAuthenticated && hasCompletedOnboarding && isOnOnboardingScreen) {
+        print('🔍 Router: Onboarding complete but on onboarding screen → redirecting to /home');
         return '/home';
       }
 
       // No redirect needed, allow navigation
+      print('🔍 Router: No redirect needed, staying at ${state.matchedLocation}');
       return null;
     },
 
