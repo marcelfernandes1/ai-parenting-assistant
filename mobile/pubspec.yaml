@@ -67,6 +67,10 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1
   flutter_native_splash: ^2.4.1
 
+# Dependency overrides to fix version conflicts
+dependency_overrides:
+  record_linux: ^1.2.1  # Fix for incompatible record_linux version
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

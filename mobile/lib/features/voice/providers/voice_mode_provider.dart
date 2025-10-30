@@ -7,8 +7,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'dart:async';
 import 'dart:typed_data';
-import '../../../shared/providers/auth_provider.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../auth/domain/auth_state.dart';
 import '../../../shared/services/api_client.dart';
+import '../../../shared/services/secure_storage_service.dart';
+import '../../../shared/providers/service_providers.dart';
 
 /// Voice mode connection states
 enum VoiceModeState {
@@ -65,11 +68,11 @@ class VoiceModeData {
 
 /// Voice mode notifier manages Socket.io connection and events
 class VoiceModeNotifier extends StateNotifier<VoiceModeData> {
-  final String accessToken;
+  final SecureStorageService _secureStorage;
   IO.Socket? _socket;
   Timer? _sessionTimer;
 
-  VoiceModeNotifier(this.accessToken) : super(const VoiceModeData());
+  VoiceModeNotifier(this._secureStorage) : super(const VoiceModeData());
 
   /// Connect to Socket.io voice namespace
   Future<void> connect() async {
@@ -80,6 +83,17 @@ class VoiceModeNotifier extends StateNotifier<VoiceModeData> {
 
     try {
       state = state.copyWith(state: VoiceModeState.connecting);
+
+      // Get access token from secure storage
+      final accessToken = await _secureStorage.getAccessToken();
+
+      if (accessToken == null || accessToken.isEmpty) {
+        state = state.copyWith(
+          state: VoiceModeState.error,
+          errorMessage: 'No access token available. Please log in.',
+        );
+        return;
+      }
 
       // Get API URL from environment or default
       const String apiUrl = String.fromEnvironment(
@@ -305,13 +319,16 @@ class VoiceModeNotifier extends StateNotifier<VoiceModeData> {
 /// Provider for voice mode state
 final voiceModeProvider =
     StateNotifierProvider.autoDispose<VoiceModeNotifier, VoiceModeData>((ref) {
-  // Get access token from auth provider
+  // Check if user is authenticated before allowing voice mode
   final authState = ref.watch(authProvider);
-  final accessToken = authState.accessToken ?? '';
 
-  if (accessToken.isEmpty) {
-    throw Exception('No access token available for voice mode');
+  // Require authenticated state
+  if (authState is! AuthStateAuthenticated) {
+    throw Exception('Voice mode requires authentication');
   }
 
-  return VoiceModeNotifier(accessToken);
+  // Get secure storage service for token retrieval
+  final secureStorage = ref.watch(secureStorageProvider);
+
+  return VoiceModeNotifier(secureStorage);
 });
