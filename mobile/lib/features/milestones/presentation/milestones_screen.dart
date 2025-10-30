@@ -9,6 +9,7 @@ import '../providers/milestone_list_provider.dart';
 import '../domain/milestone_model.dart';
 import 'widgets/milestone_card.dart';
 import 'widgets/category_filter.dart';
+import 'widgets/milestone_suggestions_card.dart';
 import 'add_milestone_screen.dart';
 import 'milestone_detail_screen.dart';
 
@@ -157,9 +158,16 @@ class _MilestonesScreenState extends ConsumerState<MilestonesScreen> {
 
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 88), // Space for FAB
-      itemCount: sortedMonths.length,
+      // Add 1 for the suggestions card at the top
+      itemCount: sortedMonths.length + 1,
       itemBuilder: (context, index) {
-        final monthYear = sortedMonths[index];
+        // First item is the suggestions card
+        if (index == 0) {
+          return const MilestoneSuggestionsCard();
+        }
+
+        // Adjust index for sorted months (subtract 1 because of suggestions card)
+        final monthYear = sortedMonths[index - 1];
         final milestones = groupedMilestones[monthYear]!;
 
         return _buildTimelineGroup(theme, monthYear, milestones);

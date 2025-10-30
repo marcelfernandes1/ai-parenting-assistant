@@ -10,7 +10,17 @@ import '../domain/milestone_model.dart';
 
 /// Screen for adding a new milestone
 class AddMilestoneScreen extends ConsumerStatefulWidget {
-  const AddMilestoneScreen({super.key});
+  /// Optional pre-filled milestone name (from AI suggestion)
+  final String? suggestedName;
+
+  /// Optional pre-filled milestone type (from AI suggestion)
+  final MilestoneType? suggestedType;
+
+  const AddMilestoneScreen({
+    super.key,
+    this.suggestedName,
+    this.suggestedType,
+  });
 
   @override
   ConsumerState<AddMilestoneScreen> createState() =>
@@ -23,10 +33,20 @@ class _AddMilestoneScreenState extends ConsumerState<AddMilestoneScreen> {
   final _notesController = TextEditingController();
 
   // Form fields
-  MilestoneType _selectedType = MilestoneType.physical;
+  late MilestoneType _selectedType;
   DateTime _selectedDate = DateTime.now();
   List<String> _photoUrls = []; // Will be populated from photo upload
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill form fields if suggested values are provided
+    if (widget.suggestedName != null) {
+      _nameController.text = widget.suggestedName!;
+    }
+    _selectedType = widget.suggestedType ?? MilestoneType.physical;
+  }
 
   @override
   void dispose() {
