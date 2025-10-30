@@ -133,8 +133,9 @@ class AuthRepository {
       final response = await _apiClient.get(ApiConfig.userProfileEndpoint);
 
       if (response.statusCode == 200) {
-        final userData = response.data['user'] as Map<String, dynamic>;
-        return User.fromJson(userData);
+        // Backend returns {profile: {...}} so access the profile key
+        final profileData = response.data['profile'] as Map<String, dynamic>;
+        return User.fromJson(profileData);
       }
 
       throw Exception(response.data['error'] ?? 'Failed to fetch user');
