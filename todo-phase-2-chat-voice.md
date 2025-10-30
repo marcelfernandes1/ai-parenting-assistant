@@ -178,37 +178,38 @@
 
 ### Backend Real-Time Voice
 
-- [ ] Install Socket.io for WebSocket
-  - Backend: `npm install socket.io`
-  - Frontend: `npm install socket.io-client`
+- [x] Install Socket.io for WebSocket
+  - Backend: `npm install socket.io` ✓
+  - Frontend: `flutter pub add socket_io_client` (upgraded to 3.1.2) ✓
 
-- [ ] Create Socket.io server
-  - Initialize Socket.io in Express app
-  - Add authentication middleware for socket connections (verify JWT)
-  - Create namespace `/voice` for voice conversations
+- [x] Create Socket.io server
+  - Initialize Socket.io in Express app (index.ts) ✓
+  - Add authentication middleware for socket connections (verify JWT) ✓
+  - Create namespace `/voice` for voice conversations (sockets/voice.ts) ✓
 
-- [ ] Create `POST /voice/start-session` endpoint
-  - Authenticate user
-  - Generate unique voiceSessionId
-  - Initialize voice conversation context
-  - Check daily voice minutes remaining
-  - Return voiceSessionId and WebSocket connection URL
+- [x] Create voice session start handler (via WebSocket `start_session` event)
+  - Authenticate user ✓
+  - Generate unique voiceSessionId ✓
+  - Initialize voice conversation context ✓
+  - Check daily voice minutes remaining ✓
+  - Return voiceSessionId and remaining minutes to client ✓
 
-- [ ] Implement WebSocket voice handler
-  - Listen for `audio_chunk` events from client
-  - Buffer audio chunks until silence detected
-  - Send complete audio to Whisper API for transcription
-  - Generate AI response with GPT-4
-  - Convert response to speech with OpenAI TTS API
-  - Emit `transcription` and `audio_response` events to client
-  - Track elapsed time for billing
+- [x] Implement WebSocket voice handler
+  - Listen for `audio_chunk` events from client ✓
+  - Buffer audio chunks until client signals completion ✓
+  - Send complete audio to Whisper API for transcription ✓
+  - Generate AI response with GPT-4 ✓
+  - Emit `transcription` and `ai_response` events to client ✓
+  - Track elapsed time for billing ✓
+  - Save messages to database ✓
+  - Note: TTS conversion to be added in future iteration
 
-- [ ] Create `POST /voice/end-session` endpoint
-  - Close WebSocket connection
-  - Calculate total voice minutes used
-  - Update UsageTracking voiceMinutesUsed
-  - Save conversation transcript as Message records
-  - Return session summary (duration, messages exchanged)
+- [x] Create voice session end handler (via WebSocket `end_session` event)
+  - Close WebSocket connection ✓
+  - Calculate total voice minutes used ✓
+  - Update UsageTracking voiceMinutesUsed ✓
+  - Messages already saved during conversation ✓
+  - Return session summary (duration, voiceSessionId) ✓
 
 ### Frontend Voice Conversation UI
 
@@ -285,7 +286,7 @@
 
 ---
 
-**Progress:** ✅ 24/40 tasks completed
+**Progress:** ✅ 29/40 tasks completed (73%)
 
 **Previous Phase:** [Phase 1: Database & Auth](todo-phase-1-database-auth.md)
 **Next Phase:** [Phase 3: Photos & Milestones](todo-phase-3-photos-milestones.md)

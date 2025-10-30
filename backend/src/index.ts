@@ -8,11 +8,14 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
 import chatRoutes from './routes/chat';
 import usageRoutes from './routes/usage';
 import { authenticateToken, AuthenticatedRequest } from './middleware/auth';
+import { initializeVoiceSocket } from './sockets/voice';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -171,17 +174,44 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 // ===========================
 
 /**
- * Start the HTTP server
- * Listens on the configured port and logs startup message
+ * Create HTTP server from Express app
+ * Required for Socket.io to work with Express
  */
-app.listen(PORT, () => {
-  console.log(`✅ Server is running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+const httpServer = createServer(app);
+
+/**
+ * Initialize Socket.io server
+ * Enables real-time WebSocket communication for voice mode
+ * CORS configured to allow connections from mobile app
+ */
+const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: '*', // In production, configure to only allow your app's domain
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
 });
 
 /**
- * Export app for testing purposes
+ * Initialize voice conversation socket handlers
+ * Sets up /voice namespace with authentication and event handlers
+ */
+initializeVoiceSocket(io);
+
+/**
+ * Start the HTTP server
+ * Listens on the configured port and logs startup message
+ */
+httpServer.listen(PORT, () => {
+  console.log(`✅ Server is running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  console.log(`🔌 Socket.io enabled on /voice namespace`);
+});
+
+/**
+ * Export app and io for testing purposes
  * Allows the app to be imported in test files without starting the server
  */
+export { io };
 export default app;
