@@ -124,35 +124,35 @@
 
 ### Backend Milestone API
 
-- [ ] Create `GET /milestones` endpoint
-  - Authenticate user
-  - Fetch all milestones for userId
-  - Support filtering by type (query param: ?type=PHYSICAL)
-  - Support filtering by confirmed status (?confirmed=true)
-  - Order by achievedDate descending
-  - Generate presigned URLs for photos in photoUrls array
-  - Return array of milestones with photo URLs
+- [x] Create `GET /milestones` endpoint
+  - Authenticate user ✓
+  - Fetch all milestones for userId ✓
+  - Support filtering by type (query param: ?type=PHYSICAL) ✓
+  - Support filtering by confirmed status (?confirmed=true) ✓
+  - Order by achievedDate descending ✓
+  - Generate presigned URLs for photos in photoUrls array ✓
+  - Return array of milestones with photo URLs ✓
 
-- [ ] Create `POST /milestones` endpoint
-  - Authenticate user
-  - Accept milestone data: type, name, achievedDate, notes, photoUrls, confirmed
-  - Validate achievedDate not in future
-  - Validate type is valid enum value
-  - Create Milestone record in database
-  - Return created milestone object with generated id
+- [x] Create `POST /milestones` endpoint
+  - Authenticate user ✓
+  - Accept milestone data: type, name, achievedDate, notes, photoUrls, confirmed ✓
+  - Validate achievedDate not in future ✓
+  - Validate type is valid enum value ✓
+  - Create Milestone record in database ✓
+  - Return created milestone object with generated id ✓
 
-- [ ] Create `PUT /milestones/:id` endpoint
-  - Authenticate user
-  - Verify milestone belongs to user
-  - Accept partial updates (name, achievedDate, notes)
-  - Update Milestone record
-  - Return updated milestone
+- [x] Create `PUT /milestones/:id` endpoint
+  - Authenticate user ✓
+  - Verify milestone belongs to user ✓
+  - Accept partial updates (name, achievedDate, notes) ✓
+  - Update Milestone record ✓
+  - Return updated milestone ✓
 
-- [ ] Create `DELETE /milestones/:id` endpoint
-  - Authenticate user
-  - Verify milestone belongs to user
-  - Delete Milestone record from database
-  - Return success message
+- [x] Create `DELETE /milestones/:id` endpoint
+  - Authenticate user ✓
+  - Verify milestone belongs to user ✓
+  - Delete Milestone record from database ✓
+  - Return success message ✓
 
 - [ ] Implement AI milestone suggestion logic
   - Function `suggestMilestones(userProfile): Milestone[]`
@@ -244,7 +244,7 @@
 
 ---
 
-**Progress:** 🟩 14/29 tasks completed (48% - Photo features complete!)
+**Progress:** 🟩 18/29 tasks completed (62% - Photos complete, Milestone CRUD complete!)
 
 **Previous Phase:** [Phase 2: Chat & Voice](todo-phase-2-chat-voice.md)
 **Next Phase:** [Phase 4: Monetization](todo-phase-4-monetization.md)
