@@ -26,6 +26,9 @@ import '../features/onboarding/presentation/concerns_screen.dart';
 import '../features/onboarding/presentation/notification_preferences_screen.dart';
 import '../features/onboarding/presentation/usage_limits_explanation_screen.dart';
 import '../features/chat/presentation/chat_screen.dart';
+import '../features/profile/presentation/profile_screen.dart';
+import '../features/settings/presentation/settings_screen.dart';
+import '../features/subscription/presentation/premium_screen.dart';
 import '../shared/widgets/main_navigation.dart';
 
 /// ChangeNotifier that listens to auth state changes and notifies GoRouter.
@@ -251,6 +254,33 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/home',
         name: 'home',
         builder: (context, state) => const MainNavigation(),
+      ),
+
+      /// Profile screen - Edit user information
+      /// Path: /profile
+      /// Allows users to update their profile, baby info, and preferences
+      GoRoute(
+        path: '/profile',
+        name: 'profile',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+
+      /// Settings screen - App preferences and configuration
+      /// Path: /settings
+      /// Manage notifications, appearance, privacy, and account settings
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        builder: (context, state) => const SettingsScreen(),
+      ),
+
+      /// Premium screen - Subscription management and upgrade
+      /// Path: /premium
+      /// View premium features, manage subscription, or upgrade from free tier
+      GoRoute(
+        path: '/premium',
+        name: 'premium',
+        builder: (context, state) => const PremiumScreen(),
       ),
     ],
 

@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/chat/presentation/chat_screen.dart';
 import '../../features/photos/presentation/photos_screen.dart';
 import '../../features/milestones/presentation/milestones_screen.dart';
+import '../../features/settings/presentation/settings_screen.dart';
 import '../../features/subscription/providers/subscription_provider.dart';
 
 /// Main navigation screen with bottom tab bar
@@ -28,6 +29,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     const ChatScreen(),
     const PhotosScreen(),
     const MilestonesScreen(),
+    const SettingsScreen(),
   ];
 
   /// Handles tab selection
@@ -87,6 +89,13 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
             icon: Icon(Icons.emoji_events_outlined),
             selectedIcon: Icon(Icons.emoji_events),
             label: 'Milestones',
+          ),
+
+          /// Settings tab
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: 'Settings',
           ),
         ],
       ),

@@ -4,6 +4,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../providers/chat_provider.dart';
 import '../../../onboarding/providers/onboarding_provider.dart';
 import '../../../photos/presentation/photos_screen.dart';
@@ -196,13 +197,8 @@ class AppDrawer extends ConsumerWidget {
                     subtitle: const Text('Edit your information'),
                     onTap: () {
                       Navigator.pop(context);
-                      // TODO: Navigate to profile screen
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Profile screen coming soon!'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
+                      // Navigate to profile screen
+                      context.go('/profile');
                     },
                   ),
 
@@ -213,13 +209,8 @@ class AppDrawer extends ConsumerWidget {
                     subtitle: const Text('App preferences'),
                     onTap: () {
                       Navigator.pop(context);
-                      // TODO: Navigate to settings screen
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Settings screen coming soon!'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
+                      // Navigate to settings screen
+                      context.go('/settings');
                     },
                   ),
 
@@ -233,13 +224,8 @@ class AppDrawer extends ConsumerWidget {
                     subtitle: const Text('Unlimited features'),
                     onTap: () {
                       Navigator.pop(context);
-                      // TODO: Navigate to subscription screen
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Subscription screen coming soon!'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
+                      // Navigate to premium screen
+                      context.go('/premium');
                     },
                   ),
                 ],
