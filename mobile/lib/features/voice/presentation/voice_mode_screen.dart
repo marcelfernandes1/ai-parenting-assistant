@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:io';
+import 'dart:typed_data';
 import '../providers/voice_mode_provider.dart';
 import '../../chat/providers/voice_recorder_provider.dart';
 
@@ -416,7 +418,7 @@ class _VoiceModeScreenState extends ConsumerState<VoiceModeScreen>
     }
   }
 
-  /// Stop recording and send audio to server
+  /// Stop recording and send audio to server via WebSocket
   void _stopRecording() async {
     try {
       final recorder = ref.read(voiceRecorderProvider.notifier);
@@ -424,15 +426,70 @@ class _VoiceModeScreenState extends ConsumerState<VoiceModeScreen>
 
       if (filePath != null) {
         print('🎙️ Stopped recording, sending to server: $filePath');
-        // TODO: Read audio file and send chunks via WebSocket
-        // For now, we'll need to integrate with the voice recorder provider
-        // to send chunks directly to the WebSocket
+        await _sendAudioFileInChunks(filePath);
       }
     } catch (e) {
       print('Error stopping recording: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to stop recording: $e')),
+        );
+      }
+    }
+  }
+
+  /// Send audio file to server in chunks via WebSocket
+  /// Splits file into manageable chunks and streams them
+  Future<void> _sendAudioFileInChunks(String filePath) async {
+    try {
+      // Read audio file
+      final file = File(filePath);
+      final audioBytes = await file.readAsBytes();
+
+      print('🎙️ Audio file size: ${audioBytes.length} bytes');
+
+      // Define chunk size (e.g., 64KB per chunk for efficient streaming)
+      const chunkSize = 64 * 1024; // 64KB chunks
+
+      final totalChunks = (audioBytes.length / chunkSize).ceil();
+      print('🎙️ Sending audio in $totalChunks chunks');
+
+      // Send audio data in chunks
+      for (var i = 0; i < audioBytes.length; i += chunkSize) {
+        final end = (i + chunkSize < audioBytes.length)
+            ? i + chunkSize
+            : audioBytes.length;
+
+        final chunk = Uint8List.sublistView(audioBytes, i, end);
+        final isLast = end >= audioBytes.length;
+
+        // Send chunk via WebSocket
+        ref.read(voiceModeProvider.notifier).sendAudioChunk(
+          chunk,
+          isLast: isLast,
+        );
+
+        // Small delay between chunks to avoid overwhelming the connection
+        if (!isLast) {
+          await Future.delayed(const Duration(milliseconds: 50));
+        }
+
+        print('🎙️ Sent chunk ${(i ~/ chunkSize) + 1}/$totalChunks (${chunk.length} bytes, last: $isLast)');
+      }
+
+      // Clean up temporary audio file after sending
+      try {
+        await file.delete();
+      } catch (error) {
+        print('Failed to delete temp file: $error');
+      }
+
+      print('🎙️ Audio streaming complete, waiting for transcription');
+    } catch (e) {
+      print('Error sending audio chunks: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send audio: $e')),
         );
       }
     }
