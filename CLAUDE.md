@@ -281,8 +281,8 @@ ai-parenting-assistant/
 
 8. **Real-Time Voice:**
    - `socket_io_client` for WebSocket connections
-   - `flutter_sound` for audio recording
-   - Audio chunks streamed to backend
+   - `record` package for audio recording (iOS 18 compatible)
+   - Audio chunks streamed to backend via WebSocket
    - Server: buffers → Whisper transcription → GPT response → TTS
    - Session duration tracked for billing
 
@@ -335,6 +335,654 @@ git push origin phase-1-database-auth
 3. **DON'T** assume API methods - Verify in official docs
 4. **DON'T** skip error handling - Wrap all async code in try-catch
 5. **DON'T** forget to mark tasks complete with [x]
+
+---
+
+## Development Commands
+
+### Flutter Mobile Commands
+
+**Running the App:**
+```bash
+# Navigate to mobile directory
+cd mobile
+
+# Run on iOS simulator (development mode with hot reload)
+flutter run
+
+# Run on specific iOS simulator
+flutter run -d "iPhone 15 Pro"
+
+# Run on Android emulator
+flutter run -d emulator-5554
+
+# Run with specific backend API URL
+flutter run --dart-define=API_URL=http://localhost:3000
+
+# Hot reload (press 'r' in terminal while app is running)
+# Hot restart (press 'R' in terminal for full restart)
+```
+
+**Building:**
+```bash
+# Build iOS app (requires macOS and Xcode)
+flutter build ios
+
+# Build iOS for simulator
+flutter build ios --simulator
+
+# Build Android APK
+flutter build apk
+
+# Build Android App Bundle (for Play Store)
+flutter build appbundle
+
+# Clean build cache (fixes many build issues)
+flutter clean && flutter pub get
+```
+
+**Testing:**
+```bash
+# Run all tests
+flutter test
+
+# Run specific test file
+flutter test test/features/auth/auth_test.dart
+
+# Run tests with coverage
+flutter test --coverage
+
+# Run widget tests with verbose output
+flutter test --verbose
+```
+
+**Code Generation:**
+```bash
+# Generate code for Riverpod, Freezed, JSON serialization
+dart run build_runner build
+
+# Watch mode (regenerates on file changes)
+dart run build_runner watch
+
+# Delete conflicting outputs and rebuild
+dart run build_runner build --delete-conflicting-outputs
+```
+
+**Dependency Management:**
+```bash
+# Install/update dependencies
+flutter pub get
+
+# Upgrade dependencies (respecting version constraints)
+flutter pub upgrade
+
+# Check for outdated packages
+flutter pub outdated
+
+# Analyze code for issues
+flutter analyze
+
+# Format all Dart code
+dart format lib/
+```
+
+**App Assets Generation:**
+```bash
+# Generate app icons from assets/icon/icon.png
+dart run flutter_launcher_icons
+
+# Generate splash screen
+dart run flutter_native_splash:create
+```
+
+### Backend Commands
+
+**Development Server:**
+```bash
+# Navigate to backend directory
+cd backend
+
+# Install dependencies
+npm install
+
+# Run development server with hot reload (nodemon)
+npm run dev
+
+# Production build
+npm run build
+
+# Start production server
+npm start
+```
+
+**Database & Prisma:**
+```bash
+# Generate Prisma Client (after schema changes)
+npm run prisma:generate
+
+# Create and apply migration
+npm run prisma:migrate
+# Or with custom name:
+npx prisma migrate dev --name add_milestone_model
+
+# Push schema changes without migration (for prototyping)
+npm run prisma:push
+
+# Open Prisma Studio (database GUI)
+npm run prisma:studio
+
+# Reset database (WARNING: deletes all data)
+npx prisma migrate reset
+
+# View migration status
+npx prisma migrate status
+
+# Apply migrations in production
+npx prisma migrate deploy
+```
+
+**Code Quality:**
+```bash
+# Run ESLint
+npm run lint
+
+# Fix ESLint errors automatically
+npm run lint:fix
+
+# Format code with Prettier
+npm run format
+
+# Run tests (when implemented)
+npm test
+```
+
+**Testing Endpoints:**
+```bash
+# Test health check
+curl http://localhost:3000/health
+
+# Test auth endpoint with curl
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test123!@#"}'
+
+# Test protected endpoint with JWT token
+curl http://localhost:3000/api/profile \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Git Workflow
+
+**Branch Management:**
+```bash
+# Check current branch and status
+git status
+
+# Create and switch to new branch for phase
+git checkout -b phase-3-photos-milestones
+
+# View all branches
+git branch -a
+
+# Switch branches
+git checkout main
+```
+
+**Committing & Pushing:**
+```bash
+# Stage all changes
+git add .
+
+# Stage specific files
+git add mobile/lib/features/chat/
+
+# Commit with descriptive message
+git commit -m "[Phase 3] Add milestone detail screen"
+
+# Push to remote (set upstream on first push)
+git push -u origin phase-3-photos-milestones
+
+# Push subsequent commits
+git push
+```
+
+**Viewing History:**
+```bash
+# View commit history
+git log --oneline
+
+# View recent commits with details
+git log -5
+
+# View file changes in last commit
+git show HEAD
+
+# View changes between commits
+git diff HEAD~1 HEAD
+```
+
+### Docker Commands (Optional)
+
+**If using Docker Compose for PostgreSQL/Redis:**
+```bash
+# Start all services (PostgreSQL, Redis)
+docker-compose up -d
+
+# Stop all services
+docker-compose down
+
+# View logs
+docker-compose logs -f
+
+# Restart services
+docker-compose restart
+
+# Remove volumes (deletes database data)
+docker-compose down -v
+```
+
+### Useful Combinations
+
+**Full Reset Workflow:**
+```bash
+# When things are broken, nuclear option:
+cd mobile && flutter clean && flutter pub get && dart run build_runner build --delete-conflicting-outputs
+cd ../backend && rm -rf node_modules && npm install && npx prisma generate
+```
+
+**Quick Test Before Commit:**
+```bash
+# Backend
+cd backend && npm run lint && npm run build
+
+# Mobile
+cd mobile && flutter analyze && flutter test && flutter build ios --simulator
+```
+
+**New Feature Branch Setup:**
+```bash
+# Start new phase
+git checkout main
+git pull origin main
+git checkout -b phase-4-monetization
+cd backend && npm run prisma:generate
+cd ../mobile && flutter pub get && dart run build_runner build
+```
+
+---
+
+## iOS 18 Compatibility Notes
+
+### Known Package Issues
+
+**Current State (as of October 2024):**
+
+The project uses **iOS 18** development environment, which has caused compatibility issues with some Flutter packages. Here are the known issues and workarounds:
+
+#### 1. Audio Recording Package (`flutter_sound` → `record`)
+
+**Issue:** `flutter_sound` package has compatibility issues with iOS 18
+**Solution:** Using `record: ^5.1.2` package instead
+
+```yaml
+# pubspec.yaml
+dependencies:
+  record: ^5.1.2  # Modern, iOS 18-compatible audio recording
+  # flutter_sound: ^9.2.13  # REMOVED - iOS 18 incompatible
+```
+
+**Migration Notes:**
+- `record` package has a simpler API than `flutter_sound`
+- Supports iOS 18+ natively
+- Works across iOS, Android, web, macOS
+- See `mobile/lib/features/voice/` for implementation examples
+
+#### 2. Payment Packages (Temporarily Disabled)
+
+**Issue:** `in_app_purchase` and `flutter_stripe` have iOS 18 compatibility issues
+**Current Status:** Commented out in pubspec.yaml until compatible versions are released
+
+```yaml
+# pubspec.yaml - TEMPORARILY DISABLED
+# Payments
+# in_app_purchase: ^3.2.0  # TODO: Re-add when iOS 18 compatible version available
+# flutter_stripe: ^11.0.0   # TODO: Re-add when iOS 18 compatible version available
+```
+
+**Impact:**
+- Phase 4 (Monetization) implementation is blocked until these packages are updated
+- Monitor package updates at:
+  - https://pub.dev/packages/in_app_purchase
+  - https://pub.dev/packages/flutter_stripe
+- Alternative: Consider using web-based checkout flow via Stripe Checkout API
+
+**Workaround Options:**
+1. **Web Checkout Flow:** Redirect users to Stripe-hosted checkout page
+2. **Wait for Updates:** Monitor pub.dev for iOS 18-compatible releases
+3. **Downgrade iOS SDK:** Not recommended, but possible for testing
+
+#### 3. Dependency Overrides
+
+**Issue:** `record` package has transitive dependency conflicts on Linux
+**Solution:** Override in pubspec.yaml
+
+```yaml
+# pubspec.yaml
+dependency_overrides:
+  record_linux: ^1.2.1  # Fix for incompatible record_linux version
+```
+
+### Testing iOS 18 Compatibility
+
+**Before adding new packages:**
+```bash
+# Check package iOS version support
+flutter pub deps | grep -A 5 "package_name"
+
+# Test on iOS 18 simulator
+flutter run -d "iPhone 15 Pro"
+
+# Check for warnings in console output
+flutter run --verbose
+```
+
+**When iOS 18 Issues Occur:**
+1. Check package's GitHub issues for iOS 18 compatibility reports
+2. Search pub.dev for alternative packages with iOS 18 support
+3. Check if newer package version is available: `flutter pub outdated`
+4. Consider filing issue with package maintainer if none exists
+
+### Monitoring for Updates
+
+**Packages to Monitor:**
+- [x] `record` - ✅ Working on iOS 18
+- [ ] `in_app_purchase` - ⏳ Waiting for iOS 18 compatibility
+- [ ] `flutter_stripe` - ⏳ Waiting for iOS 18 compatibility
+- [x] `image_picker` - ✅ Working on iOS 18
+- [x] `permission_handler` - ✅ Working on iOS 18
+
+**Check weekly for updates:**
+```bash
+cd mobile && flutter pub outdated
+```
+
+---
+
+## Troubleshooting
+
+### Flutter Issues
+
+#### "Plugin not found" or "No implementation found"
+```bash
+# Clean and reinstall
+cd mobile
+flutter clean
+rm -rf ios/Pods ios/Podfile.lock
+flutter pub get
+cd ios && pod install --repo-update
+cd .. && flutter run
+```
+
+#### Hot Reload Not Working
+```bash
+# Press 'R' for hot restart instead of 'r' for hot reload
+# Or restart with:
+flutter run
+```
+
+#### Build Errors After Adding Package
+```bash
+# Regenerate code and clean
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+flutter clean
+flutter run
+```
+
+#### iOS Simulator App Crashes on Launch
+```bash
+# Check for missing permissions in Info.plist
+# For camera: NSCameraUsageDescription
+# For photos: NSPhotoLibraryUsageDescription
+# For microphone: NSMicrophoneUsageDescription
+
+# View crash logs:
+flutter run --verbose
+# Or check Console.app on macOS
+```
+
+#### Code Generation Not Working (Riverpod/Freezed)
+```bash
+# Delete generated files and rebuild
+find lib -name "*.g.dart" -delete
+find lib -name "*.freezed.dart" -delete
+dart run build_runner build --delete-conflicting-outputs
+```
+
+#### Android Build Fails
+```bash
+# Update Gradle wrapper
+cd android
+./gradlew wrapper --gradle-version=8.0
+
+# Clean Gradle cache
+./gradlew clean
+
+# Rebuild
+cd .. && flutter build apk
+```
+
+### Backend Issues
+
+#### Port 3000 Already in Use
+```bash
+# Find process using port
+lsof -ti:3000
+
+# Kill process
+kill -9 $(lsof -ti:3000)
+
+# Or change port in backend/.env
+PORT=3001
+```
+
+#### Prisma Client Not Found
+```bash
+# Regenerate Prisma Client
+cd backend
+npm run prisma:generate
+
+# If still fails, delete and regenerate
+rm -rf node_modules/@prisma
+npm run prisma:generate
+```
+
+#### Database Connection Fails
+```bash
+# Check PostgreSQL is running
+# If using Docker:
+docker-compose ps
+
+# If using local PostgreSQL:
+psql -U postgres -c "SELECT 1"
+
+# Check DATABASE_URL in backend/.env
+# Format: postgresql://user:password@localhost:5432/database_name
+
+# Test connection with Prisma
+npx prisma db push
+```
+
+#### Migration Fails with "Already Exists"
+```bash
+# View migration status
+npx prisma migrate status
+
+# Reset database (WARNING: deletes all data)
+npx prisma migrate reset
+
+# Or manually resolve:
+npx prisma migrate resolve --applied "migration_name"
+```
+
+#### TypeScript Compilation Errors
+```bash
+# Check tsconfig.json is correct
+# Reinstall dependencies
+rm -rf node_modules package-lock.json
+npm install
+
+# Run type check
+npm run build
+```
+
+#### JWT Token Expires Immediately
+```bash
+# Check JWT_SECRET and JWT_REFRESH_SECRET are different
+# Check token expiry in backend/src/utils/jwt.ts
+# Default: 7 days for access token, 30 days for refresh
+
+# Verify tokens are being stored in mobile app
+# Check mobile/lib/shared/services/secure_storage_service.dart
+```
+
+### AWS S3 Issues
+
+#### Images Not Uploading to S3
+```bash
+# Verify AWS credentials in backend/.env
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+AWS_REGION=us-east-1
+S3_BUCKET=your-bucket-name
+
+# Test AWS CLI access
+aws s3 ls s3://your-bucket-name/
+
+# Check IAM permissions for S3 bucket
+# Required: PutObject, GetObject, DeleteObject
+```
+
+#### Presigned URLs Expire Too Quickly
+```javascript
+// In backend/src/utils/s3.ts
+// Increase expiry time from 86400 (24h) to 604800 (7 days)
+const url = await getSignedUrl(s3Client, command, {
+  expiresIn: 604800, // 7 days in seconds
+});
+```
+
+### OpenAI API Issues
+
+#### Rate Limit Errors (429)
+```bash
+# Check OpenAI usage at platform.openai.com
+# Consider implementing caching for common questions
+# Upgrade OpenAI tier if hitting limits
+```
+
+#### OpenAI API Key Invalid
+```bash
+# Verify OPENAI_API_KEY in backend/.env
+# Key should start with sk-
+# Test with curl:
+curl https://api.openai.com/v1/models \
+  -H "Authorization: Bearer YOUR_KEY"
+```
+
+#### AI Responses Too Slow
+```javascript
+// Switch to faster model in backend/src/services/openai.ts
+// gpt-4-turbo → gpt-4o (faster)
+// gpt-4 → gpt-3.5-turbo (much faster, cheaper)
+```
+
+### Common Git Issues
+
+#### Merge Conflicts
+```bash
+# View conflicts
+git status
+
+# Edit conflicted files, then:
+git add .
+git commit -m "Resolve merge conflicts"
+```
+
+#### Pushed Wrong Commit
+```bash
+# Undo last commit (keep changes)
+git reset --soft HEAD~1
+
+# Undo last commit (discard changes) - DANGEROUS
+git reset --hard HEAD~1
+git push -f origin branch-name
+```
+
+#### Need to Switch Branches with Uncommitted Changes
+```bash
+# Stash changes
+git stash
+
+# Switch branch
+git checkout other-branch
+
+# Return and restore changes
+git checkout original-branch
+git stash pop
+```
+
+### Performance Issues
+
+#### Flutter App Feels Slow
+```bash
+# Run in profile mode for better performance testing
+flutter run --profile
+
+# Check for excessive rebuilds with Flutter DevTools
+flutter run --dart-define=ENABLE_FLUTTER_INSPECTOR=true
+
+# Optimize images in assets/
+# Use cached_network_image for all network images
+```
+
+#### Backend API Slow
+```javascript
+// Add indexes to frequently queried fields in schema.prisma
+@@index([userId, timestamp])
+
+// Enable query logging in Prisma
+// Check backend/src/prisma/client.ts
+
+// Consider adding Redis caching for expensive queries
+```
+
+### Environment-Specific Issues
+
+#### .env File Not Loading
+```bash
+# Backend: Ensure dotenv is configured in index.ts
+import 'dotenv/config';
+
+# Mobile: Ensure --dart-define is passed when running
+flutter run --dart-define=API_URL=http://localhost:3000
+
+# Or use flutter_dotenv package for mobile
+```
+
+#### Different Behavior on iOS vs Android
+```dart
+// Use Platform checks in Dart
+import 'dart:io' show Platform;
+
+if (Platform.isIOS) {
+  // iOS-specific code
+} else if (Platform.isAndroid) {
+  // Android-specific code
+}
+
+// Check mobile/lib/shared/utils/platform_utils.dart for helpers
+```
 
 ---
 
@@ -463,18 +1111,21 @@ STRIPE_PUBLISHABLE_KEY=pk_test_...
 
 ## Key Dependencies
 
-**Backend (exact versions to use):**
+**Backend (current versions in use):**
 - `express@4.18.2` - Web framework
 - `@prisma/client@5.7.0` - Database ORM
-- `openai@4.20.0` - OpenAI API client
-- `stripe@14.5.0` - Stripe payments
+- `openai@6.7.0` - OpenAI API client (updated from 4.20.0)
 - `bcrypt@5.1.1` - Password hashing
 - `jsonwebtoken@9.0.2` - JWT tokens
-- `socket.io@4.6.1` - WebSocket for voice
-- `multer@1.4.5-lts.1` - File uploads
-- `sharp@0.33.0` - Image processing
-- `@aws-sdk/client-s3@3.450.0` - S3 uploads
-- `redis@4.6.10` - Caching
+- `socket.io@4.8.1` - WebSocket for voice (updated from 4.6.1)
+- `multer@2.0.2` - File uploads (updated from 1.4.5-lts.1)
+- `sharp@0.34.4` - Image processing (updated from 0.33.0)
+- `@aws-sdk/client-s3@3.920.0` - S3 uploads (updated from 3.450.0)
+- `@aws-sdk/s3-request-presigner@3.920.0` - S3 presigned URL generation
+- `express-rate-limit@7.1.5` - Rate limiting middleware
+- `express-validator@7.0.1` - Request validation
+- `uuid@13.0.0` - UUID generation
+- Note: Stripe and Redis not yet implemented
 
 **Flutter Frontend (pub.dev packages):**
 
@@ -489,7 +1140,7 @@ STRIPE_PUBLISHABLE_KEY=pk_test_...
 
 **HTTP & Networking:**
 - `dio: ^5.4.3` - HTTP client with interceptors
-- `socket_io_client: ^2.0.3` - WebSocket for real-time voice
+- `socket_io_client: ^3.1.2` - WebSocket for real-time voice
 - `http: ^1.2.1` - Backup HTTP client (if needed)
 
 **Storage:**
@@ -498,9 +1149,9 @@ STRIPE_PUBLISHABLE_KEY=pk_test_...
 - `path_provider: ^2.1.3` - File system paths
 
 **Media & Camera:**
-- `image_picker: ^1.1.1` - Camera/gallery picker (official Flutter package)
+- `image_picker: ^1.2.0` - Camera/gallery picker (official Flutter package)
 - `cached_network_image: ^3.3.1` - Image caching and loading
-- `flutter_sound: ^9.2.13` - Audio recording and playback
+- `record: ^5.1.2` - Audio recording (iOS 18 compatible, replaces flutter_sound)
 - `permission_handler: ^11.3.1` - Runtime permissions
 
 **UI & Design:**
@@ -508,9 +1159,10 @@ STRIPE_PUBLISHABLE_KEY=pk_test_...
 - `shimmer: ^3.0.0` - Loading skeleton animations
 - `flutter_svg: ^2.0.10` - SVG rendering
 
-**Payments:**
-- `in_app_purchase: ^3.2.0` - Official in-app purchases (iOS/Android)
-- `flutter_stripe: ^11.0.0` - Stripe SDK integration
+**Payments (Temporarily Disabled - iOS 18 Compatibility):**
+- `in_app_purchase: ^3.2.0` - Official in-app purchases (iOS/Android) - ⏳ Waiting for iOS 18 update
+- `flutter_stripe: ^11.0.0` - Stripe SDK integration - ⏳ Waiting for iOS 18 update
+- See "iOS 18 Compatibility Notes" section for workarounds
 
 **Utilities:**
 - `intl: ^0.19.0` - Internationalization and date formatting
