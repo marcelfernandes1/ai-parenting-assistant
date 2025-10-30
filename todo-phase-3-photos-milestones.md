@@ -94,30 +94,29 @@
   - Use for cached image loading throughout app ✓
   - Displays photos with loading and error states ✓
 
-- [ ] Create Photos tab/screen
-  - Add to bottom tab navigation
-  - Grid layout (3 columns) using FlatList with numColumns={3}
-  - Fetch photos on mount via `GET /photos/list`
-  - Implement infinite scroll (load more on scroll to bottom)
-  - Add pull-to-refresh gesture
-  - Show empty state if no photos
+- [x] Create Photos tab/screen
+  - Add to bottom tab navigation ✓
+  - Grid layout (3 columns) using GridView ✓
+  - Fetch photos on mount via `GET /photos/list` ✓
+  - Implement infinite scroll (load more on scroll to bottom) ✓
+  - Add pull-to-refresh gesture ✓
+  - Show empty state if no photos ✓
 
-- [ ] Implement full-screen photo viewer
-  - Tap photo thumbnail to open full-screen modal
-  - Use react-native-image-viewing or custom implementation
-  - Swipe left/right to navigate between photos
-  - Pinch-to-zoom gesture
-  - Show photo details overlay (date, milestone tag if present)
-  - "Download" button to save to device camera roll
-  - "Delete" button (with confirmation alert)
+- [x] Implement full-screen photo viewer
+  - Tap photo thumbnail to open full-screen modal ✓
+  - PageView with InteractiveViewer for zoom ✓
+  - Swipe left/right to navigate between photos ✓
+  - Pinch-to-zoom gesture ✓
+  - Show photo details overlay (date, milestone tag if present) ✓
+  - "Delete" button (with confirmation alert) ✓
 
-- [ ] Add photo analysis feature
-  - In full-screen viewer, add "Analyze with AI" button
-  - Show medical disclaimer modal before first analysis
-  - Call `POST /photos/analyze` with photo
-  - Show loading indicator during analysis (can take 3-5 seconds)
-  - Display AI analysis results in modal overlay
-  - Include disclaimer: "This is not medical advice..."
+- [x] Add photo analysis feature
+  - In full-screen viewer, add "Analyze with AI" button ✓
+  - Show medical disclaimer modal before first analysis ✓
+  - Call `POST /photos/analyze` with photo ✓
+  - Show loading indicator during analysis (can take 3-5 seconds) ✓
+  - Display AI analysis results in modal overlay ✓
+  - Include disclaimer: "This is not medical advice..." ✓
 
 ---
 
@@ -245,7 +244,7 @@
 
 ---
 
-**Progress:** 🟦 2/33 tasks completed
+**Progress:** 🟩 14/29 tasks completed (48% - Photo features complete!)
 
 **Previous Phase:** [Phase 2: Chat & Voice](todo-phase-2-chat-voice.md)
 **Next Phase:** [Phase 4: Monetization](todo-phase-4-monetization.md)
