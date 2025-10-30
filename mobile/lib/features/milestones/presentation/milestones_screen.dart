@@ -10,6 +10,7 @@ import '../domain/milestone_model.dart';
 import 'widgets/milestone_card.dart';
 import 'widgets/category_filter.dart';
 import 'add_milestone_screen.dart';
+import 'milestone_detail_screen.dart';
 
 /// View mode enum for toggle button
 enum MilestoneViewMode {
@@ -365,11 +366,9 @@ class _MilestonesScreenState extends ConsumerState<MilestonesScreen> {
 
   /// Navigates to milestone detail screen
   void _navigateToMilestoneDetail(Milestone milestone) {
-    // TODO: Implement milestone detail screen navigation
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Opening ${milestone.name} (detail screen coming next)'),
-        duration: const Duration(seconds: 1),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MilestoneDetailScreen(milestone: milestone),
       ),
     );
   }
