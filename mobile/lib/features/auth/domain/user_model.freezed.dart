@@ -42,11 +42,20 @@ mixin _$User {
   /// Baby's name (if provided during onboarding)
   String? get babyName => throw _privateConstructorUsedError;
 
+  /// Baby's gender (MALE, FEMALE, OTHER)
+  String? get babyGender => throw _privateConstructorUsedError;
+
   /// Baby's birth date or due date (ISO string)
   String? get babyBirthDate => throw _privateConstructorUsedError;
 
+  /// Due date for pregnancy mode (ISO string)
+  String? get dueDate => throw _privateConstructorUsedError;
+
   /// User's parenting philosophy preferences
   String? get parentingPhilosophy => throw _privateConstructorUsedError;
+
+  /// User's cultural background
+  String? get culturalBackground => throw _privateConstructorUsedError;
 
   /// User's religious/cultural background
   String? get religiousViews => throw _privateConstructorUsedError;
@@ -82,8 +91,11 @@ abstract class $UserCopyWith<$Res> {
     bool onboardingComplete,
     String? mode,
     String? babyName,
+    String? babyGender,
     String? babyBirthDate,
+    String? dueDate,
     String? parentingPhilosophy,
+    String? culturalBackground,
     String? religiousViews,
     List<String>? primaryConcerns,
     DateTime? createdAt,
@@ -113,8 +125,11 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
     Object? onboardingComplete = null,
     Object? mode = freezed,
     Object? babyName = freezed,
+    Object? babyGender = freezed,
     Object? babyBirthDate = freezed,
+    Object? dueDate = freezed,
     Object? parentingPhilosophy = freezed,
+    Object? culturalBackground = freezed,
     Object? religiousViews = freezed,
     Object? primaryConcerns = freezed,
     Object? createdAt = freezed,
@@ -150,13 +165,25 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
                 ? _value.babyName
                 : babyName // ignore: cast_nullable_to_non_nullable
                       as String?,
+            babyGender: freezed == babyGender
+                ? _value.babyGender
+                : babyGender // ignore: cast_nullable_to_non_nullable
+                      as String?,
             babyBirthDate: freezed == babyBirthDate
                 ? _value.babyBirthDate
                 : babyBirthDate // ignore: cast_nullable_to_non_nullable
                       as String?,
+            dueDate: freezed == dueDate
+                ? _value.dueDate
+                : dueDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
             parentingPhilosophy: freezed == parentingPhilosophy
                 ? _value.parentingPhilosophy
                 : parentingPhilosophy // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            culturalBackground: freezed == culturalBackground
+                ? _value.culturalBackground
+                : culturalBackground // ignore: cast_nullable_to_non_nullable
                       as String?,
             religiousViews: freezed == religiousViews
                 ? _value.religiousViews
@@ -196,8 +223,11 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
     bool onboardingComplete,
     String? mode,
     String? babyName,
+    String? babyGender,
     String? babyBirthDate,
+    String? dueDate,
     String? parentingPhilosophy,
+    String? culturalBackground,
     String? religiousViews,
     List<String>? primaryConcerns,
     DateTime? createdAt,
@@ -224,8 +254,11 @@ class __$$UserImplCopyWithImpl<$Res>
     Object? onboardingComplete = null,
     Object? mode = freezed,
     Object? babyName = freezed,
+    Object? babyGender = freezed,
     Object? babyBirthDate = freezed,
+    Object? dueDate = freezed,
     Object? parentingPhilosophy = freezed,
+    Object? culturalBackground = freezed,
     Object? religiousViews = freezed,
     Object? primaryConcerns = freezed,
     Object? createdAt = freezed,
@@ -261,13 +294,25 @@ class __$$UserImplCopyWithImpl<$Res>
             ? _value.babyName
             : babyName // ignore: cast_nullable_to_non_nullable
                   as String?,
+        babyGender: freezed == babyGender
+            ? _value.babyGender
+            : babyGender // ignore: cast_nullable_to_non_nullable
+                  as String?,
         babyBirthDate: freezed == babyBirthDate
             ? _value.babyBirthDate
             : babyBirthDate // ignore: cast_nullable_to_non_nullable
                   as String?,
+        dueDate: freezed == dueDate
+            ? _value.dueDate
+            : dueDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
         parentingPhilosophy: freezed == parentingPhilosophy
             ? _value.parentingPhilosophy
             : parentingPhilosophy // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        culturalBackground: freezed == culturalBackground
+            ? _value.culturalBackground
+            : culturalBackground // ignore: cast_nullable_to_non_nullable
                   as String?,
         religiousViews: freezed == religiousViews
             ? _value.religiousViews
@@ -301,8 +346,11 @@ class _$UserImpl implements _User {
     this.onboardingComplete = false,
     this.mode,
     this.babyName,
+    this.babyGender,
     this.babyBirthDate,
+    this.dueDate,
     this.parentingPhilosophy,
+    this.culturalBackground,
     this.religiousViews,
     final List<String>? primaryConcerns,
     this.createdAt,
@@ -342,13 +390,25 @@ class _$UserImpl implements _User {
   @override
   final String? babyName;
 
+  /// Baby's gender (MALE, FEMALE, OTHER)
+  @override
+  final String? babyGender;
+
   /// Baby's birth date or due date (ISO string)
   @override
   final String? babyBirthDate;
 
+  /// Due date for pregnancy mode (ISO string)
+  @override
+  final String? dueDate;
+
   /// User's parenting philosophy preferences
   @override
   final String? parentingPhilosophy;
+
+  /// User's cultural background
+  @override
+  final String? culturalBackground;
 
   /// User's religious/cultural background
   @override
@@ -377,7 +437,7 @@ class _$UserImpl implements _User {
 
   @override
   String toString() {
-    return 'User(id: $id, email: $email, name: $name, subscriptionTier: $subscriptionTier, onboardingComplete: $onboardingComplete, mode: $mode, babyName: $babyName, babyBirthDate: $babyBirthDate, parentingPhilosophy: $parentingPhilosophy, religiousViews: $religiousViews, primaryConcerns: $primaryConcerns, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'User(id: $id, email: $email, name: $name, subscriptionTier: $subscriptionTier, onboardingComplete: $onboardingComplete, mode: $mode, babyName: $babyName, babyGender: $babyGender, babyBirthDate: $babyBirthDate, dueDate: $dueDate, parentingPhilosophy: $parentingPhilosophy, culturalBackground: $culturalBackground, religiousViews: $religiousViews, primaryConcerns: $primaryConcerns, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -395,10 +455,15 @@ class _$UserImpl implements _User {
             (identical(other.mode, mode) || other.mode == mode) &&
             (identical(other.babyName, babyName) ||
                 other.babyName == babyName) &&
+            (identical(other.babyGender, babyGender) ||
+                other.babyGender == babyGender) &&
             (identical(other.babyBirthDate, babyBirthDate) ||
                 other.babyBirthDate == babyBirthDate) &&
+            (identical(other.dueDate, dueDate) || other.dueDate == dueDate) &&
             (identical(other.parentingPhilosophy, parentingPhilosophy) ||
                 other.parentingPhilosophy == parentingPhilosophy) &&
+            (identical(other.culturalBackground, culturalBackground) ||
+                other.culturalBackground == culturalBackground) &&
             (identical(other.religiousViews, religiousViews) ||
                 other.religiousViews == religiousViews) &&
             const DeepCollectionEquality().equals(
@@ -422,8 +487,11 @@ class _$UserImpl implements _User {
     onboardingComplete,
     mode,
     babyName,
+    babyGender,
     babyBirthDate,
+    dueDate,
     parentingPhilosophy,
+    culturalBackground,
     religiousViews,
     const DeepCollectionEquality().hash(_primaryConcerns),
     createdAt,
@@ -453,8 +521,11 @@ abstract class _User implements User {
     final bool onboardingComplete,
     final String? mode,
     final String? babyName,
+    final String? babyGender,
     final String? babyBirthDate,
+    final String? dueDate,
     final String? parentingPhilosophy,
+    final String? culturalBackground,
     final String? religiousViews,
     final List<String>? primaryConcerns,
     final DateTime? createdAt,
@@ -491,13 +562,25 @@ abstract class _User implements User {
   @override
   String? get babyName;
 
+  /// Baby's gender (MALE, FEMALE, OTHER)
+  @override
+  String? get babyGender;
+
   /// Baby's birth date or due date (ISO string)
   @override
   String? get babyBirthDate;
 
+  /// Due date for pregnancy mode (ISO string)
+  @override
+  String? get dueDate;
+
   /// User's parenting philosophy preferences
   @override
   String? get parentingPhilosophy;
+
+  /// User's cultural background
+  @override
+  String? get culturalBackground;
 
   /// User's religious/cultural background
   @override

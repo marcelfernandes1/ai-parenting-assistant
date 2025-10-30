@@ -34,11 +34,20 @@ class User with _$User {
     /// Baby's name (if provided during onboarding)
     String? babyName,
 
+    /// Baby's gender (MALE, FEMALE, OTHER)
+    String? babyGender,
+
     /// Baby's birth date or due date (ISO string)
     String? babyBirthDate,
 
+    /// Due date for pregnancy mode (ISO string)
+    String? dueDate,
+
     /// User's parenting philosophy preferences
     String? parentingPhilosophy,
+
+    /// User's cultural background
+    String? culturalBackground,
 
     /// User's religious/cultural background
     String? religiousViews,

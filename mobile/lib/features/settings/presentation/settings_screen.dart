@@ -8,6 +8,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../../subscription/presentation/subscription_management_screen.dart';
 import 'change_email_screen.dart';
 import 'change_password_screen.dart';
+import 'edit_profile_screen.dart';
 
 /// Main Settings screen
 /// Displays list of settings options and account information
@@ -244,10 +245,10 @@ class SettingsScreen extends ConsumerWidget {
       subtitle: Text(email ?? 'Not signed in'),
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
-        // TODO: Navigate to account settings
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account settings coming soon'),
+        // Navigate to Edit Profile screen
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const EditProfileScreen(),
           ),
         );
       },
