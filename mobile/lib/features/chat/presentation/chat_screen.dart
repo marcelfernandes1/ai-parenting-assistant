@@ -12,6 +12,7 @@ import '../providers/chat_provider.dart';
 import '../providers/voice_recorder_provider.dart';
 import '../../photos/providers/photo_provider.dart';
 import '../../subscription/presentation/paywall_modal.dart';
+import '../../subscription/presentation/usage_counter_widget.dart';
 import 'widgets/message_bubble.dart';
 import 'widgets/quick_action_button.dart';
 import 'widgets/app_drawer.dart';
@@ -518,9 +519,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     print('🎤 DEBUG: voiceState = ${voiceState.state}');
     print('🎤 DEBUG: showMicButton = $showMicButton');
 
-    // Watch usage state for usage counter
-    final usageState = ref.watch(usageProvider);
-
     return Scaffold(
       // Navigation drawer (swipe from left or tap hamburger menu)
       drawer: const AppDrawer(),
@@ -528,32 +526,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       appBar: AppBar(
         title: const Text('Baby Boomer'),
         actions: [
-          // Usage counter badge
-          if (!usageState.isLoading)
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12.0,
-                    vertical: 6.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    '${usageState.messagesUsed}/10 today',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSecondaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ),
-              ),
+          // Usage counter widget - shows remaining messages or Premium badge
+          const Padding(
+            padding: EdgeInsets.only(right: 8.0),
+            child: Center(
+              child: UsageCounterWidget(),
             ),
+          ),
 
           // Voice Mode button (distinct from microphone button)
           IconButton(
