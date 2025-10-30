@@ -196,13 +196,14 @@
   - ✓ Show filtered list below in same card format
   - ✓ "All" category to show everything
 
-- [ ] Create Milestone detail screen
-  - Full-screen view
-  - Show milestone name, type, date
-  - Display notes section if present
-  - Show all photos in horizontal scrollable carousel
-  - "Edit" button in header (navigates to edit form)
-  - "Delete" button in header (shows confirmation alert)
+- [x] Create Milestone detail screen
+  - ✓ Full-screen view with colored type header
+  - ✓ Show milestone name, type, date, and creation date
+  - ✓ Display notes section if present
+  - ✓ Show all photos in horizontal scrollable carousel
+  - ✓ "Edit" button in header (navigates to edit form)
+  - ✓ "Delete" button in header (shows confirmation alert)
+  - ✓ Full-screen photo viewer with pinch-to-zoom
 
 - [x] Create Add Milestone screen
   - ✓ Form with fields:
@@ -245,7 +246,7 @@
 
 ---
 
-**Progress:** 🟩 25/29 tasks completed (86% - Backend complete! Milestone UI screens done! 4 tasks remaining: detail screen, navigation integration, AI suggestions in chat, PDF export)
+**Progress:** 🟩 27/29 tasks completed (93% - Core milestone feature complete! Bottom nav integrated! 2 optional enhancement tasks remaining: AI suggestions in chat, PDF export)
 
 **Previous Phase:** [Phase 2: Chat & Voice](todo-phase-2-chat-voice.md)
 **Next Phase:** [Phase 4: Monetization](todo-phase-4-monetization.md)
