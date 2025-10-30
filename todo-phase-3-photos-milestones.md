@@ -42,12 +42,12 @@
   - Generate presigned URLs for each photo (24-hour expiry) ✓
   - Return array of photos with metadata ✓
 
-- [ ] Create `DELETE /photos/:id` endpoint
-  - Authenticate user
-  - Verify photo belongs to user
-  - Delete photo from S3 bucket
-  - Delete Photo record from database
-  - Return success message
+- [x] Create `DELETE /photos/:id` endpoint
+  - Authenticate user ✓
+  - Verify photo belongs to user ✓
+  - Delete photo from S3 bucket ✓
+  - Delete Photo record from database ✓
+  - Return success message ✓
 
 - [ ] Create `POST /photos/analyze` endpoint
   - Authenticate user

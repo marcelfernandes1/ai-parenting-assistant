@@ -249,4 +249,72 @@ router.get(
   }
 );
 
+/**
+ * DELETE /photos/:id
+ * Delete a specific photo from S3 and database
+ *
+ * Verifies photo ownership before deletion for security.
+ * Permanently removes photo from S3 bucket and database.
+ */
+router.delete(
+  '/:id',
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+      const photoId = req.params.id;
+
+      console.log(`🗑️ Deleting photo ${photoId} for user ${userId}`);
+
+      // Fetch photo to verify ownership and get S3 key
+      const photo = await prisma.photo.findUnique({
+        where: { id: photoId },
+        select: {
+          id: true,
+          userId: true,
+          s3Key: true,
+        },
+      });
+
+      // Check if photo exists
+      if (!photo) {
+        return res.status(404).json({ error: 'Photo not found' });
+      }
+
+      // Verify photo belongs to the authenticated user (security check)
+      if (photo.userId !== userId) {
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'You do not have permission to delete this photo',
+        });
+      }
+
+      // Delete from S3 bucket first
+      try {
+        await deleteFromS3(photo.s3Key);
+        console.log(`✅ Deleted photo from S3: ${photo.s3Key}`);
+      } catch (s3Error) {
+        console.error('Error deleting from S3:', s3Error);
+        // Continue with database deletion even if S3 deletion fails
+        // This prevents orphaned database records
+      }
+
+      // Delete from database
+      await prisma.photo.delete({
+        where: { id: photoId },
+      });
+
+      console.log(`✅ Deleted photo ${photoId} from database`);
+
+      res.status(200).json({
+        message: 'Photo deleted successfully',
+        photoId,
+      });
+    } catch (error) {
+      console.error('Error deleting photo:', error);
+      res.status(500).json({ error: 'Failed to delete photo' });
+    }
+  }
+);
+
 export default router;
