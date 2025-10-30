@@ -97,8 +97,9 @@ class PurchaseService {
       final subscriptionStatus = await _subscriptionRepository.getSubscriptionStatus();
 
       // Check if user has active premium subscription
-      final isPremium = subscriptionStatus.isPremium;
-      final isActive = subscriptionStatus.isActive;
+      final isPremium = subscriptionStatus.subscriptionTier == 'PREMIUM';
+      final isActive = subscriptionStatus.subscriptionStatus == 'ACTIVE' ||
+                       subscriptionStatus.subscriptionStatus == 'TRIALING';
 
       return isPremium && isActive;
     } catch (e) {

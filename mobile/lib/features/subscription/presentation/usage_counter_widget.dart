@@ -21,7 +21,7 @@ class UsageCounterWidget extends ConsumerWidget {
     return subscriptionAsync.when(
       data: (subscription) {
         // Show premium badge for premium users
-        if (subscription.isPremium) {
+        if (subscription.subscriptionTier == 'PREMIUM') {
           return _buildPremiumBadge(context, theme);
         }
 
@@ -174,7 +174,7 @@ class UsageDetailsSheet extends ConsumerWidget {
       child: SafeArea(
         child: subscriptionAsync.when(
           data: (subscription) {
-            final isPremium = subscription.isPremium;
+            final isPremium = subscription.subscriptionTier == 'PREMIUM';
             final usage = subscription.usage;
 
             return Column(
