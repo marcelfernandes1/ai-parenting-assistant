@@ -414,7 +414,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             if (!isPremium)
               TextButton(
-                onPressed: () => context.go('/premium'),
+                onPressed: () => context.push('/premium'),
                 child: const Text('Upgrade'),
               ),
           ],

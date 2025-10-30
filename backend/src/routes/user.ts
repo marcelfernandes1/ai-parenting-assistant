@@ -666,7 +666,7 @@ router.get('/data-export', authenticateToken, async (req: Request, res: Response
       }),
       prisma.milestone.findMany({
         where: { userId },
-        orderBy: { achievedAt: 'desc' },
+        orderBy: { achievedDate: 'desc' },
       }),
       prisma.photo.findMany({
         where: { userId },
@@ -682,15 +682,15 @@ router.get('/data-export', authenticateToken, async (req: Request, res: Response
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Generate presigned URLs for photos (valid for 7 days)
+    // Generate presigned URLs for photos (valid for 24 hours)
     const photosWithUrls = await Promise.all(
       photos.map(async (photo) => {
         try {
-          const url = await getPresignedUrl(photo.s3Key, 7 * 24 * 60 * 60); // 7 days
+          const url = await getPresignedUrl(photo.s3Key);
           return {
             ...photo,
             url,
-            urlExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            urlExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
           };
         } catch (error) {
           console.error(`Error generating presigned URL for ${photo.s3Key}:`, error);
@@ -722,7 +722,7 @@ router.get('/data-export', authenticateToken, async (req: Request, res: Response
       },
       messages: messages.map((msg) => ({
         ...msg,
-        content: msg.content || msg.textContent, // Handle both field names
+        content: msg.content,
       })),
       milestones,
       photos: photosWithUrls,

@@ -178,31 +178,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// Starts a new conversation by clearing messages
   Future<void> _startNewConversation() async {
-    // Show confirmation dialog
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Start New Conversation?'),
-        content: const Text(
-          'This will clear your current conversation history. This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Start New'),
-          ),
-        ],
-      ),
-    );
-
-    // If confirmed, clear conversation
-    if (confirmed == true && mounted) {
-      await ref.read(chatProvider.notifier).newConversation();
-    }
+    // Start new conversation immediately without confirmation
+    await ref.read(chatProvider.notifier).newConversation();
   }
 
   /// Checks microphone permission before recording

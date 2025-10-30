@@ -69,6 +69,13 @@ app.use(express.json());
  */
 app.use(express.urlencoded({ extended: true }));
 
+/**
+ * Serve uploaded files statically from uploads directory
+ * This allows local file storage as fallback when AWS S3 is not configured
+ * Files are accessible at: http://localhost:3000/uploads/userId/filename.jpg
+ */
+app.use('/uploads', express.static('uploads'));
+
 // ===========================
 // Routes
 // ===========================

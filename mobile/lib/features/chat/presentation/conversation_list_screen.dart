@@ -68,12 +68,14 @@ class _ConversationListScreenState
   }
 
   /// Navigates to chat screen with the selected conversation
-  void _openConversation(Conversation conversation) {
-    // Close conversation list and navigate to chat
-    // The chat provider will load the selected session
-    Navigator.pop(context); // Close this screen
-    // Note: We'll need to update the chat provider to support loading specific sessions
-    // For now, just close this screen
+  Future<void> _openConversation(Conversation conversation) async {
+    // Load the selected conversation into the chat provider
+    await ref.read(chatProvider.notifier).loadConversation(conversation.sessionId);
+
+    // Close conversation list screen to go back to chat
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   /// Deletes a conversation after user confirmation

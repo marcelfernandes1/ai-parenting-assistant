@@ -212,7 +212,7 @@ class __$$SubscriptionStatusImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$SubscriptionStatusImpl implements _SubscriptionStatus {
+class _$SubscriptionStatusImpl extends _SubscriptionStatus {
   const _$SubscriptionStatusImpl({
     required this.subscriptionTier,
     required this.subscriptionStatus,
@@ -220,7 +220,7 @@ class _$SubscriptionStatusImpl implements _SubscriptionStatus {
     this.stripeCustomerId,
     this.stripeSubscriptionId,
     this.usage,
-  });
+  }) : super._();
 
   factory _$SubscriptionStatusImpl.fromJson(Map<String, dynamic> json) =>
       _$$SubscriptionStatusImplFromJson(json);
@@ -301,7 +301,7 @@ class _$SubscriptionStatusImpl implements _SubscriptionStatus {
   }
 }
 
-abstract class _SubscriptionStatus implements SubscriptionStatus {
+abstract class _SubscriptionStatus extends SubscriptionStatus {
   const factory _SubscriptionStatus({
     required final String subscriptionTier,
     required final String subscriptionStatus,
@@ -310,6 +310,7 @@ abstract class _SubscriptionStatus implements SubscriptionStatus {
     final String? stripeSubscriptionId,
     final UsageStats? usage,
   }) = _$SubscriptionStatusImpl;
+  const _SubscriptionStatus._() : super._();
 
   factory _SubscriptionStatus.fromJson(Map<String, dynamic> json) =
       _$SubscriptionStatusImpl.fromJson;
@@ -539,7 +540,7 @@ class __$$UsageStatsImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$UsageStatsImpl implements _UsageStats {
+class _$UsageStatsImpl extends _UsageStats {
   const _$UsageStatsImpl({
     this.messagesUsed = 0,
     this.voiceMinutesUsed = 0,
@@ -548,7 +549,7 @@ class _$UsageStatsImpl implements _UsageStats {
     this.voiceLimit,
     this.photoLimit,
     this.resetTime,
-  });
+  }) : super._();
 
   factory _$UsageStatsImpl.fromJson(Map<String, dynamic> json) =>
       _$$UsageStatsImplFromJson(json);
@@ -637,7 +638,7 @@ class _$UsageStatsImpl implements _UsageStats {
   }
 }
 
-abstract class _UsageStats implements UsageStats {
+abstract class _UsageStats extends UsageStats {
   const factory _UsageStats({
     final int messagesUsed,
     final int voiceMinutesUsed,
@@ -647,6 +648,7 @@ abstract class _UsageStats implements UsageStats {
     final int? photoLimit,
     final DateTime? resetTime,
   }) = _$UsageStatsImpl;
+  const _UsageStats._() : super._();
 
   factory _UsageStats.fromJson(Map<String, dynamic> json) =
       _$UsageStatsImpl.fromJson;

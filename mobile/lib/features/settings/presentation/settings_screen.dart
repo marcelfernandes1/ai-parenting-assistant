@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../subscription/presentation/subscription_management_screen.dart';
+import 'change_email_screen.dart';
+import 'change_password_screen.dart';
 
 /// Main Settings screen
 /// Displays list of settings options and account information
@@ -35,6 +37,32 @@ class SettingsScreen extends ConsumerWidget {
           // Account section
           _buildSectionHeader(context, 'Account'),
           _buildAccountTile(context, theme, userEmail),
+          _buildListTile(
+            context,
+            Icons.email_outlined,
+            'Change Email',
+            'Update your email address',
+            () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ChangeEmailScreen(),
+                ),
+              );
+            },
+          ),
+          _buildListTile(
+            context,
+            Icons.lock_outline,
+            'Change Password',
+            'Update your password',
+            () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ChangePasswordScreen(),
+                ),
+              );
+            },
+          ),
 
           const Divider(height: 32),
 

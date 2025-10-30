@@ -197,8 +197,8 @@ class AppDrawer extends ConsumerWidget {
                     subtitle: const Text('Edit your information'),
                     onTap: () {
                       Navigator.pop(context);
-                      // Navigate to profile screen
-                      context.go('/profile');
+                      // Navigate to profile screen (push on top of current screen)
+                      context.push('/profile');
                     },
                   ),
 
@@ -209,8 +209,8 @@ class AppDrawer extends ConsumerWidget {
                     subtitle: const Text('App preferences'),
                     onTap: () {
                       Navigator.pop(context);
-                      // Navigate to settings screen
-                      context.go('/settings');
+                      // Navigate to settings screen (push on top of current screen)
+                      context.push('/settings');
                     },
                   ),
 
@@ -224,8 +224,8 @@ class AppDrawer extends ConsumerWidget {
                     subtitle: const Text('Unlimited features'),
                     onTap: () {
                       Navigator.pop(context);
-                      // Navigate to premium screen
-                      context.go('/premium');
+                      // Navigate to premium screen (push on top of current screen)
+                      context.push('/premium');
                     },
                   ),
                 ],

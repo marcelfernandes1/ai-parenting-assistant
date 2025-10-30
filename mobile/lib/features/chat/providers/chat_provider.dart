@@ -229,6 +229,36 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
   }
 
+  /// Loads a specific conversation by sessionId
+  /// Used when user selects a past conversation from history
+  Future<void> loadConversation(String sessionId) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      // Update session ID first
+      state = state.copyWith(sessionId: sessionId);
+
+      // Fetch messages for the selected session
+      final messages = await _chatRepository.getHistory(
+        sessionId: sessionId,
+        limit: 50,
+      );
+
+      // Reverse to show oldest first (chronological order)
+      final sortedMessages = messages.reversed.toList();
+
+      state = state.copyWith(
+        messages: sortedMessages,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
   /// Refreshes the chat history
   Future<void> refresh() async {
     await loadHistory();

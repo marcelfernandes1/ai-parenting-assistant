@@ -12,6 +12,8 @@ part 'subscription_status.g.dart';
 /// Contains subscription tier, status, and usage information from backend.
 @freezed
 class SubscriptionStatus with _$SubscriptionStatus {
+  const SubscriptionStatus._();
+
   const factory SubscriptionStatus({
     /// User's subscription tier (FREE or PREMIUM)
     required String subscriptionTier,
@@ -35,12 +37,36 @@ class SubscriptionStatus with _$SubscriptionStatus {
   /// Create SubscriptionStatus from JSON
   factory SubscriptionStatus.fromJson(Map<String, dynamic> json) =>
       _$SubscriptionStatusFromJson(json);
+
+  /// Check if user has premium/unlimited access
+  bool get isPremium => subscriptionTier == 'PREMIUM';
+
+  /// Check if user is on free tier
+  bool get isFree => subscriptionTier == 'FREE';
+
+  /// Check if subscription is active
+  bool get isActive => subscriptionStatus == 'ACTIVE' || subscriptionStatus == 'TRIALING';
+
+  /// Check if subscription is cancelled but still valid
+  bool get isCancelled => subscriptionStatus == 'CANCELLED';
+
+  /// Check if subscription has expired
+  bool get isExpired => subscriptionStatus == 'EXPIRED';
+
+  /// Get days remaining until subscription expires (null if FREE or unlimited)
+  int? get daysRemaining {
+    if (subscriptionExpiresAt == null) return null;
+    final diff = subscriptionExpiresAt!.difference(DateTime.now());
+    return diff.inDays;
+  }
 }
 
 /// Usage statistics model for tracking daily usage.
 /// Contains counters for messages, voice minutes, and photos.
 @freezed
 class UsageStats with _$UsageStats {
+  const UsageStats._();
+
   const factory UsageStats({
     /// Number of messages used today
     @Default(0) int messagesUsed,
@@ -67,35 +93,7 @@ class UsageStats with _$UsageStats {
   /// Create UsageStats from JSON
   factory UsageStats.fromJson(Map<String, dynamic> json) =>
       _$UsageStatsFromJson(json);
-}
 
-/// Helper extension to check subscription status
-extension SubscriptionStatusX on SubscriptionStatus {
-  /// Check if user has premium/unlimited access
-  bool get isPremium => subscriptionTier == 'PREMIUM';
-
-  /// Check if user is on free tier
-  bool get isFree => subscriptionTier == 'FREE';
-
-  /// Check if subscription is active
-  bool get isActive => subscriptionStatus == 'ACTIVE' || subscriptionStatus == 'TRIALING';
-
-  /// Check if subscription is cancelled but still valid
-  bool get isCancelled => subscriptionStatus == 'CANCELLED';
-
-  /// Check if subscription has expired
-  bool get isExpired => subscriptionStatus == 'EXPIRED';
-
-  /// Get days remaining until subscription expires (null if FREE or unlimited)
-  int? get daysRemaining {
-    if (subscriptionExpiresAt == null) return null;
-    final diff = subscriptionExpiresAt!.difference(DateTime.now());
-    return diff.inDays;
-  }
-}
-
-/// Helper extension for usage statistics
-extension UsageStatsX on UsageStats {
   /// Check if message limit has been reached
   bool get messageLimitReached {
     if (messageLimit == null) return false; // Unlimited
