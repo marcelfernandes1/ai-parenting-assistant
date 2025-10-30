@@ -26,6 +26,7 @@ import '../features/onboarding/presentation/concerns_screen.dart';
 import '../features/onboarding/presentation/notification_preferences_screen.dart';
 import '../features/onboarding/presentation/usage_limits_explanation_screen.dart';
 import '../features/chat/presentation/chat_screen.dart';
+import '../shared/widgets/main_navigation.dart';
 
 /// ChangeNotifier that listens to auth state changes and notifies GoRouter.
 /// This makes the router reactive to authentication state changes.
@@ -243,13 +244,13 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // ===== Main App Routes =====
 
-      /// Home screen - AI chat interface
+      /// Home screen - Main navigation with bottom tabs
       /// Path: /home
-      /// Main chat screen with message history and AI responses
+      /// Bottom tab navigation with Chat, Photos, and Milestones screens
       GoRoute(
         path: '/home',
         name: 'home',
-        builder: (context, state) => const ChatScreen(),
+        builder: (context, state) => const MainNavigation(),
       ),
     ],
 
