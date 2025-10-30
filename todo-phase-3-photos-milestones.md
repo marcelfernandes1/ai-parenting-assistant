@@ -154,24 +154,24 @@
   - Delete Milestone record from database ✓
   - Return success message ✓
 
-- [ ] Implement AI milestone suggestion logic
-  - Function `suggestMilestones(userProfile): Milestone[]`
-  - Calculate baby age from birthDate
-  - Return age-appropriate milestones based on age ranges:
-    - 0-2 months: First smile, holding head up
-    - 3-4 months: Rolling over, laughing
-    - 5-7 months: Sitting up, first solid foods
-    - 8-10 months: Crawling, pulling to stand
-    - 11-14 months: First steps, first words
-  - Use predefined milestone templates with aiSuggested: true
-  - Don't suggest milestones already logged
+- [x] Implement AI milestone suggestion logic
+  - Function `suggestMilestones(userProfile): Milestone[]` ✓
+  - Calculate baby age from birthDate ✓
+  - Return age-appropriate milestones based on age ranges: ✓
+    - 0-2 months: First smile, holding head up ✓
+    - 3-4 months: Rolling over, laughing ✓
+    - 5-7 months: Sitting up, first solid foods ✓
+    - 8-10 months: Crawling, pulling to stand ✓
+    - 11-14 months: First steps, first words ✓
+  - Use predefined milestone templates with aiSuggested: true ✓
+  - Don't suggest milestones already logged ✓
 
-- [ ] Create `GET /milestones/suggestions` endpoint
-  - Authenticate user
-  - Fetch user profile (baby birthDate)
-  - Call suggestMilestones utility
-  - Filter out already-confirmed milestones
-  - Return array of suggested milestone objects (not yet saved to DB)
+- [x] Create `GET /milestones/suggestions` endpoint
+  - Authenticate user ✓
+  - Fetch user profile (baby birthDate) ✓
+  - Call suggestMilestones utility ✓
+  - Filter out already-confirmed milestones ✓
+  - Return array of suggested milestone objects (not yet saved to DB) ✓
 
 ### Frontend Milestone Features
 
@@ -244,7 +244,7 @@
 
 ---
 
-**Progress:** 🟩 18/29 tasks completed (62% - Photos complete, Milestone CRUD complete!)
+**Progress:** 🟩 20/29 tasks completed (69% - Backend complete! All Photo & Milestone APIs done!)
 
 **Previous Phase:** [Phase 2: Chat & Voice](todo-phase-2-chat-voice.md)
 **Next Phase:** [Phase 4: Monetization](todo-phase-4-monetization.md)
