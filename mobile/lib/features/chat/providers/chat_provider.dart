@@ -5,6 +5,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../shared/providers/service_providers.dart';
+import '../../../shared/exceptions/limit_reached_exception.dart';
 import '../data/chat_repository.dart';
 import '../domain/chat_message.dart';
 
@@ -20,6 +21,7 @@ class ChatState {
   final bool isSendingMessage;
   final String? error;
   final String sessionId;
+  final LimitReachedException? limitReached; // Track when limit is hit
 
   ChatState({
     required this.messages,
@@ -27,6 +29,7 @@ class ChatState {
     required this.isSendingMessage,
     required this.error,
     required this.sessionId,
+    this.limitReached,
   });
 
   /// Initial state with empty messages
@@ -37,6 +40,7 @@ class ChatState {
       isSendingMessage: false,
       error: null,
       sessionId: const Uuid().v4(), // Generate unique session ID
+      limitReached: null,
     );
   }
 
@@ -47,6 +51,8 @@ class ChatState {
     bool? isSendingMessage,
     String? error,
     String? sessionId,
+    LimitReachedException? limitReached,
+    bool clearLimitReached = false,
   }) {
     return ChatState(
       messages: messages ?? this.messages,
@@ -54,6 +60,7 @@ class ChatState {
       isSendingMessage: isSendingMessage ?? this.isSendingMessage,
       error: error,
       sessionId: sessionId ?? this.sessionId,
+      limitReached: clearLimitReached ? null : (limitReached ?? this.limitReached),
     );
   }
 }
@@ -122,8 +129,22 @@ class ChatNotifier extends StateNotifier<ChatState> {
         messages: updatedMessages,
         isSendingMessage: false,
       );
+    } on LimitReachedException catch (e) {
+      // Handle limit reached specifically - store exception for UI to show paywall
+      state = state.copyWith(
+        isSendingMessage: false,
+        limitReached: e,
+        error: e.message,
+      );
+
+      // Clear error message after 5 seconds, but keep limitReached flag
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted) {
+          state = state.copyWith(error: null);
+        }
+      });
     } catch (e) {
-      // Handle error (e.g., daily limit reached)
+      // Handle other errors (e.g., network errors)
       state = state.copyWith(
         isSendingMessage: false,
         error: e.toString(),
@@ -162,8 +183,22 @@ class ChatNotifier extends StateNotifier<ChatState> {
         messages: updatedMessages,
         isSendingMessage: false,
       );
+    } on LimitReachedException catch (e) {
+      // Handle limit reached specifically - store exception for UI to show paywall
+      state = state.copyWith(
+        isSendingMessage: false,
+        limitReached: e,
+        error: e.message,
+      );
+
+      // Clear error message after 5 seconds, but keep limitReached flag
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted) {
+          state = state.copyWith(error: null);
+        }
+      });
     } catch (e) {
-      // Handle error (e.g., transcription failed, daily limit reached)
+      // Handle other errors (e.g., transcription failed, network errors)
       state = state.copyWith(
         isSendingMessage: false,
         error: e.toString(),
@@ -197,6 +232,12 @@ class ChatNotifier extends StateNotifier<ChatState> {
   /// Refreshes the chat history
   Future<void> refresh() async {
     await loadHistory();
+  }
+
+  /// Clears the limit reached flag
+  /// Call this after user dismisses paywall or upgrades to premium
+  void clearLimitReached() {
+    state = state.copyWith(clearLimitReached: true);
   }
 }
 

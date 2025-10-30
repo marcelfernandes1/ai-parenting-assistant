@@ -11,6 +11,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../providers/chat_provider.dart';
 import '../providers/voice_recorder_provider.dart';
 import '../../photos/providers/photo_provider.dart';
+import '../../subscription/presentation/paywall_modal.dart';
 import 'widgets/message_bubble.dart';
 import 'widgets/quick_action_button.dart';
 import 'widgets/app_drawer.dart';
@@ -487,6 +488,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Listen for limit reached events to show paywall
+    ref.listen<ChatState>(
+      chatProvider,
+      (previous, next) {
+        // Show paywall when limit is reached
+        if (next.limitReached != null && mounted) {
+          // Show paywall modal
+          showPaywallModal(context).then((upgraded) {
+            // Clear the limit reached flag after modal is dismissed
+            ref.read(chatProvider.notifier).clearLimitReached();
+          });
+        }
+      },
+    );
+
     // Watch chat state for messages and loading status
     final chatState = ref.watch(chatProvider);
 

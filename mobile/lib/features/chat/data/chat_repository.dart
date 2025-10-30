@@ -5,6 +5,7 @@ library;
 import 'package:dio/dio.dart';
 import '../../../shared/services/api_client.dart';
 import '../../../shared/services/api_config.dart';
+import '../../../shared/exceptions/limit_reached_exception.dart';
 import '../domain/chat_message.dart';
 
 /// Repository class handling chat API calls and session management.
@@ -70,9 +71,10 @@ class ChatRepository {
           'assistantMessage': assistantMessage,
         };
       } else if (response.statusCode == 429) {
-        // Daily limit reached
-        throw Exception(
-            response.data['message'] ?? 'Daily message limit reached');
+        // Daily limit reached - throw custom exception with reset time
+        throw LimitReachedException.fromResponse(
+          response.data as Map<String, dynamic>,
+        );
       } else {
         throw Exception(
             response.data['error'] ?? 'Failed to send message');
@@ -206,9 +208,10 @@ class ChatRepository {
           'assistantMessage': assistantMessage,
         };
       } else if (response.statusCode == 429) {
-        // Daily limit reached
-        throw Exception(
-            response.data['message'] ?? 'Daily message limit reached');
+        // Daily limit reached - throw custom exception with reset time
+        throw LimitReachedException.fromResponse(
+          response.data as Map<String, dynamic>,
+        );
       } else {
         throw Exception(
             response.data['error'] ?? 'Failed to process voice message');
