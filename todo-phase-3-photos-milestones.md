@@ -82,17 +82,17 @@
   - Show thumbnails of selected photos in chat input area (above keyboard) ✓
   - Add "X" button on each thumbnail to remove before sending ✓
 
-- [ ] Upload photos with message
-  - When user sends message with photos, upload first
-  - Call `POST /photos/upload` endpoint
-  - Show upload progress indicator for each photo (percentage)
-  - After upload completes, send chat message with photoUrls array
-  - Display photos inline in chat message bubble (thumbnail grid)
+- [x] Upload photos with message
+  - When user sends message with photos, upload first ✓
+  - Call `POST /photos/upload` endpoint ✓
+  - Show upload progress indicator for each photo (percentage) ✓
+  - After upload completes, send chat message with photoUrls array ✓
+  - Display photos inline in chat message bubble (thumbnail grid) ✓
 
-- [ ] Install image optimization library
-  - `npm install react-native-fast-image`
-  - Use for cached image loading throughout app
-  - Replaces standard <Image> component
+- [x] Install image optimization library
+  - `flutter pub add cached_network_image` ✓
+  - Use for cached image loading throughout app ✓
+  - Displays photos with loading and error states ✓
 
 - [ ] Create Photos tab/screen
   - Add to bottom tab navigation
@@ -245,7 +245,7 @@
 
 ---
 
-**Progress:** ⬜ 0/33 tasks completed
+**Progress:** 🟦 2/33 tasks completed
 
 **Previous Phase:** [Phase 2: Chat & Voice](todo-phase-2-chat-voice.md)
 **Next Phase:** [Phase 4: Monetization](todo-phase-4-monetization.md)
