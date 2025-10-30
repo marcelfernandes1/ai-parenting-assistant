@@ -16,6 +16,7 @@ import chatRoutes from './routes/chat';
 import usageRoutes from './routes/usage';
 import photosRoutes from './routes/photos';
 import milestonesRoutes from './routes/milestones';
+import subscriptionRoutes from './routes/subscription';
 import { authenticateToken, AuthenticatedRequest } from './middleware/auth';
 import { initializeVoiceSocket } from './sockets/voice';
 
@@ -91,6 +92,7 @@ app.get('/', (_req: Request, res: Response) => {
       usage: '/usage/*',
       photos: '/photos/*',
       milestones: '/milestones/*',
+      subscription: '/subscription/*',
     },
   });
 });
@@ -141,6 +143,14 @@ app.use('/photos', photosRoutes);
  * Requires authentication
  */
 app.use('/milestones', milestonesRoutes);
+
+/**
+ * Subscription routes
+ * Handles Stripe subscription management for premium features
+ * All subscription endpoints are prefixed with /subscription
+ * Requires authentication
+ */
+app.use('/subscription', subscriptionRoutes);
 
 /**
  * Protected test endpoint

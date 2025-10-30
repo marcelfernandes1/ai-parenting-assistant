@@ -118,6 +118,10 @@ model User {
   // Stored for subscription management and billing
   stripeCustomerId      String?  @unique
 
+  // Stripe subscription ID for tracking active subscription
+  // Links to Stripe subscription object for status checks and cancellation
+  stripeSubscriptionId  String?  @unique
+
   // Onboarding completion flag
   // true if user has completed onboarding flow, false otherwise
   // Used by frontend router to determine if user should see onboarding screens
