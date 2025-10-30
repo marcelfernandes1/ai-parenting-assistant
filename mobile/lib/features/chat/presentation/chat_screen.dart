@@ -13,6 +13,7 @@ import '../providers/voice_recorder_provider.dart';
 import '../../photos/providers/photo_provider.dart';
 import '../../subscription/presentation/paywall_modal.dart';
 import '../../subscription/presentation/usage_counter_widget.dart';
+import '../../subscription/presentation/upgrade_banner.dart';
 import '../../subscription/providers/subscription_provider.dart';
 import 'widgets/message_bubble.dart';
 import 'widgets/quick_action_button.dart';
@@ -583,6 +584,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ],
               ),
             ),
+
+          // Upgrade banner for free users approaching limit
+          const UpgradeBanner(),
 
           // Quick action buttons (contextual suggestions)
           _buildQuickActions(),
