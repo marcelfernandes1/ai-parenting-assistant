@@ -15,6 +15,7 @@ import userRoutes from './routes/user';
 import chatRoutes from './routes/chat';
 import usageRoutes from './routes/usage';
 import photosRoutes from './routes/photos';
+import milestonesRoutes from './routes/milestones';
 import { authenticateToken, AuthenticatedRequest } from './middleware/auth';
 import { initializeVoiceSocket } from './sockets/voice';
 
@@ -89,6 +90,7 @@ app.get('/', (_req: Request, res: Response) => {
       chat: '/chat/*',
       usage: '/usage/*',
       photos: '/photos/*',
+      milestones: '/milestones/*',
     },
   });
 });
@@ -131,6 +133,14 @@ app.use('/usage', usageRoutes);
  * Requires authentication
  */
 app.use('/photos', photosRoutes);
+
+/**
+ * Milestones routes
+ * Handles milestone CRUD operations for baby development tracking
+ * All milestones endpoints are prefixed with /milestones
+ * Requires authentication
+ */
+app.use('/milestones', milestonesRoutes);
 
 /**
  * Protected test endpoint
