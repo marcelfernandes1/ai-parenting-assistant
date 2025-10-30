@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import '../providers/voice_mode_provider.dart';
@@ -43,9 +44,56 @@ class _VoiceModeScreenState extends ConsumerState<VoiceModeScreen>
     });
   }
 
+  /// Check microphone permission before starting voice session
+  /// Returns true if permission is granted, false otherwise
+  Future<bool> _checkMicrophonePermission() async {
+    final hasPermission = await ref.read(voiceRecorderProvider.notifier).checkPermission();
+
+    if (!hasPermission && mounted) {
+      // Show error dialog if permission denied
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Microphone Permission Required'),
+          content: const Text(
+            'Voice mode requires microphone access to have conversations with Baby Boomer. '
+            'Please grant microphone permission in Settings.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                // Open app settings so user can grant permission
+                await openAppSettings();
+              },
+              child: const Text('Open Settings'),
+            ),
+          ],
+        ),
+      );
+
+      // Close the voice mode screen if permission denied
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    }
+
+    return hasPermission;
+  }
+
   /// Connect to Socket.io and start voice session
   Future<void> _connectAndStartSession() async {
     try {
+      // Check microphone permission first
+      final hasPermission = await _checkMicrophonePermission();
+      if (!hasPermission) {
+        return; // Permission denied, screen will close
+      }
+
       final voiceMode = ref.read(voiceModeProvider.notifier);
 
       // Connect to WebSocket
@@ -405,6 +453,27 @@ class _VoiceModeScreenState extends ConsumerState<VoiceModeScreen>
   /// Start recording audio
   void _startRecording() async {
     try {
+      // Check permission before starting recording
+      final hasPermission = await ref.read(voiceRecorderProvider.notifier).checkPermission();
+      if (!hasPermission) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Microphone permission is required'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              action: SnackBarAction(
+                label: 'Settings',
+                textColor: Colors.white,
+                onPressed: () async {
+                  await openAppSettings();
+                },
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
       final recorder = ref.read(voiceRecorderProvider.notifier);
       await recorder.startRecording();
       print('🎙️ Started recording for voice mode');
