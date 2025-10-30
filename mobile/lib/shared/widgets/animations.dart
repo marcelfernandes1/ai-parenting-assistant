@@ -1,11 +1,13 @@
 /// Reusable animation widgets for micro-interactions and celebrations.
 /// Provides button feedback, confetti, pulsing indicators, and transition animations.
+/// Respects system accessibility settings like Reduce Motion.
 library;
 
 import 'dart:math';
 
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import '../services/accessibility_service.dart';
 
 /// Animated button wrapper that provides press feedback
 /// Scales down slightly when pressed for tactile feel
@@ -36,6 +38,11 @@ class _AnimatedButtonState extends State<AnimatedButton> {
 
   @override
   Widget build(BuildContext context) {
+    // Respect reduce motion setting - disable animation if reduce motion is enabled
+    final animationDuration = context.animationDuration(
+      const Duration(milliseconds: 100),
+    );
+
     return GestureDetector(
       onTapDown: (_) {
         setState(() => _isPressed = true);
@@ -49,7 +56,7 @@ class _AnimatedButtonState extends State<AnimatedButton> {
       },
       child: AnimatedScale(
         scale: _isPressed ? widget.scaleOnPress : 1.0,
-        duration: const Duration(milliseconds: 100),
+        duration: animationDuration,
         curve: Curves.easeOut,
         child: widget.child,
       ),
@@ -296,16 +303,21 @@ class _SuccessCheckmarkState extends State<SuccessCheckmark>
   late Animation<double> _scaleAnimation;
 
   @override
-  void initState() {
-    super.initState();
-    
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Respect reduce motion setting
+    final duration = context.animationDuration(
+      const Duration(milliseconds: 600),
+    );
+
     // Create animation controller
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: duration,
     );
 
-    // Scale with bounce effect
+    // Scale with bounce effect (or instant if reduce motion is enabled)
     _scaleAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -314,8 +326,14 @@ class _SuccessCheckmarkState extends State<SuccessCheckmark>
       curve: Curves.elasticOut,
     ));
 
-    // Start animation on init
+    // Start animation
     _controller.forward();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Controller will be initialized in didChangeDependencies where we have context
   }
 
   @override
