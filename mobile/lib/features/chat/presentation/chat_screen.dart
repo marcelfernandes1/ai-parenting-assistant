@@ -7,7 +7,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/chat_provider.dart';
 import '../providers/voice_recorder_provider.dart';
 import 'widgets/message_bubble.dart';
+import 'widgets/quick_action_button.dart';
+import '../domain/quick_actions_config.dart';
 import '../../voice/presentation/voice_mode_screen.dart';
+import '../../onboarding/providers/onboarding_provider.dart';
 
 /// Main chat screen with message list and input area.
 /// Uses Riverpod to watch chat state and usage statistics.
@@ -304,6 +307,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
             ),
 
+          // Quick action buttons (contextual suggestions)
+          _buildQuickActions(),
+
           // Message list
           Expanded(
             child: chatState.isLoading
@@ -589,5 +595,68 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final minutes = duration.inMinutes.toString().padLeft(2, '0');
     final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
     return '$minutes:$seconds';
+  }
+
+  /// Builds quick action buttons based on user's parenting stage
+  /// Shows contextual suggestions for pregnancy or baby age
+  Widget _buildQuickActions() {
+    // Watch onboarding data to get user mode and baby info
+    final onboardingData = ref.watch(onboardingProvider);
+
+    // Don't show quick actions if mode not set (user hasn't completed onboarding)
+    if (onboardingData.mode == null) {
+      return const SizedBox.shrink();
+    }
+
+    // Parse baby birth date if available
+    DateTime? babyBirthDate;
+    if (onboardingData.birthDate != null) {
+      try {
+        babyBirthDate = DateTime.parse(onboardingData.birthDate!);
+      } catch (e) {
+        // Invalid date format, ignore
+      }
+    }
+
+    // Get appropriate quick actions based on user's stage
+    final quickActions = QuickActionsConfig.getMixedActions(
+      mode: onboardingData.mode!,
+      babyBirthDate: babyBirthDate,
+    );
+
+    return Container(
+      height: 60,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: quickActions.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final action = quickActions[index];
+          return QuickActionButton(
+            icon: action.icon,
+            label: action.label,
+            onTap: () => _handleQuickActionTap(action.message),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Handles quick action button tap
+  /// Auto-fills message and sends to chat
+  Future<void> _handleQuickActionTap(String message) async {
+    // Set the message in the input field
+    _messageController.text = message;
+
+    // Optionally focus the input field (or just send immediately)
+    // For better UX, let's send immediately
+    await _sendMessage();
+
+    // Scroll to bottom to show the new message
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
   }
 }

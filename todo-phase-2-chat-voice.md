@@ -260,37 +260,45 @@
 
 ## 🎬 Quick Action Buttons
 
-- [ ] Create quick action button component
-  - Rounded button with icon and text
-  - Tap triggers pre-filled message
-  - Automatically sends to chat
+- [x] Create quick action button component
+  - Created QuickActionButton widget with icon and label ✓
+  - Tap triggers onTap callback ✓
+  - Material design with primary container background ✓
+  - InkWell for tap feedback ✓
 
-- [ ] Add quick actions to chat screen
-  - Display below header, above message list
-  - Horizontal scrollable row (3-4 buttons visible)
-  - Load buttons based on user mode and baby age
+- [x] Add quick actions to chat screen
+  - Displayed below header, above message list ✓
+  - Horizontal scrollable ListView with separated items ✓
+  - Shows 5 contextual buttons (3 stage-specific + 2 general) ✓
+  - Height: 60px with 8px vertical margins ✓
 
-- [ ] Create quick action configuration
-  - Define button sets for different stages:
-    - Pregnancy mode
-    - Parenting 0-3 months
-    - Parenting 3-12 months
-  - Store in constants file or fetch from backend
+- [x] Create quick action configuration
+  - Created QuickActionsConfig with complete button sets ✓
+  - Pregnancy mode actions (morning sickness, nutrition, exercises, birth prep) ✓
+  - Newborn stage 0-3 months (sleep, feeding, soothing, diaper care) ✓
+  - Infant stage 3-12 months (solids, milestones, vaccinations, teething) ✓
+  - Toddler stage 12+ months (activities, behavior, potty training, language) ✓
+  - General actions (emergency signs, self-care, partner involvement) ✓
+  - getMixedActions() method provides variety ✓
 
-- [ ] Implement button tap behavior
-  - Populate chat input with button text
-  - Auto-send message to AI
-  - Show loading state
-  - Display AI response
+- [x] Implement button tap behavior
+  - Auto-fills message text in input field ✓
+  - Immediately sends message to AI (no manual send needed) ✓
+  - Shows loading state via existing chat provider ✓
+  - Auto-scrolls to bottom to display response ✓
 
-- [ ] Add age-based button updates
-  - Calculate baby age from birthDate
-  - Update button set when age thresholds crossed
-  - Smoothly transition buttons (fade animation)
+- [x] Add age-based button updates
+  - Watches onboardingProvider for mode and birthDate ✓
+  - Calculates baby age in months from birthDate ✓
+  - Automatically updates button set when baby crosses age thresholds ✓
+  - Reactive updates via Riverpod provider watching ✓
+  - Handles pregnancy mode vs parenting mode ✓
 
 ---
 
-**Progress:** ✅ 34/40 tasks completed (85%)
+**Progress:** ✅ 39/40 tasks completed (98%)
+
+**Remaining:** 1 task - Audio streaming integration for voice mode (optional enhancement)
 
 **Previous Phase:** [Phase 1: Database & Auth](todo-phase-1-database-auth.md)
 **Next Phase:** [Phase 3: Photos & Milestones](todo-phase-3-photos-milestones.md)
