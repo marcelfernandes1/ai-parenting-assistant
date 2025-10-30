@@ -244,7 +244,7 @@ class AppDrawer extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
-                'AI Parenting Assistant v1.0.0',
+                'Baby Boomer v1.0.0',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.outline,
                 ),

@@ -1,4 +1,4 @@
-/// Main entry point for the AI Parenting Assistant Flutter app.
+/// Main entry point for the Baby Boomer Flutter app.
 /// Initializes Riverpod providers and sets up Material 3 theme with go_router.
 library;
 
@@ -29,7 +29,7 @@ class MyApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'AI Parenting Assistant',
+      title: 'Baby Boomer',
       debugShowCheckedModeBanner: false,
 
       // Apply Material 3 theme with warm, parent-friendly colors

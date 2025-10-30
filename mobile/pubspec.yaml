@@ -1,5 +1,5 @@
 name: ai_parenting_assistant
-description: "AI-powered parenting assistant with chat, voice, and milestone tracking."
+description: "Baby Boomer - Your AI-powered parenting companion for chat, voice, and milestone tracking."
 publish_to: 'none' # Private package
 
 version: 1.0.0+1

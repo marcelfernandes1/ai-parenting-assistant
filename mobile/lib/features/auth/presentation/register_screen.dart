@@ -241,7 +241,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SizedBox(height: 24),
 
               Text(
-                'AI Parenting Assistant',
+                'Baby Boomer',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.primary,

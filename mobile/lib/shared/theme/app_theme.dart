@@ -1,4 +1,4 @@
-/// Material 3 theme configuration for the AI Parenting Assistant app.
+/// Material 3 theme configuration for the Baby Boomer app.
 /// Provides light and dark color schemes with warm, calming colors
 /// appropriate for a parenting app.
 library;

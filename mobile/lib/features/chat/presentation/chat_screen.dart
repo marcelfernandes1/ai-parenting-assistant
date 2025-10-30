@@ -414,7 +414,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       drawer: const AppDrawer(),
 
       appBar: AppBar(
-        title: const Text('AI Parenting Assistant'),
+        title: const Text('Baby Boomer'),
         actions: [
           // Usage counter badge
           if (!usageState.isLoading)
@@ -781,7 +781,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
             // Welcome text
             Text(
-              'Welcome to AI Parenting Assistant',
+              'Welcome to Baby Boomer',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.bold,

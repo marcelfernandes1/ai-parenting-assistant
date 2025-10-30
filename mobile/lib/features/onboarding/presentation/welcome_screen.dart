@@ -78,7 +78,7 @@ class WelcomeScreen extends StatelessWidget {
 
               // Title Section
               Text(
-                'AI Parenting Assistant',
+                'Baby Boomer',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
