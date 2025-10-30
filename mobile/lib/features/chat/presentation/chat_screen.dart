@@ -11,6 +11,7 @@ import '../providers/chat_provider.dart';
 import '../providers/voice_recorder_provider.dart';
 import 'widgets/message_bubble.dart';
 import 'widgets/quick_action_button.dart';
+import 'widgets/app_drawer.dart';
 import '../domain/quick_actions_config.dart';
 import '../../voice/presentation/voice_mode_screen.dart';
 import '../../onboarding/providers/onboarding_provider.dart';
@@ -358,6 +359,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final usageState = ref.watch(usageProvider);
 
     return Scaffold(
+      // Navigation drawer (swipe from left or tap hamburger menu)
+      drawer: const AppDrawer(),
+
       appBar: AppBar(
         title: const Text('AI Parenting Assistant'),
         actions: [
