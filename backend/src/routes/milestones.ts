@@ -9,6 +9,7 @@ import express, { Response } from 'express';
 import { PrismaClient, MilestoneType } from '@prisma/client';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 import { getPresignedUrl } from '../utils/s3';
+import { suggestMilestones } from '../utils/milestones';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -387,6 +388,75 @@ router.delete(
     } catch (error) {
       console.error('Error deleting milestone:', error);
       res.status(500).json({ error: 'Failed to delete milestone' });
+    }
+  }
+);
+
+/**
+ * GET /milestones/suggestions
+ * Get age-appropriate milestone suggestions for baby
+ *
+ * Returns milestone suggestions based on baby's age from user profile.
+ * Filters out milestones that have already been confirmed by the user.
+ * Suggestions are not saved to database until user confirms them.
+ */
+router.get(
+  '/suggestions',
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+
+      console.log(`🏆 Fetching milestone suggestions for user ${userId}`);
+
+      // Fetch user profile to get baby's birth date
+      const userProfile = await prisma.userProfile.findUnique({
+        where: { userId },
+        select: { babyBirthDate: true },
+      });
+
+      // Check if user has set baby birth date
+      if (!userProfile || !userProfile.babyBirthDate) {
+        return res.status(400).json({
+          error: 'Baby birth date not set',
+          message: 'Please set baby birth date in your profile to get milestone suggestions',
+        });
+      }
+
+      // Fetch all confirmed milestones to exclude from suggestions
+      const confirmedMilestones = await prisma.milestone.findMany({
+        where: {
+          userId,
+          confirmed: true,
+        },
+        select: { name: true },
+      });
+
+      // Extract milestone names
+      const loggedMilestoneNames = confirmedMilestones.map((m) => m.name);
+
+      // Get age-appropriate suggestions
+      const suggestions = suggestMilestones(
+        userProfile.babyBirthDate,
+        loggedMilestoneNames
+      );
+
+      console.log(`✅ Returning ${suggestions.length} milestone suggestions`);
+
+      // Return suggestions (not yet saved to database)
+      res.status(200).json({
+        suggestions: suggestions.map((s) => ({
+          type: s.type,
+          name: s.name,
+          description: s.description,
+          ageRangeMonths: s.ageRangeMonths,
+          aiSuggested: true, // Mark as AI-suggested
+        })),
+        count: suggestions.length,
+      });
+    } catch (error) {
+      console.error('Error fetching milestone suggestions:', error);
+      res.status(500).json({ error: 'Failed to fetch milestone suggestions' });
     }
   }
 );
