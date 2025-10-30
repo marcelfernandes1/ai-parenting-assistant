@@ -4,7 +4,7 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/services/api_client.dart';
-import '../../../shared/providers/api_client_provider.dart';
+import '../../../shared/providers/service_providers.dart';
 import '../data/settings_repository.dart';
 
 /// Settings Repository provider

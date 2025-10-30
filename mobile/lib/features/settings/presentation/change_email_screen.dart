@@ -38,7 +38,7 @@ class _ChangeEmailScreenState extends ConsumerState<ChangeEmailScreen> {
     }
     // Basic email regex
     final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
-    if (!emailRegex.test(value)) {
+    if (!emailRegex.hasMatch(value)) {
       return 'Please enter a valid email address';
     }
     return null;

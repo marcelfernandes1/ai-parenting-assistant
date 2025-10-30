@@ -8,6 +8,8 @@
  */
 
 import OpenAI from 'openai';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 // Initialize OpenAI client with API key from environment variable
 // Throws error if OPENAI_API_KEY is not set in .env file
@@ -274,6 +276,42 @@ Please analyze this photo and provide helpful observations about:
 
 Focus on being helpful and informative while maintaining appropriate medical boundaries.`;
 
+    // Handle local file URLs by converting to base64
+    let imageUrlOrBase64 = imageUrl;
+
+    // Check if this is a localhost URL
+    if (imageUrl.includes('localhost') || imageUrl.includes('127.0.0.1')) {
+      console.log('📸 Detected local file URL, converting to base64...');
+
+      try {
+        // Extract the file path from the URL (e.g., /uploads/userId/filename.jpg)
+        const urlPath = new URL(imageUrl).pathname;
+
+        // Construct the full file path (uploads directory is relative to backend root)
+        const filePath = path.join(process.cwd(), urlPath.substring(1)); // Remove leading '/'
+
+        console.log(`📂 Reading file from: ${filePath}`);
+
+        // Read the file as a buffer
+        const fileBuffer = await fs.readFile(filePath);
+
+        // Convert to base64
+        const base64Image = fileBuffer.toString('base64');
+
+        // Determine MIME type from file extension
+        const ext = path.extname(filePath).toLowerCase();
+        const mimeType = ext === '.png' ? 'image/png' : 'image/jpeg';
+
+        // Create data URL
+        imageUrlOrBase64 = `data:${mimeType};base64,${base64Image}`;
+
+        console.log(`✅ Converted local file to base64 (${fileBuffer.length} bytes)`);
+      } catch (fileError) {
+        console.error('Error reading local file:', fileError);
+        throw new Error('Failed to read local image file for analysis');
+      }
+    }
+
     // Call OpenAI Vision API (GPT-4o with vision capabilities)
     const response = await openai.chat.completions.create({
       model: 'gpt-4o', // GPT-4o has vision capabilities
@@ -288,7 +326,7 @@ Focus on being helpful and informative while maintaining appropriate medical bou
             {
               type: 'image_url',
               image_url: {
-                url: imageUrl,
+                url: imageUrlOrBase64,
                 detail: 'high', // High detail for better medical/safety analysis
               },
             },
