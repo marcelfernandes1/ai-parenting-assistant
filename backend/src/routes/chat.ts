@@ -11,12 +11,10 @@ import multer from 'multer';
 import fs from 'fs/promises';
 import { authenticateToken } from '../middleware/auth';
 import { generateChatResponse, transcribeAudio, ChatMessage } from '../services/openai';
+import { checkUsageLimit, incrementUsage } from '../utils/usageLimit';
 
 const router = express.Router();
 const prisma = new PrismaClient();
-
-// Daily usage limits for free tier
-const FREE_TIER_MESSAGE_LIMIT = 10;
 
 // Configure Multer for audio file uploads
 // Store files temporarily in memory for processing
@@ -89,7 +87,18 @@ router.post('/message', authenticateToken, async (req: Request, res: Response) =
       return res.status(400).json({ error: 'Session ID is required' });
     }
 
-    // Fetch user data including subscription tier
+    // Check usage limit before processing message
+    const usageCheck = await checkUsageLimit(userId, 'message');
+    if (!usageCheck.allowed) {
+      return res.status(429).json({
+        error: 'limit_reached',
+        resetTime: usageCheck.resetTime,
+        remaining: usageCheck.remaining || 0,
+        message: `You've reached your daily message limit. ${usageCheck.unlimited ? '' : `Resets at ${usageCheck.resetTime}. `}Upgrade to Premium for unlimited messaging!`,
+      });
+    }
+
+    // Fetch user data including profile for AI context
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: { profile: true },
@@ -97,34 +106,6 @@ router.post('/message', authenticateToken, async (req: Request, res: Response) =
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Check daily usage limit for free tier users
-    if (user.subscriptionTier === 'FREE') {
-      // Get today's date (midnight)
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      // Find or create today's usage record
-      let usage = await prisma.usageTracking.findUnique({
-        where: {
-          userId_date: {
-            userId: userId,
-            date: today,
-          },
-        },
-      });
-
-      // Check if limit exceeded
-      if (usage && usage.messagesUsed >= FREE_TIER_MESSAGE_LIMIT) {
-        return res.status(429).json({
-          error: 'Daily message limit reached',
-          limit: FREE_TIER_MESSAGE_LIMIT,
-          used: usage.messagesUsed,
-          resetTime: 'midnight',
-          message: `You've reached your daily limit of ${FREE_TIER_MESSAGE_LIMIT} messages. Upgrade to Premium for unlimited messaging!`,
-        });
-      }
     }
 
     // Fetch last 10 messages from this session for context
@@ -200,34 +181,8 @@ router.post('/message', authenticateToken, async (req: Request, res: Response) =
       },
     });
 
-    // Update usage tracking for free tier users
-    if (user.subscriptionTier === 'FREE') {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      // Upsert usage record (increment messagesUsed)
-      await prisma.usageTracking.upsert({
-        where: {
-          userId_date: {
-            userId: userId,
-            date: today,
-          },
-        },
-        update: {
-          messagesUsed: {
-            increment: 1,
-          },
-          updatedAt: new Date(),
-        },
-        create: {
-          userId: userId,
-          date: today,
-          messagesUsed: 1,
-          voiceMinutesUsed: 0,
-          photosStored: 0,
-        },
-      });
-    }
+    // Increment usage counter (works for both FREE and PREMIUM tiers)
+    await incrementUsage(userId, 'message', 1);
 
     // Return AI response
     return res.status(200).json({
@@ -416,44 +371,31 @@ router.post('/voice', authenticateToken, upload.single('audio'), async (req: Req
       return res.status(400).json({ error: 'Session ID is required' });
     }
 
-    // Fetch user data including subscription tier
+    // Check usage limit before processing voice message
+    // For Whisper transcription, we count it as a message (not voice minutes)
+    const usageCheck = await checkUsageLimit(userId, 'message');
+    if (!usageCheck.allowed) {
+      // Clean up uploaded file before returning error
+      await fs.unlink(filePath).catch(() => {});
+
+      return res.status(429).json({
+        error: 'limit_reached',
+        resetTime: usageCheck.resetTime,
+        remaining: usageCheck.remaining || 0,
+        message: `You've reached your daily message limit. ${usageCheck.unlimited ? '' : `Resets at ${usageCheck.resetTime}. `}Upgrade to Premium for unlimited messaging!`,
+      });
+    }
+
+    // Fetch user data including profile for AI context
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: { profile: true },
     });
 
     if (!user) {
+      // Clean up uploaded file before returning error
+      await fs.unlink(filePath).catch(() => {});
       return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Check daily usage limit for free tier users
-    // For Whisper transcription, we count it as a message (not voice minutes)
-    if (user.subscriptionTier === 'FREE') {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      let usage = await prisma.usageTracking.findUnique({
-        where: {
-          userId_date: {
-            userId: userId,
-            date: today,
-          },
-        },
-      });
-
-      // Check if limit exceeded
-      if (usage && usage.messagesUsed >= FREE_TIER_MESSAGE_LIMIT) {
-        // Clean up uploaded file before returning error
-        await fs.unlink(filePath).catch(() => {});
-
-        return res.status(429).json({
-          error: 'Daily message limit reached',
-          limit: FREE_TIER_MESSAGE_LIMIT,
-          used: usage.messagesUsed,
-          resetTime: 'midnight',
-          message: `You've reached your daily limit of ${FREE_TIER_MESSAGE_LIMIT} messages. Upgrade to Premium for unlimited messaging!`,
-        });
-      }
     }
 
     // Transcribe audio using Whisper API
@@ -548,33 +490,8 @@ router.post('/voice', authenticateToken, upload.single('audio'), async (req: Req
       },
     });
 
-    // Update usage tracking for free tier users
-    if (user.subscriptionTier === 'FREE') {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      await prisma.usageTracking.upsert({
-        where: {
-          userId_date: {
-            userId: userId,
-            date: today,
-          },
-        },
-        update: {
-          messagesUsed: {
-            increment: 1,
-          },
-          updatedAt: new Date(),
-        },
-        create: {
-          userId: userId,
-          date: today,
-          messagesUsed: 1,
-          voiceMinutesUsed: 0,
-          photosStored: 0,
-        },
-      });
-    }
+    // Increment usage counter (works for both FREE and PREMIUM tiers)
+    await incrementUsage(userId, 'message', 1);
 
     // Return transcription and AI response
     return res.status(200).json({
