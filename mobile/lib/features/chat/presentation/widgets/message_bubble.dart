@@ -1,9 +1,11 @@
 /// Message bubble widget for displaying chat messages.
 /// Styled differently for user vs assistant messages.
+/// Displays photo thumbnails if message has media URLs.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../domain/chat_message.dart';
 
 /// Widget that displays a single chat message in a bubble.
@@ -89,6 +91,12 @@ class MessageBubble extends StatelessWidget {
                         ),
                   ),
 
+                  // Photo grid (if message has media URLs)
+                  if (message.mediaUrls.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    _buildPhotoGrid(context, message.mediaUrls),
+                  ],
+
                   const SizedBox(height: 4),
 
                   // Timestamp with small text
@@ -119,6 +127,73 @@ class MessageBubble extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  /// Builds a grid of photo thumbnails from media URLs.
+  /// Layout: single photo takes full width, 2-3 photos in horizontal grid.
+  Widget _buildPhotoGrid(BuildContext context, List<String> photoUrls) {
+    final photoCount = photoUrls.length;
+
+    // Single photo - full width
+    if (photoCount == 1) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: CachedNetworkImage(
+          imageUrl: photoUrls[0],
+          height: 200,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => Container(
+            height: 200,
+            color: Colors.grey[300],
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          errorWidget: (context, url, error) => Container(
+            height: 200,
+            color: Colors.grey[300],
+            child: const Center(
+              child: Icon(Icons.error, color: Colors.red),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Multiple photos - horizontal grid (2-3 photos side by side)
+    return SizedBox(
+      height: 150,
+      child: Row(
+        children: photoUrls.map((url) {
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 4.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: CachedNetworkImage(
+                  imageUrl: url,
+                  height: 150,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[300],
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: Colors.grey[300],
+                    child: const Center(
+                      child: Icon(Icons.error, color: Colors.red, size: 20),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
