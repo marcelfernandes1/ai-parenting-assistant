@@ -8,7 +8,7 @@ part of 'user_model.dart';
 
 _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
   id: json['id'] as String,
-  email: json['email'] as String,
+  email: json['email'] as String?,
   name: json['name'] as String?,
   subscriptionTier: json['subscriptionTier'] as String? ?? 'FREE',
   onboardingComplete: json['onboardingComplete'] as bool? ?? false,

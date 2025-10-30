@@ -24,8 +24,8 @@ mixin _$User {
   /// Unique user identifier from database
   String get id => throw _privateConstructorUsedError;
 
-  /// User's email address (used for login)
-  String get email => throw _privateConstructorUsedError;
+  /// User's email address (used for login) - optional as profile endpoint doesn't return it
+  String? get email => throw _privateConstructorUsedError;
 
   /// Optional user display name
   String? get name => throw _privateConstructorUsedError;
@@ -76,7 +76,7 @@ abstract class $UserCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
-    String email,
+    String? email,
     String? name,
     String subscriptionTier,
     bool onboardingComplete,
@@ -107,7 +107,7 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
   @override
   $Res call({
     Object? id = null,
-    Object? email = null,
+    Object? email = freezed,
     Object? name = freezed,
     Object? subscriptionTier = null,
     Object? onboardingComplete = null,
@@ -126,10 +126,10 @@ class _$UserCopyWithImpl<$Res, $Val extends User>
                 ? _value.id
                 : id // ignore: cast_nullable_to_non_nullable
                       as String,
-            email: null == email
+            email: freezed == email
                 ? _value.email
                 : email // ignore: cast_nullable_to_non_nullable
-                      as String,
+                      as String?,
             name: freezed == name
                 ? _value.name
                 : name // ignore: cast_nullable_to_non_nullable
@@ -190,7 +190,7 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
   @useResult
   $Res call({
     String id,
-    String email,
+    String? email,
     String? name,
     String subscriptionTier,
     bool onboardingComplete,
@@ -218,7 +218,7 @@ class __$$UserImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
-    Object? email = null,
+    Object? email = freezed,
     Object? name = freezed,
     Object? subscriptionTier = null,
     Object? onboardingComplete = null,
@@ -237,10 +237,10 @@ class __$$UserImplCopyWithImpl<$Res>
             ? _value.id
             : id // ignore: cast_nullable_to_non_nullable
                   as String,
-        email: null == email
+        email: freezed == email
             ? _value.email
             : email // ignore: cast_nullable_to_non_nullable
-                  as String,
+                  as String?,
         name: freezed == name
             ? _value.name
             : name // ignore: cast_nullable_to_non_nullable
@@ -295,7 +295,7 @@ class __$$UserImplCopyWithImpl<$Res>
 class _$UserImpl implements _User {
   const _$UserImpl({
     required this.id,
-    required this.email,
+    this.email,
     this.name,
     this.subscriptionTier = 'FREE',
     this.onboardingComplete = false,
@@ -316,9 +316,9 @@ class _$UserImpl implements _User {
   @override
   final String id;
 
-  /// User's email address (used for login)
+  /// User's email address (used for login) - optional as profile endpoint doesn't return it
   @override
-  final String email;
+  final String? email;
 
   /// Optional user display name
   @override
@@ -447,7 +447,7 @@ class _$UserImpl implements _User {
 abstract class _User implements User {
   const factory _User({
     required final String id,
-    required final String email,
+    final String? email,
     final String? name,
     final String subscriptionTier,
     final bool onboardingComplete,
@@ -467,9 +467,9 @@ abstract class _User implements User {
   @override
   String get id;
 
-  /// User's email address (used for login)
+  /// User's email address (used for login) - optional as profile endpoint doesn't return it
   @override
-  String get email;
+  String? get email;
 
   /// Optional user display name
   @override

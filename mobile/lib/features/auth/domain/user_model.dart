@@ -16,8 +16,8 @@ class User with _$User {
     /// Unique user identifier from database
     required String id,
 
-    /// User's email address (used for login)
-    required String email,
+    /// User's email address (used for login) - optional as profile endpoint doesn't return it
+    String? email,
 
     /// Optional user display name
     String? name,
