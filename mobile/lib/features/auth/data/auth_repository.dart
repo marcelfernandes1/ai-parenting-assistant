@@ -47,7 +47,7 @@ class AuthRepository {
           accessToken: accessToken,
           refreshToken: refreshToken,
           userId: user.id,
-          email: user.email,
+          email: user.email ?? '',  // Fallback to empty string if email is null
         );
 
         return user;
@@ -91,7 +91,7 @@ class AuthRepository {
           accessToken: accessToken,
           refreshToken: refreshToken,
           userId: user.id,
-          email: user.email,
+          email: user.email ?? '',  // Fallback to empty string if email is null
         );
 
         return user;
