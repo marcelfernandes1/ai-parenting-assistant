@@ -114,7 +114,8 @@ export function initializeVoiceSocket(io: SocketIOServer): void {
 
         // Check daily voice usage limit for free tier users
         if (user.subscriptionTier === 'FREE') {
-          const today = new Date().toISOString().split('T')[0];
+          // Create date at midnight today in ISO-8601 format for Prisma DateTime
+          const today = new Date(new Date().toDateString()).toISOString();
           const usage = await prisma.usageTracking.findUnique({
             where: {
               userId_date: {
@@ -300,7 +301,8 @@ export function initializeVoiceSocket(io: SocketIOServer): void {
         const elapsedMinutes = Math.ceil(elapsedMs / 60000); // Round up to nearest minute
 
         // Update usage tracking
-        const today = new Date().toISOString().split('T')[0];
+        // Create date at midnight today in ISO-8601 format for Prisma DateTime
+        const today = new Date(new Date().toDateString()).toISOString();
 
         await prisma.usageTracking.upsert({
           where: {
@@ -350,7 +352,8 @@ export function initializeVoiceSocket(io: SocketIOServer): void {
         const elapsedMs = Date.now() - socket.sessionStartTime;
         const elapsedMinutes = Math.ceil(elapsedMs / 60000);
 
-        const today = new Date().toISOString().split('T')[0];
+        // Create date at midnight today in ISO-8601 format for Prisma DateTime
+        const today = new Date(new Date().toDateString()).toISOString();
 
         await prisma.usageTracking.upsert({
           where: {
