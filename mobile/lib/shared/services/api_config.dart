@@ -39,9 +39,15 @@ class ApiConfig {
   static const String sendMessageEndpoint = '/chat/message';
 
   /// Photo endpoints
-  static const String uploadPhotoEndpoint = '/photos/upload';
-  static const String getPhotosEndpoint = '/photos';
-  static const String analyzePhotoEndpoint = '/photos/analyze';
+  static const String photosEndpoint = '/photos';  // Base endpoint for photo operations
+  static const String photosUploadEndpoint = '/photos/upload';
+  static const String photosListEndpoint = '/photos/list';
+  static const String photosAnalyzeEndpoint = '/photos/analyze';
+
+  // Legacy aliases for backward compatibility
+  static const String uploadPhotoEndpoint = photosUploadEndpoint;
+  static const String getPhotosEndpoint = photosEndpoint;
+  static const String analyzePhotoEndpoint = photosAnalyzeEndpoint;
 
   /// Subscription endpoints
   static const String subscriptionsEndpoint = '/subscriptions';

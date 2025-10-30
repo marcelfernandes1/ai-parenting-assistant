@@ -26,15 +26,24 @@ class ChatRepository {
   Future<Map<String, ChatMessage>> sendMessage({
     required String content,
     required String sessionId,
+    List<String>? photoUrls,  // Optional photo URLs array
   }) async {
     try {
+      // Build request data
+      final requestData = <String, dynamic>{
+        'content': content,
+        'sessionId': sessionId,
+      };
+
+      // Add photoUrls if provided
+      if (photoUrls != null && photoUrls.isNotEmpty) {
+        requestData['photoUrls'] = photoUrls;
+      }
+
       // Call backend chat endpoint
       final response = await _apiClient.post(
         ApiConfig.sendMessageEndpoint,
-        data: {
-          'content': content,
-          'sessionId': sessionId,
-        },
+        data: requestData,
       );
 
       // Check response status

@@ -96,7 +96,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   /// Sends a message and receives AI response
   /// Optimistically adds user message to UI before API call
-  Future<void> sendMessage(String content) async {
+  /// Supports optional photo URLs to be included with the message
+  Future<void> sendMessage(String content, {List<String>? photoUrls}) async {
     if (content.trim().isEmpty) return;
 
     // Set sending state
@@ -107,6 +108,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
       final result = await _chatRepository.sendMessage(
         content: content.trim(),
         sessionId: state.sessionId,
+        photoUrls: photoUrls,
       );
 
       // Add both user and assistant messages to state

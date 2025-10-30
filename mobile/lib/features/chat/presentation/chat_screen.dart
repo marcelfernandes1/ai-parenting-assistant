@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../providers/chat_provider.dart';
 import '../providers/voice_recorder_provider.dart';
+import '../../photos/providers/photo_provider.dart';
 import 'widgets/message_bubble.dart';
 import 'widgets/quick_action_button.dart';
 import 'widgets/app_drawer.dart';
@@ -74,18 +75,68 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   /// Sends message to AI assistant
+  /// Uploads photos first if selected, then sends message with photo URLs
   /// Clears input field and scrolls to bottom after sending
   Future<void> _sendMessage() async {
     final content = _messageController.text.trim();
 
-    // Ignore empty messages
-    if (content.isEmpty) return;
+    // Ignore empty messages (unless there are photos to send)
+    if (content.isEmpty && _selectedPhotos.isEmpty) return;
 
     // Clear input field immediately for better UX
     _messageController.clear();
 
-    // Send message via provider
-    await ref.read(chatProvider.notifier).sendMessage(content);
+    // Upload photos first if any are selected
+    List<String>? photoUrls;
+    if (_selectedPhotos.isNotEmpty) {
+      try {
+        // Get photo repository
+        final photoRepository = ref.read(photoRepositoryProvider);
+
+        // Convert XFile to file paths
+        final filePaths = _selectedPhotos.map((photo) => photo.path).toList();
+
+        // Upload photos (shows progress during upload)
+        final uploadedPhotos = await photoRepository.uploadPhotos(
+          filePaths,
+          onProgress: (progress) {
+            // Could show progress indicator here if desired
+            // For now, the button is already disabled while sending
+            print('Upload progress: ${(progress * 100).toStringAsFixed(0)}%');
+          },
+        );
+
+        // Extract photo URLs from upload response
+        photoUrls = uploadedPhotos.map((photo) => photo.url).toList();
+
+        print('✅ Uploaded ${photoUrls.length} photos');
+
+        // Clear selected photos after successful upload
+        setState(() {
+          _selectedPhotos.clear();
+        });
+      } catch (e) {
+        // Show error if photo upload fails
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to upload photos: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+
+        // Don't send message if photo upload failed
+        return;
+      }
+    }
+
+    // Send message via provider (with optional photo URLs)
+    await ref.read(chatProvider.notifier).sendMessage(
+      content.isNotEmpty ? content : '📸 Photos',  // Use placeholder text if only photos
+      photoUrls: photoUrls,
+    );
 
     // Scroll to bottom to show new messages
     // Use post-frame callback to ensure messages are rendered first
