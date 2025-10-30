@@ -220,4 +220,175 @@ router.post(
   }
 );
 
+/**
+ * PUT /milestones/:id
+ * Update an existing milestone
+ *
+ * Request body (all fields optional, only provided fields will be updated):
+ * - name: string - optional
+ * - achievedDate: ISO date string - optional
+ * - notes: string - optional
+ *
+ * Verifies milestone belongs to authenticated user before updating.
+ * Returns updated milestone.
+ */
+router.put(
+  '/:id',
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+      const milestoneId = req.params.id;
+
+      // Extract update data from request body
+      const { name, achievedDate, notes } = req.body;
+
+      console.log(`🏆 Updating milestone ${milestoneId} for user ${userId}`);
+
+      // Fetch milestone to verify ownership
+      const existingMilestone = await prisma.milestone.findUnique({
+        where: { id: milestoneId },
+        select: { id: true, userId: true },
+      });
+
+      // Check if milestone exists
+      if (!existingMilestone) {
+        return res.status(404).json({ error: 'Milestone not found' });
+      }
+
+      // Verify milestone belongs to the authenticated user (security check)
+      if (existingMilestone.userId !== userId) {
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'You do not have permission to update this milestone',
+        });
+      }
+
+      // Build update data object (only include provided fields)
+      const updateData: any = {};
+
+      if (name !== undefined) {
+        updateData.name = name;
+      }
+
+      if (achievedDate !== undefined) {
+        // Parse and validate achievedDate
+        const achievedDateObj = new Date(achievedDate);
+
+        // Check if date is valid
+        if (isNaN(achievedDateObj.getTime())) {
+          return res.status(400).json({
+            error: 'Invalid achievedDate format',
+            message: 'achievedDate must be a valid ISO date string',
+          });
+        }
+
+        // Validate achievedDate is not in the future
+        const now = new Date();
+        if (achievedDateObj > now) {
+          return res.status(400).json({
+            error: 'Invalid achievedDate',
+            message: 'achievedDate cannot be in the future',
+          });
+        }
+
+        updateData.achievedDate = achievedDateObj;
+      }
+
+      if (notes !== undefined) {
+        updateData.notes = notes || null;
+      }
+
+      // Update milestone in database
+      const updatedMilestone = await prisma.milestone.update({
+        where: { id: milestoneId },
+        data: updateData,
+      });
+
+      console.log(`✅ Updated milestone ${milestoneId}`);
+
+      // Generate presigned URLs for photos
+      const presignedPhotoUrls = updatedMilestone.photoUrls.length > 0
+        ? await Promise.all(
+            updatedMilestone.photoUrls.map((s3Key) => getPresignedUrl(s3Key))
+          )
+        : [];
+
+      // Return updated milestone
+      res.status(200).json({
+        message: 'Milestone updated successfully',
+        milestone: {
+          id: updatedMilestone.id,
+          type: updatedMilestone.type,
+          name: updatedMilestone.name,
+          achievedDate: updatedMilestone.achievedDate,
+          notes: updatedMilestone.notes,
+          photoUrls: presignedPhotoUrls,
+          aiSuggested: updatedMilestone.aiSuggested,
+          confirmed: updatedMilestone.confirmed,
+          createdAt: updatedMilestone.createdAt,
+          updatedAt: updatedMilestone.updatedAt,
+        },
+      });
+    } catch (error) {
+      console.error('Error updating milestone:', error);
+      res.status(500).json({ error: 'Failed to update milestone' });
+    }
+  }
+);
+
+/**
+ * DELETE /milestones/:id
+ * Delete a specific milestone
+ *
+ * Verifies milestone belongs to authenticated user before deletion.
+ * Permanently removes milestone from database.
+ */
+router.delete(
+  '/:id',
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+      const milestoneId = req.params.id;
+
+      console.log(`🗑️ Deleting milestone ${milestoneId} for user ${userId}`);
+
+      // Fetch milestone to verify ownership
+      const milestone = await prisma.milestone.findUnique({
+        where: { id: milestoneId },
+        select: { id: true, userId: true, name: true },
+      });
+
+      // Check if milestone exists
+      if (!milestone) {
+        return res.status(404).json({ error: 'Milestone not found' });
+      }
+
+      // Verify milestone belongs to the authenticated user (security check)
+      if (milestone.userId !== userId) {
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'You do not have permission to delete this milestone',
+        });
+      }
+
+      // Delete milestone from database
+      await prisma.milestone.delete({
+        where: { id: milestoneId },
+      });
+
+      console.log(`✅ Deleted milestone ${milestoneId}: ${milestone.name}`);
+
+      res.status(200).json({
+        message: 'Milestone deleted successfully',
+        milestoneId,
+      });
+    } catch (error) {
+      console.error('Error deleting milestone:', error);
+      res.status(500).json({ error: 'Failed to delete milestone' });
+    }
+  }
+);
+
 export default router;
