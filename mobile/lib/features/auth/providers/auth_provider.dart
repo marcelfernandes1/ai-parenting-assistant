@@ -150,6 +150,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = const AuthState.unauthenticated();
     }
   }
+
+  /// Updates user email in auth state
+  /// Used after successful email change to avoid requiring re-login
+  void updateEmail(String newEmail) {
+    final currentState = state;
+    if (currentState is AuthStateAuthenticated) {
+      final updatedUser = currentState.user.copyWith(email: newEmail);
+      state = AuthState.authenticated(user: updatedUser);
+    }
+  }
 }
 
 /// Main authentication provider
