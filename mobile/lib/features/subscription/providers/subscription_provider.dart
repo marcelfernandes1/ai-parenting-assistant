@@ -6,6 +6,7 @@ library;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../shared/providers/service_providers.dart';
 import '../data/subscription_repository.dart';
+import '../data/purchase_service.dart';
 import '../domain/subscription_status.dart';
 
 /// Provider for SubscriptionRepository singleton
@@ -13,6 +14,14 @@ import '../domain/subscription_status.dart';
 final subscriptionRepositoryProvider = Provider<SubscriptionRepository>((ref) {
   return SubscriptionRepository(
     ref.watch(apiClientProvider),
+  );
+});
+
+/// Provider for PurchaseService singleton
+/// Handles Stripe subscription purchases and management
+final purchaseServiceProvider = Provider<PurchaseService>((ref) {
+  return PurchaseService(
+    ref.watch(subscriptionRepositoryProvider),
   );
 });
 

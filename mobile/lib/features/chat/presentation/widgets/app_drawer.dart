@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/chat_provider.dart';
 import '../../../onboarding/providers/onboarding_provider.dart';
 import '../../../photos/presentation/photos_screen.dart';
+import '../conversation_list_screen.dart';
 
 /// Main app navigation drawer
 /// Displays user profile, chat history, and navigation options
@@ -109,15 +110,20 @@ class AppDrawer extends ConsumerWidget {
                     },
                   ),
 
-                  // TODO: Add past conversation history when implemented
+                  // Past conversations navigation
                   ListTile(
-                    leading: Icon(
-                      Icons.history,
-                      color: theme.colorScheme.outline,
-                    ),
+                    leading: const Icon(Icons.history),
                     title: const Text('Past Conversations'),
-                    subtitle: const Text('Coming soon'),
-                    enabled: false,
+                    subtitle: const Text('View conversation history'),
+                    onTap: () {
+                      Navigator.pop(context); // Close drawer
+                      // Navigate to conversation list screen
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const ConversationListScreen(),
+                        ),
+                      );
+                    },
                   ),
 
                   const Divider(),

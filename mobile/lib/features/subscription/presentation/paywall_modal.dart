@@ -6,6 +6,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/subscription_provider.dart';
+import '../data/purchase_service.dart';
 import '../domain/subscription_status.dart';
 
 /// Shows the paywall modal as a bottom sheet
@@ -451,8 +452,14 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
     );
   }
 
-  /// Handles the subscribe button tap
-  /// TODO: Integrate with in_app_purchase package
+  /// Handles the subscribe button tap.
+  /// Integrates with Stripe for payment processing.
+  ///
+  /// TODO: Complete Stripe setup before using in production:
+  /// 1. Initialize Stripe.publishableKey in main.dart with your test/live key
+  /// 2. Add CardField widget to collect card details (or use Stripe payment sheet)
+  /// 3. Replace placeholder price ID with actual Stripe price ID
+  /// 4. Test with Stripe test cards (4242 4242 4242 4242)
   Future<void> _handleSubscribe() async {
     setState(() {
       _isPurchasing = true;
@@ -460,25 +467,43 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
     });
 
     try {
-      // TODO: Implement actual in-app purchase flow
-      // For now, just simulate a delay
-      await Future.delayed(const Duration(seconds: 2));
+      // Get purchase service from Riverpod provider
+      final purchaseService = ref.read(purchaseServiceProvider);
 
-      // TODO: Call backend to verify purchase and update subscription
-      // await ref.read(subscriptionProvider.notifier).refresh();
+      // Attempt to purchase subscription (monthly by default)
+      // TODO: Add UI to let user choose between monthly/yearly
+      await purchaseService.purchaseSubscription(
+        priceId: PurchaseService.monthlyPriceId,
+      );
+
+      // Refresh subscription status from backend
+      await ref.read(subscriptionProvider.notifier).refresh();
 
       if (mounted) {
+        // Close paywall modal and show success
+        Navigator.of(context).pop(true);
+
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Purchase flow not yet implemented'),
-            backgroundColor: Colors.orange,
+            content: Text('🎉 Welcome to Premium!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
           ),
         );
       }
     } catch (e) {
+      // Extract user-friendly error message
+      final errorMessage = e.toString().replaceFirst('Exception: ', '');
+
       setState(() {
-        _errorMessage = 'Failed to process purchase. Please try again.';
+        // Check if error is about Stripe not being initialized
+        if (errorMessage.contains('Stripe') || errorMessage.contains('publishable')) {
+          _errorMessage =
+              'Stripe payment not set up yet. Please configure Stripe in main.dart.';
+        } else {
+          _errorMessage = errorMessage;
+        }
       });
     } finally {
       if (mounted) {
@@ -489,8 +514,8 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
     }
   }
 
-  /// Handles the restore purchases button tap
-  /// TODO: Integrate with in_app_purchase package
+  /// Handles the restore purchases button tap.
+  /// For Stripe subscriptions, this refreshes status from backend.
   Future<void> _handleRestore() async {
     setState(() {
       _isRestoring = true;
@@ -498,20 +523,35 @@ class _PaywallModalState extends ConsumerState<PaywallModal> {
     });
 
     try {
-      // TODO: Implement actual restore purchases flow
-      // For now, just simulate a delay
-      await Future.delayed(const Duration(seconds: 2));
+      // Get purchase service from Riverpod provider
+      final purchaseService = ref.read(purchaseServiceProvider);
 
-      // TODO: Refresh subscription status from backend
-      // await ref.read(subscriptionProvider.notifier).refresh();
+      // Check backend for active subscriptions
+      final hasActiveSub = await purchaseService.restorePurchases();
+
+      // Refresh subscription status in app
+      await ref.read(subscriptionProvider.notifier).refresh();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Restore purchases flow not yet implemented'),
-            backgroundColor: Colors.orange,
-          ),
-        );
+        if (hasActiveSub) {
+          // Found active subscription
+          Navigator.of(context).pop(true);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Premium subscription restored!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          // No active subscription found
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No active subscriptions found'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
       }
     } catch (e) {
       setState(() {

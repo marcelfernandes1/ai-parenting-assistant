@@ -7,6 +7,7 @@ import '../../../shared/services/api_client.dart';
 import '../../../shared/services/api_config.dart';
 import '../../../shared/exceptions/limit_reached_exception.dart';
 import '../domain/chat_message.dart';
+import '../domain/conversation.dart';
 
 /// Repository class handling chat API calls and session management.
 /// Uses ApiClient for network requests with automatic authentication.
@@ -215,6 +216,46 @@ class ChatRepository {
       } else {
         throw Exception(
             response.data['error'] ?? 'Failed to process voice message');
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Fetches all conversation sessions for the authenticated user.
+  ///
+  /// Parameters:
+  /// - limit: Number of conversations to fetch (default: 20)
+  /// - offset: Pagination offset (default: 0)
+  ///
+  /// Returns: List of conversations ordered by most recent activity
+  Future<List<Conversation>> getConversations({
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    try {
+      // Build query parameters
+      final queryParams = {
+        'limit': limit.toString(),
+        'offset': offset.toString(),
+      };
+
+      // Call backend conversations endpoint
+      final response = await _apiClient.get(
+        '/chat/conversations',
+        queryParameters: queryParams,
+      );
+
+      // Check response status
+      if (response.statusCode == 200) {
+        final conversations = (response.data['conversations'] as List)
+            .map((json) => Conversation.fromJson(json as Map<String, dynamic>))
+            .toList();
+
+        return conversations;
+      } else {
+        throw Exception(
+            response.data['error'] ?? 'Failed to fetch conversations');
       }
     } on DioException catch (e) {
       throw _handleDioError(e);

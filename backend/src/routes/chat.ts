@@ -288,6 +288,121 @@ router.get('/history', authenticateToken, async (req: Request, res: Response) =>
 });
 
 /**
+ * GET /chat/conversations
+ *
+ * Retrieve a list of all conversation sessions for the authenticated user.
+ * Returns session metadata including first/last message timestamps and preview.
+ *
+ * Query params:
+ * - limit: number (default: 20, max: 50)
+ * - offset: number (default: 0)
+ *
+ * Returns: Array of conversation sessions with metadata
+ */
+router.get('/conversations', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    // Extract userId from JWT token
+    const userId = (req as any).user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized - user ID not found' });
+    }
+
+    // Parse query parameters
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50); // Max 50
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    // Get all unique session IDs for this user, ordered by most recent activity
+    // Use aggregation to get session metadata
+    const sessions = await prisma.message.groupBy({
+      by: ['sessionId'],
+      where: {
+        userId: userId,
+      },
+      _count: {
+        id: true, // Count messages per session
+      },
+      _max: {
+        timestamp: true, // Most recent message timestamp
+      },
+      _min: {
+        timestamp: true, // First message timestamp
+      },
+      orderBy: {
+        _max: {
+          timestamp: 'desc', // Order by most recent activity
+        },
+      },
+      skip: offset,
+      take: limit,
+    });
+
+    // For each session, fetch the first user message as preview
+    const conversationsWithPreview = await Promise.all(
+      sessions.map(async (session) => {
+        // Get first user message for preview
+        const firstUserMessage = await prisma.message.findFirst({
+          where: {
+            userId: userId,
+            sessionId: session.sessionId,
+            role: 'USER',
+          },
+          orderBy: {
+            timestamp: 'asc',
+          },
+          select: {
+            content: true,
+            contentType: true,
+          },
+        });
+
+        // Create a preview text (first 100 chars of first message)
+        const previewText = firstUserMessage
+          ? firstUserMessage.content.substring(0, 100) +
+            (firstUserMessage.content.length > 100 ? '...' : '')
+          : 'Empty conversation';
+
+        return {
+          sessionId: session.sessionId,
+          messageCount: session._count.id,
+          firstMessageAt: session._min.timestamp,
+          lastMessageAt: session._max.timestamp,
+          preview: previewText,
+          previewType: firstUserMessage?.contentType || 'TEXT',
+        };
+      })
+    );
+
+    // Get total session count for pagination
+    const totalSessions = await prisma.message.groupBy({
+      by: ['sessionId'],
+      where: {
+        userId: userId,
+      },
+      _count: {
+        sessionId: true,
+      },
+    });
+
+    return res.status(200).json({
+      conversations: conversationsWithPreview,
+      pagination: {
+        total: totalSessions.length,
+        limit: limit,
+        offset: offset,
+        hasMore: offset + sessions.length < totalSessions.length,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching conversations:', error);
+
+    return res.status(500).json({
+      error: 'Failed to fetch conversations',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
  * DELETE /chat/session
  *
  * Delete all messages from a specific session.

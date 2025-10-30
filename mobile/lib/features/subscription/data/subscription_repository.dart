@@ -54,6 +54,64 @@ class SubscriptionRepository {
     }
   }
 
+  /// Creates a new subscription with Stripe payment method.
+  ///
+  /// Parameters:
+  /// - paymentMethodId: Stripe payment method ID from flutter_stripe
+  /// - priceId: Stripe price ID for the subscription tier
+  ///
+  /// Returns: Map containing subscription details
+  /// Throws: Exception on creation errors
+  Future<Map<String, dynamic>> createSubscription({
+    required String paymentMethodId,
+    required String priceId,
+  }) async {
+    try {
+      // Call backend subscription create endpoint
+      final response = await _apiClient.post(
+        '/subscription/create',
+        data: {
+          'paymentMethodId': paymentMethodId,
+          'priceId': priceId,
+        },
+      );
+
+      // Check if request was successful
+      if (response.statusCode == 200) {
+        return response.data as Map<String, dynamic>;
+      }
+
+      // Handle non-200 responses
+      throw Exception(response.data?['error'] ?? 'Failed to create subscription');
+    } on DioException catch (e) {
+      // Handle network errors
+      throw _handleDioError(e);
+    }
+  }
+
+  /// Cancels the current active subscription.
+  /// Subscription remains active until end of billing period.
+  ///
+  /// Returns: Map containing cancellation details and final access date
+  /// Throws: Exception if no active subscription or cancellation fails
+  Future<Map<String, dynamic>> cancelSubscription() async {
+    try {
+      // Call backend subscription cancel endpoint
+      final response = await _apiClient.post('/subscription/cancel');
+
+      // Check if request was successful
+      if (response.statusCode == 200) {
+        return response.data as Map<String, dynamic>;
+      }
+
+      // Handle non-200 responses
+      throw Exception(response.data?['error'] ?? 'Failed to cancel subscription');
+    } on DioException catch (e) {
+      // Handle network errors
+      throw _handleDioError(e);
+    }
+  }
+
   /// Helper method to convert DioException to user-friendly error message.
   /// Handles different HTTP status codes and network issues.
   Exception _handleDioError(DioException error) {
