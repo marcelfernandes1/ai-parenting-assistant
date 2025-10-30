@@ -25,6 +25,8 @@
   "author": "AI Parenting Assistant Team",
   "license": "MIT",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.920.0",
+    "@aws-sdk/s3-request-presigner": "^3.920.0",
     "@prisma/client": "^5.7.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
@@ -35,6 +37,7 @@
     "jsonwebtoken": "^9.0.2",
     "openai": "^6.7.0",
     "prisma": "^5.7.0",
+    "sharp": "^0.34.4",
     "socket.io": "^4.8.1",
     "uuid": "^13.0.0"
   },

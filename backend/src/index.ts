@@ -14,6 +14,7 @@ import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
 import chatRoutes from './routes/chat';
 import usageRoutes from './routes/usage';
+import photosRoutes from './routes/photos';
 import { authenticateToken, AuthenticatedRequest } from './middleware/auth';
 import { initializeVoiceSocket } from './sockets/voice';
 
@@ -87,6 +88,7 @@ app.get('/', (_req: Request, res: Response) => {
       user: '/user/*',
       chat: '/chat/*',
       usage: '/usage/*',
+      photos: '/photos/*',
     },
   });
 });
@@ -121,6 +123,14 @@ app.use('/chat', chatRoutes);
  * Requires authentication
  */
 app.use('/usage', usageRoutes);
+
+/**
+ * Photos routes
+ * Handles photo uploads to S3, photo listing, and deletion
+ * All photos endpoints are prefixed with /photos
+ * Requires authentication
+ */
+app.use('/photos', photosRoutes);
 
 /**
  * Protected test endpoint

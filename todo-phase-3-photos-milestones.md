@@ -10,28 +10,29 @@
 
 ### Backend Photo Management
 
-- [ ] Install image processing libraries
+- [x] Install image processing libraries
   - `npm install sharp` (for image compression)
   - `npm install @aws-sdk/client-s3` (for S3 uploads)
+  - `npm install @aws-sdk/s3-request-presigner` (for presigned URLs)
 
-- [ ] Create photo upload utility
-  - Function `uploadToS3(file, userId)`
-  - Generate unique S3 key: `${userId}/${timestamp}-${filename}`
-  - Compress images with Sharp before upload (max 1920px width)
-  - Upload file to S3 bucket using AWS SDK
-  - Set appropriate Content-Type and ACL
-  - Return S3 key and generate presigned URL (24-hour expiry)
+- [x] Create photo upload utility
+  - Function `uploadToS3(file, userId)` ✓
+  - Generate unique S3 key: `${userId}/${timestamp}-${filename}` ✓
+  - Compress images with Sharp before upload (max 1920px width) ✓
+  - Upload file to S3 bucket using AWS SDK ✓
+  - Set appropriate Content-Type and ACL ✓
+  - Return S3 key and generate presigned URL (24-hour expiry) ✓
 
-- [ ] Create `POST /photos/upload` endpoint
-  - Authenticate with JWT middleware
-  - Accept single or multiple files (max 3 per request)
-  - Validate file types: JPEG, PNG, HEIC
-  - Validate file size: max 10MB per file
-  - Compress images on server if needed
-  - Upload to S3 via uploadToS3 utility
-  - Create Photo record in database for each uploaded file
-  - Check free user photo limit (100 photos max)
-  - Return array of uploaded photo objects (id, url, s3Key)
+- [x] Create `POST /photos/upload` endpoint
+  - Authenticate with JWT middleware ✓
+  - Accept single or multiple files (max 3 per request) ✓
+  - Validate file types: JPEG, PNG, HEIC ✓
+  - Validate file size: max 10MB per file ✓
+  - Compress images on server if needed ✓
+  - Upload to S3 via uploadToS3 utility ✓
+  - Create Photo record in database for each uploaded file ✓
+  - Check free user photo limit (100 photos max) ✓
+  - Return array of uploaded photo objects (id, url, s3Key) ✓
 
 - [ ] Create `GET /photos/list` endpoint
   - Authenticate user with JWT middleware
