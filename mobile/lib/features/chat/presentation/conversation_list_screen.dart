@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/chat_repository.dart';
 import '../domain/conversation.dart';
-import '../../../shared/providers/repositories.dart';
+import '../providers/chat_provider.dart';
 import 'chat_screen.dart';
 
 /// Screen displaying a list of all user's conversation sessions.

@@ -23,6 +23,7 @@ class SettingsScreen extends ConsumerWidget {
       unauthenticated: () => null,
       initial: () => null,
       loading: () => null,
+      error: (message) => null,  // Return null on error state
     );
 
     return Scaffold(

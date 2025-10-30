@@ -53,18 +53,23 @@ class ChatRepository {
         final data = response.data;
 
         // Parse user and assistant messages from response
+        // Backend now returns contentType and mediaUrls correctly
         final userMessage = ChatMessage.fromJson({
           ...data['userMessage'],
           'role': 'USER',
-          'contentType': 'TEXT',
           'sessionId': sessionId,
+          // Use contentType from backend if available, fallback to TEXT
+          'contentType': data['userMessage']['contentType'] ?? 'TEXT',
+          // Use mediaUrls from backend if available, fallback to empty array
+          'mediaUrls': data['userMessage']['mediaUrls'] ?? [],
         });
 
         final assistantMessage = ChatMessage.fromJson({
           ...data['assistantMessage'],
           'role': 'ASSISTANT',
-          'contentType': 'TEXT',
           'sessionId': sessionId,
+          'contentType': data['assistantMessage']['contentType'] ?? 'TEXT',
+          'mediaUrls': data['assistantMessage']['mediaUrls'] ?? [],
         });
 
         return {

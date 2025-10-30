@@ -10,7 +10,7 @@ import { PrismaClient } from '@prisma/client';
 import multer from 'multer';
 import fs from 'fs/promises';
 import { authenticateToken } from '../middleware/auth';
-import { generateChatResponse, transcribeAudio, ChatMessage } from '../services/openai';
+import { generateChatResponse, transcribeAudio, ChatMessage, analyzePhoto } from '../services/openai';
 import { checkUsageLimit, incrementUsage } from '../utils/usageLimit';
 
 const router = express.Router();
@@ -69,17 +69,20 @@ router.post('/message', authenticateToken, async (req: Request, res: Response) =
     }
 
     // Extract and validate request body
-    const { content, sessionId } = req.body;
+    const { content, sessionId, photoUrls } = req.body;
 
-    if (!content || typeof content !== 'string') {
-      return res.status(400).json({ error: 'Message content is required' });
+    // Allow empty content if photos are provided
+    if ((!content || typeof content !== 'string') && (!photoUrls || photoUrls.length === 0)) {
+      return res.status(400).json({ error: 'Message content or photos are required' });
     }
 
-    if (content.trim().length === 0) {
-      return res.status(400).json({ error: 'Message content cannot be empty' });
+    // Validate content length if provided
+    if (content && content.trim().length === 0 && (!photoUrls || photoUrls.length === 0)) {
+      return res.status(400).json({ error: 'Message content cannot be empty without photos' });
     }
 
-    if (content.length > 2000) {
+    // Validate content length if provided
+    if (content && content.length > 2000) {
       return res.status(400).json({ error: 'Message content exceeds maximum length of 2000 characters' });
     }
 
@@ -108,6 +111,51 @@ router.post('/message', authenticateToken, async (req: Request, res: Response) =
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // Analyze photos with AI Vision if photoUrls provided
+    let photoAnalysisText = '';
+    if (photoUrls && Array.isArray(photoUrls) && photoUrls.length > 0) {
+      console.log(`📸 Analyzing ${photoUrls.length} photo(s) with AI Vision...`);
+
+      // Calculate baby age for context
+      let babyAge = '';
+      if (user.profile?.babyBirthDate) {
+        const today = new Date();
+        const ageInDays = Math.floor((today.getTime() - user.profile.babyBirthDate.getTime()) / (1000 * 60 * 60 * 24));
+        const ageInMonths = Math.floor(ageInDays / 30);
+        const ageInWeeks = Math.floor(ageInDays / 7);
+
+        if (ageInMonths < 3) {
+          babyAge = `${ageInWeeks} weeks old`;
+        } else {
+          babyAge = `${ageInMonths} months old`;
+        }
+      } else if (user.profile?.dueDate) {
+        const today = new Date();
+        const weeksPregnant = Math.floor((user.profile.dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 7));
+        const weeksElapsed = 40 - weeksPregnant;
+        babyAge = `${weeksElapsed} weeks pregnant`;
+      }
+
+      // Analyze each photo
+      const analysisResults: string[] = [];
+      for (const photoUrl of photoUrls) {
+        try {
+          const { analysis } = await analyzePhoto(photoUrl, {
+            babyAge: babyAge,
+            concerns: content || 'General photo analysis',
+          });
+          analysisResults.push(analysis);
+        } catch (error) {
+          console.error('Error analyzing photo:', error);
+          analysisResults.push('Unable to analyze this photo.');
+        }
+      }
+
+      // Combine analysis results
+      photoAnalysisText = analysisResults.join('\n\n');
+      console.log(`✅ Photo analysis complete`);
+    }
+
     // Fetch last 10 messages from this session for context
     const recentMessages = await prisma.message.findMany({
       where: {
@@ -129,10 +177,17 @@ router.post('/message', authenticateToken, async (req: Request, res: Response) =
       content: msg.content,
     }));
 
+    // Build message content with photo analysis if available
+    let messageContent = content || '';
+    if (photoAnalysisText) {
+      // Prepend photo analysis to user's message
+      messageContent = `[PHOTO ANALYSIS]\n${photoAnalysisText}\n\n${content ? `[USER'S QUESTION]\n${content}` : 'Please provide guidance based on this photo analysis.'}`;
+    }
+
     // Add current user message to history
     conversationHistory.push({
       role: 'user',
-      content: content,
+      content: messageContent,
     });
 
     // Build user profile for system prompt
@@ -159,9 +214,9 @@ router.post('/message', authenticateToken, async (req: Request, res: Response) =
         userId: userId,
         sessionId: sessionId,
         role: 'USER',
-        content: content,
-        contentType: 'TEXT',
-        mediaUrls: [],
+        content: content || '📸 Photos',
+        contentType: photoUrls && photoUrls.length > 0 ? 'IMAGE' : 'TEXT',
+        mediaUrls: photoUrls && Array.isArray(photoUrls) ? photoUrls : [],
         tokensUsed: 0, // User messages don't consume tokens
         timestamp: new Date(),
       },
@@ -190,14 +245,19 @@ router.post('/message', authenticateToken, async (req: Request, res: Response) =
       userMessage: {
         id: userMessage.id,
         content: userMessage.content,
+        contentType: userMessage.contentType,
+        mediaUrls: userMessage.mediaUrls,
         timestamp: userMessage.timestamp,
       },
       assistantMessage: {
         id: assistantMessage.id,
         content: assistantMessage.content,
+        contentType: assistantMessage.contentType,
+        mediaUrls: assistantMessage.mediaUrls,
         timestamp: assistantMessage.timestamp,
       },
       tokensUsed: tokensUsed,
+      photoAnalysis: photoAnalysisText || undefined,
     });
   } catch (error) {
     console.error('Error sending message:', error);

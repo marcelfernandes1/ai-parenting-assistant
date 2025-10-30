@@ -1,8 +1,11 @@
 /// Purchase service for handling Stripe subscription purchases.
 /// Integrates with flutter_stripe package and backend subscription endpoints.
+///
+/// NOTE: Currently disabled due to iOS 18 compatibility issues with flutter_stripe.
+/// See CLAUDE.md for more information.
 library;
 
-import 'package:flutter_stripe/flutter_stripe.dart';
+// import 'package:flutter_stripe/flutter_stripe.dart'; // TODO: Re-enable when iOS 18 compatible
 import 'subscription_repository.dart';
 
 /// Service class for managing subscription purchases via Stripe.
@@ -35,6 +38,13 @@ class PurchaseService {
   Future<Map<String, dynamic>> purchaseSubscription({
     required String priceId,
   }) async {
+    // TODO: Re-enable when flutter_stripe is iOS 18 compatible
+    throw UnimplementedError(
+      'Stripe payment is temporarily disabled due to iOS 18 compatibility issues. '
+      'Please check back for updates or use web checkout instead.',
+    );
+
+    /* COMMENTED OUT - Re-enable when flutter_stripe is iOS 18 compatible
     try {
       // Step 1: Create payment method from card field
       // Note: CardField must be added to UI before calling this
@@ -73,6 +83,7 @@ class PurchaseService {
       // Handle other errors (network, backend, etc.)
       throw Exception('Purchase failed: ${e.toString()}');
     }
+    */
   }
 
   /// Restores previous purchases by fetching subscription status from backend.

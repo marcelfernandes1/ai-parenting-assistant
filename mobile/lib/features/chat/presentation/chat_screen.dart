@@ -13,6 +13,7 @@ import '../providers/voice_recorder_provider.dart';
 import '../../photos/providers/photo_provider.dart';
 import '../../subscription/presentation/paywall_modal.dart';
 import '../../subscription/presentation/usage_counter_widget.dart';
+import '../../subscription/providers/subscription_provider.dart';
 import 'widgets/message_bubble.dart';
 import 'widgets/quick_action_button.dart';
 import 'widgets/app_drawer.dart';
@@ -510,6 +511,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     // Watch voice recorder state for recording status
     final voiceState = ref.watch(voiceRecorderProvider);
 
+    // Watch usage state for usage counter
+    final usageState = ref.watch(usageProvider);
+
     // Determine if we should show microphone or send button
     final showMicButton = _messageController.text.isEmpty &&
         voiceState.state != RecordingState.recording;
@@ -538,7 +542,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           IconButton(
             icon: const Icon(Icons.record_voice_over),
             tooltip: 'Voice Conversation Mode',
-            onPressed: () => _openVoiceMode(usageState),
+            onPressed: () {
+              // Get current usage state from provider
+              final currentUsageState = ref.read(usageProvider);
+              _openVoiceMode(currentUsageState);
+            },
           ),
 
           // New conversation button
