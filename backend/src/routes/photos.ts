@@ -10,6 +10,7 @@ import multer from 'multer';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 import { uploadToS3, deleteFromS3, getPresignedUrl } from '../utils/s3';
+import { analyzePhoto } from '../services/openai';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -313,6 +314,139 @@ router.delete(
     } catch (error) {
       console.error('Error deleting photo:', error);
       res.status(500).json({ error: 'Failed to delete photo' });
+    }
+  }
+);
+
+/**
+ * POST /photos/analyze
+ * Upload and analyze a baby photo using OpenAI Vision API
+ *
+ * Accepts a single photo, uploads to S3 for permanent storage,
+ * then sends to GPT-4o Vision API for baby-related analysis.
+ * Saves analysis results to database for future reference.
+ */
+router.post(
+  '/analyze',
+  authenticateToken,
+  upload.single('photo'), // Accept single file with field name 'photo'
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+      const file = req.file as Express.Multer.File;
+
+      // Validate that a file was uploaded
+      if (!file) {
+        return res.status(400).json({ error: 'No photo uploaded' });
+      }
+
+      console.log(`🔍 Analyzing photo for user ${userId}: ${file.originalname}`);
+
+      // Get optional user context from request body
+      const concerns = req.body.concerns as string | undefined;
+
+      // Fetch user profile to get baby age for context
+      const userProfile = await prisma.userProfile.findUnique({
+        where: { userId },
+        select: {
+          babyBirthDate: true,
+          babyName: true,
+        },
+      });
+
+      // Calculate baby age for analysis context
+      let babyAge: string | undefined;
+      if (userProfile?.babyBirthDate) {
+        const today = new Date();
+        const ageInDays = Math.floor(
+          (today.getTime() - userProfile.babyBirthDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        const ageInMonths = Math.floor(ageInDays / 30);
+        const ageInWeeks = Math.floor(ageInDays / 7);
+
+        if (ageInMonths < 3) {
+          babyAge = `${ageInWeeks} weeks old`;
+        } else {
+          babyAge = `${ageInMonths} months old`;
+        }
+      }
+
+      // Step 1: Upload photo to S3 (permanent storage)
+      const s3Key = await uploadToS3(
+        file.buffer,
+        userId,
+        file.originalname,
+        file.mimetype
+      );
+
+      console.log(`✅ Photo uploaded to S3: ${s3Key}`);
+
+      // Step 2: Create Photo record in database
+      const photo = await prisma.photo.create({
+        data: {
+          userId,
+          s3Key,
+          metadata: {
+            originalName: file.originalname,
+            mimeType: file.mimetype,
+            size: file.size,
+            uploadedAt: new Date().toISOString(),
+          },
+          // Analysis results will be updated after Vision API call
+        },
+      });
+
+      // Step 3: Generate presigned URL for Vision API (24-hour expiry)
+      const presignedUrl = await getPresignedUrl(s3Key);
+
+      // Step 4: Send photo to OpenAI Vision API for analysis
+      console.log(`🤖 Sending photo to OpenAI Vision API...`);
+      const { analysis, disclaimer } = await analyzePhoto(presignedUrl, {
+        babyAge,
+        concerns,
+      });
+
+      console.log(`✅ Photo analysis complete`);
+
+      // Step 5: Update Photo record with analysis results
+      await prisma.photo.update({
+        where: { id: photo.id },
+        data: {
+          analysisResults: {
+            analysis,
+            analyzedAt: new Date().toISOString(),
+            userConcerns: concerns,
+          },
+        },
+      });
+
+      // Return analysis results and photo URL
+      res.status(200).json({
+        photoId: photo.id,
+        photoUrl: presignedUrl,
+        analysis,
+        disclaimer,
+        uploadedAt: photo.uploadedAt,
+      });
+    } catch (error) {
+      console.error('Error analyzing photo:', error);
+
+      // Handle Multer-specific errors
+      if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ error: 'File size exceeds 10MB limit' });
+        }
+      }
+
+      // Handle OpenAI API errors
+      if (error instanceof Error && error.message.includes('analyze photo')) {
+        return res.status(503).json({
+          error: 'Vision API temporarily unavailable',
+          message: 'Please try again in a moment',
+        });
+      }
+
+      res.status(500).json({ error: 'Failed to analyze photo' });
     }
   }
 );

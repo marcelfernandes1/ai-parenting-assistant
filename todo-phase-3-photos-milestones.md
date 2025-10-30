@@ -49,20 +49,20 @@
   - Delete Photo record from database ✓
   - Return success message ✓
 
-- [ ] Create `POST /photos/analyze` endpoint
-  - Authenticate user
-  - Accept photo upload (single file)
-  - Upload to S3 first (save permanently)
-  - Send to OpenAI Vision API (GPT-4o with vision)
-  - Include specific prompt for baby-related analysis:
-    - Skin rashes/discoloration
-    - Diaper contents analysis
-    - Safety hazards in environment
-    - General visual concerns
-  - Parse AI analysis results
-  - Save analysis to Photo.analysisResults JSON field
-  - Show medical disclaimer in response
-  - Return analysis text and photo URL
+- [x] Create `POST /photos/analyze` endpoint
+  - Authenticate user ✓
+  - Accept photo upload (single file) ✓
+  - Upload to S3 first (save permanently) ✓
+  - Send to OpenAI Vision API (GPT-4o with vision) ✓
+  - Include specific prompt for baby-related analysis: ✓
+    - Skin rashes/discoloration ✓
+    - Diaper contents analysis ✓
+    - Safety hazards in environment ✓
+    - General visual concerns ✓
+  - Parse AI analysis results ✓
+  - Save analysis to Photo.analysisResults JSON field ✓
+  - Show medical disclaimer in response ✓
+  - Return analysis text and photo URL ✓
 
 ### Frontend Photo Features
 

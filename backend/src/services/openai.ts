@@ -232,3 +232,91 @@ export async function transcribeAudio(audioFilePath: string): Promise<string> {
     throw new Error('Failed to transcribe audio');
   }
 }
+
+/**
+ * Analyzes a baby photo using OpenAI Vision API (GPT-4o).
+ *
+ * Provides visual analysis for baby-related concerns such as:
+ * - Skin rashes or discoloration
+ * - Diaper contents analysis
+ * - Safety hazards in environment
+ * - General visual concerns
+ *
+ * @param imageUrl - URL or base64-encoded image to analyze
+ * @param userContext - Optional context about the baby (age, specific concerns)
+ * @returns Object containing analysis text and medical disclaimer
+ */
+export async function analyzePhoto(
+  imageUrl: string,
+  userContext?: { babyAge?: string; concerns?: string }
+): Promise<{ analysis: string; disclaimer: string }> {
+  try {
+    // Build specific prompt for baby photo analysis
+    const analysisPrompt = `You are a knowledgeable parenting assistant analyzing a baby-related photo.
+
+${userContext?.babyAge ? `Baby's age: ${userContext.babyAge}` : ''}
+${userContext?.concerns ? `Parent's specific concern: ${userContext.concerns}` : ''}
+
+Please analyze this photo and provide helpful observations about:
+
+1. **Skin condition**: Any visible rashes, discoloration, birthmarks, or skin concerns
+2. **Diaper contents** (if applicable): Color, consistency, and whether it appears normal
+3. **Safety hazards**: Any potential dangers in the baby's environment (sharp objects, choking hazards, unsafe sleep positions)
+4. **General observations**: Overall appearance, clothing appropriateness, developmental signs
+
+**Important guidelines:**
+- Be descriptive but not alarmist
+- Use clear, parent-friendly language
+- Distinguish between what appears normal vs. what may warrant attention
+- NEVER provide definitive medical diagnoses
+- For concerning findings, recommend consulting a pediatrician
+- Be culturally sensitive and non-judgmental
+
+Focus on being helpful and informative while maintaining appropriate medical boundaries.`;
+
+    // Call OpenAI Vision API (GPT-4o with vision capabilities)
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o', // GPT-4o has vision capabilities
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: analysisPrompt,
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: imageUrl,
+                detail: 'high', // High detail for better medical/safety analysis
+              },
+            },
+          ],
+        },
+      ],
+      max_tokens: 1000, // Allow detailed analysis
+      temperature: 0.5, // Lower temperature for more consistent, factual analysis
+    });
+
+    // Extract analysis text from response
+    const analysis = response.choices[0]?.message?.content || '';
+
+    // Standard medical disclaimer for all photo analyses
+    const disclaimer = `⚠️ **Medical Disclaimer**: This analysis is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. If you have concerns about your baby's health, please consult a qualified pediatrician or healthcare provider.`;
+
+    return {
+      analysis,
+      disclaimer,
+    };
+  } catch (error) {
+    // Log error for debugging
+    console.error('OpenAI Vision API error:', error);
+
+    // Throw user-friendly error
+    if (error instanceof Error) {
+      throw new Error(`Failed to analyze photo: ${error.message}`);
+    }
+    throw new Error('Failed to analyze photo');
+  }
+}
