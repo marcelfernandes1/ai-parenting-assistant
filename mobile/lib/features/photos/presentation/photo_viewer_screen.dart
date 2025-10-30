@@ -2,13 +2,17 @@
 /// Supports delete, AI analysis, and downloading photos.
 library;
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import '../domain/photo_model.dart';
 import '../providers/photo_list_provider.dart';
 import '../providers/photo_provider.dart';
+import '../data/photo_repository.dart';
 
 /// Full-screen photo viewer with swipe gestures
 class PhotoViewerScreen extends ConsumerStatefulWidget {
@@ -135,31 +139,143 @@ class _PhotoViewerScreenState extends ConsumerState<PhotoViewerScreen> {
     }
   }
 
-  /// Shows AI analysis dialog
+  /// Shows AI analysis dialog with medical disclaimer first
   Future<void> _analyzePhoto() async {
-    // TODO: Implement AI photo analysis
-    // For now, show placeholder
     if (!mounted) return;
 
-    showDialog(
+    final photo = widget.photos[_currentIndex];
+
+    // Show medical disclaimer first
+    final proceed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('AI Photo Analysis'),
-        content: const Text(
-          'Photo analysis feature coming soon!\n\n'
-          'This will analyze your photo for:\n'
-          '• Skin rashes or concerns\n'
-          '• Safety hazards\n'
-          '• General visual observations',
+        title: const Text('Medical Disclaimer'),
+        content: const SingleChildScrollView(
+          child: Text(
+            'This AI analysis is for informational purposes only '
+            'and should not be considered medical advice.\n\n'
+            'Always consult with a qualified healthcare provider '
+            'for medical concerns.\n\n'
+            'Proceed with AI analysis?',
+          ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Proceed'),
           ),
         ],
       ),
     );
+
+    if (proceed != true || !mounted) return;
+
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Analyzing photo...'),
+                SizedBox(height: 8),
+                Text(
+                  'This may take a few seconds',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      // Download photo to temporary file
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/analysis_${DateTime.now().millisecondsSinceEpoch}.jpg');
+
+      final response = await http.get(Uri.parse(photo.url));
+      await tempFile.writeAsBytes(response.bodyBytes);
+
+      // Call repository to analyze photo
+      final repository = ref.read(photoRepositoryProvider);
+      final result = await repository.analyzePhoto(tempFile.path);
+
+      // Clean up temp file
+      await tempFile.delete();
+
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Show analysis result
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('AI Photo Analysis'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Analysis text
+                  Text(
+                    result.analysis,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  // Disclaimer
+                  Text(
+                    result.disclaimer,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to analyze photo: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
   }
 
   @override
