@@ -17,6 +17,7 @@ import usageRoutes from './routes/usage';
 import photosRoutes from './routes/photos';
 import milestonesRoutes from './routes/milestones';
 import subscriptionRoutes from './routes/subscription';
+import webhookRoutes from './routes/webhook';
 import { authenticateToken, AuthenticatedRequest } from './middleware/auth';
 import { initializeVoiceSocket } from './sockets/voice';
 
@@ -44,6 +45,17 @@ const PORT = process.env.PORT || 3000;
  * In production, configure to only allow requests from your app's domain
  */
 app.use(cors());
+
+/**
+ * Stripe webhook route - MUST be registered BEFORE express.json()
+ * Uses raw body for webhook signature verification
+ * Stripe requires the raw request body to verify the webhook signature
+ */
+app.use(
+  '/stripe/webhook',
+  express.raw({ type: 'application/json' }),
+  webhookRoutes,
+);
 
 /**
  * Body parser middleware to parse JSON request bodies
@@ -93,6 +105,7 @@ app.get('/', (_req: Request, res: Response) => {
       photos: '/photos/*',
       milestones: '/milestones/*',
       subscription: '/subscription/*',
+      webhook: '/stripe/webhook',
     },
   });
 });
