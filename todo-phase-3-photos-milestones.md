@@ -175,26 +175,26 @@
 
 ### Frontend Milestone Features
 
-- [ ] Create Milestones tab/screen
-  - Add to bottom tab navigation
-  - Header with toggle button: "Timeline" / "Categories"
-  - Timeline view as default
-  - Pull-to-refresh to reload milestones
+- [x] Create Milestones tab/screen
+  - ✓ Header with toggle button: "Timeline" / "Categories"
+  - ✓ Timeline view as default
+  - ✓ Pull-to-refresh to reload milestones
+  - Note: Need to add to bottom tab navigation (pending)
 
-- [ ] Implement Timeline view
-  - Vertical scrollable list with date markers
-  - Group milestones by month ("January 2025")
-  - Display milestone cards with:
+- [x] Implement Timeline view
+  - ✓ Vertical scrollable list with date markers
+  - ✓ Group milestones by month ("January 2025")
+  - ✓ Display milestone cards with:
     - Milestone name and type icon
     - Date achieved
     - Thumbnail photo (first photo if multiple)
-  - Tap card to open detail view
+  - ✓ Tap card to open detail view (placeholder for now)
 
-- [ ] Implement Categories view
-  - Horizontal scrolling category tabs (Physical, Feeding, Sleep, Social, Health)
-  - Tap category to filter milestones
-  - Show filtered list below in same card format
-  - "All" category to show everything
+- [x] Implement Categories view
+  - ✓ Horizontal scrolling category tabs (Physical, Feeding, Sleep, Social, Health)
+  - ✓ Tap category to filter milestones
+  - ✓ Show filtered list below in same card format
+  - ✓ "All" category to show everything
 
 - [ ] Create Milestone detail screen
   - Full-screen view
@@ -204,21 +204,22 @@
   - "Edit" button in header (navigates to edit form)
   - "Delete" button in header (shows confirmation alert)
 
-- [ ] Create Add Milestone screen
-  - Form with fields:
+- [x] Create Add Milestone screen
+  - ✓ Form with fields:
     - Text input: Milestone name
     - Dropdown/Picker: Milestone type (5 options)
     - Date picker: Achieved date (defaults to today)
     - Text area: Notes (optional, multiline)
-    - Photo picker: Add photos (show thumbnails, allow multiple)
-  - "Save" button in header (validates and submits)
-  - "Cancel" button to go back
+    - Photo picker: Add photos (placeholder - links to chat)
+  - ✓ "Save" button in header (validates and submits)
+  - ✓ "Cancel" button to go back
 
-- [ ] Create Edit Milestone screen
-  - Same form as Add Milestone
-  - Pre-populate with existing milestone data
-  - "Save Changes" button calls PUT endpoint
-  - Show loading state during save
+- [x] Create Edit Milestone screen
+  - ✓ Same form as Add Milestone
+  - ✓ Pre-populate with existing milestone data
+  - ✓ "Save Changes" button calls PUT endpoint
+  - ✓ Show loading state during save
+  - ✓ Delete functionality with confirmation
 
 - [ ] Integrate AI milestone suggestions in chat
   - When fetching chat context, check for milestone suggestions
@@ -244,7 +245,7 @@
 
 ---
 
-**Progress:** 🟩 20/29 tasks completed (69% - Backend complete! All Photo & Milestone APIs done!)
+**Progress:** 🟩 25/29 tasks completed (86% - Backend complete! Milestone UI screens done! 4 tasks remaining: detail screen, navigation integration, AI suggestions in chat, PDF export)
 
 **Previous Phase:** [Phase 2: Chat & Voice](todo-phase-2-chat-voice.md)
 **Next Phase:** [Phase 4: Monetization](todo-phase-4-monetization.md)
