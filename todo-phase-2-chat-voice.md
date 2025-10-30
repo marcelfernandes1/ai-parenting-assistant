@@ -241,10 +241,12 @@
   - Visual feedback with pulsing animation ✓
   - State transitions (speaking → ready) implemented ✓
 
-- [ ] Add voice mode button to chat screen
-  - Button to navigate to VoiceMode screen
-  - Check usage limits before navigation
-  - Handle limit reached with paywall modal
+- [x] Add voice mode button to chat screen
+  - Button added to app bar with distinct icon (record_voice_over) ✓
+  - Navigates to VoiceMode screen using MaterialPageRoute ✓
+  - Checks usage limits before navigation (10 min free tier) ✓
+  - Shows limit reached dialog with paywall upgrade option ✓
+  - Refreshes usage stats after returning from voice mode ✓
 
 - [x] Track voice session time
   - Session timer starts automatically ✓
@@ -288,7 +290,7 @@
 
 ---
 
-**Progress:** ✅ 33/40 tasks completed (83%)
+**Progress:** ✅ 34/40 tasks completed (85%)
 
 **Previous Phase:** [Phase 1: Database & Auth](todo-phase-1-database-auth.md)
 **Next Phase:** [Phase 3: Photos & Milestones](todo-phase-3-photos-milestones.md)

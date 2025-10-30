@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/chat_provider.dart';
 import '../providers/voice_recorder_provider.dart';
 import 'widgets/message_bubble.dart';
+import '../../voice/presentation/voice_mode_screen.dart';
 
 /// Main chat screen with message list and input area.
 /// Uses Riverpod to watch chat state and usage statistics.
@@ -155,6 +156,61 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     await ref.read(voiceRecorderProvider.notifier).cancelRecording();
   }
 
+  /// Opens voice mode screen for real-time conversation
+  /// Checks usage limits before navigating
+  Future<void> _openVoiceMode(UsageState usageState) async {
+    // Check if user has reached voice minutes limit (free tier only)
+    // Premium users have unlimited minutes (voiceMinutesUsed tracking still occurs)
+    const freeVoiceMinutesLimit = 10;
+
+    // For free tier users, check if limit is reached
+    if (usageState.voiceMinutesUsed >= freeVoiceMinutesLimit) {
+      // Show limit reached dialog with paywall
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Voice Minutes Limit Reached'),
+            content: const Text(
+              'You\'ve used all 10 free voice minutes for today. Upgrade to Premium for unlimited voice conversations!',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  // TODO: Navigate to subscription screen
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Subscription screen coming soon!'),
+                    ),
+                  );
+                },
+                child: const Text('Upgrade to Premium'),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
+    }
+
+    // Navigate to voice mode screen
+    if (mounted) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const VoiceModeScreen(),
+        ),
+      );
+
+      // Refresh usage stats after returning from voice mode
+      await ref.read(usageProvider.notifier).loadUsage();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Watch chat state for messages and loading status
@@ -205,6 +261,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
               ),
             ),
+
+          // Voice Mode button (distinct from microphone button)
+          IconButton(
+            icon: const Icon(Icons.record_voice_over),
+            tooltip: 'Voice Conversation Mode',
+            onPressed: () => _openVoiceMode(usageState),
+          ),
 
           // New conversation button
           IconButton(
