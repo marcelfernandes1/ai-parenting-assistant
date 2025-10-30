@@ -2,8 +2,11 @@
 /// Displays message history and allows sending text and voice messages.
 library;
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../providers/chat_provider.dart';
 import '../providers/voice_recorder_provider.dart';
 import 'widgets/message_bubble.dart';
@@ -31,6 +34,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   // Focus node for input field
   final FocusNode _inputFocusNode = FocusNode();
+
+  // Image picker instance for photo selection
+  final ImagePicker _imagePicker = ImagePicker();
+
+  // List of selected photos (max 3)
+  final List<XFile> _selectedPhotos = [];
 
   @override
   void initState() {
@@ -212,6 +221,120 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       // Refresh usage stats after returning from voice mode
       await ref.read(usageProvider.notifier).loadUsage();
     }
+  }
+
+  /// Shows action sheet to select photo source (camera or gallery)
+  Future<void> _showPhotoPickerOptions() async {
+    if (!mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take Photo'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickFromCamera();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from Library'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickFromGallery();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.cancel),
+              title: const Text('Cancel'),
+              onTap: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Picks a photo from camera
+  Future<void> _pickFromCamera() async {
+    try {
+      final XFile? photo = await _imagePicker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 85,
+      );
+
+      if (photo != null && mounted) {
+        setState(() {
+          // Only allow max 3 photos
+          if (_selectedPhotos.length < 3) {
+            _selectedPhotos.add(photo);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Maximum 3 photos allowed'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to take photo: $e')),
+        );
+      }
+    }
+  }
+
+  /// Picks photos from gallery (allows multi-select up to 3 photos)
+  Future<void> _pickFromGallery() async {
+    try {
+      final List<XFile> photos = await _imagePicker.pickMultiImage(
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 85,
+      );
+
+      if (photos.isNotEmpty && mounted) {
+        setState(() {
+          // Calculate how many more photos we can add (max 3 total)
+          final remainingSlots = 3 - _selectedPhotos.length;
+          final photosToAdd = photos.take(remainingSlots).toList();
+
+          _selectedPhotos.addAll(photosToAdd);
+
+          if (photos.length > remainingSlots) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Only added ${photosToAdd.length} photos (max 3 total)'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to select photos: $e')),
+        );
+      }
+    }
+  }
+
+  /// Removes a photo from selected photos list
+  void _removePhoto(int index) {
+    setState(() {
+      _selectedPhotos.removeAt(index);
+    });
   }
 
   @override
@@ -413,6 +536,58 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
             ),
 
+          // Selected photos thumbnails (shown above input when photos are selected)
+          if (_selectedPhotos.isNotEmpty)
+            Container(
+              height: 100,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                itemCount: _selectedPhotos.length,
+                itemBuilder: (context, index) {
+                  final photo = _selectedPhotos[index];
+                  return Stack(
+                    children: [
+                      // Photo thumbnail
+                      Container(
+                        width: 84,
+                        height: 84,
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          image: DecorationImage(
+                            image: FileImage(File(photo.path)),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      // Remove button (X) in top-right corner
+                      Positioned(
+                        top: 0,
+                        right: 8,
+                        child: GestureDetector(
+                          onTap: () => _removePhoto(index),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.error,
+                              shape: BoxShape.circle,
+                            ),
+                            padding: const EdgeInsets.all(4),
+                            child: Icon(
+                              Icons.close,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.onError,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+
           // Input area
           Container(
             padding: const EdgeInsets.all(12.0),
@@ -428,6 +603,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             child: SafeArea(
               child: Row(
                 children: [
+                  // Attachment button (paperclip icon)
+                  IconButton(
+                    icon: const Icon(Icons.attach_file),
+                    onPressed: chatState.isSendingMessage ||
+                            voiceState.state == RecordingState.recording
+                        ? null
+                        : _showPhotoPickerOptions,
+                    tooltip: 'Attach photo',
+                  ),
+
                   // Text input field
                   Expanded(
                     child: TextField(

@@ -66,21 +66,21 @@
 
 ### Frontend Photo Features
 
-- [ ] Install image picker library
-  - `npm install react-native-image-picker`
-  - Configure iOS permissions (NSPhotoLibraryUsageDescription, NSCameraUsageDescription in Info.plist)
-  - Configure Android permissions (CAMERA, READ_EXTERNAL_STORAGE in AndroidManifest.xml)
-  - Test camera and library access on both platforms
+- [x] Install image picker library
+  - `flutter pub add image_picker` ✓
+  - Configure iOS permissions (NSPhotoLibraryUsageDescription, NSCameraUsageDescription in Info.plist) ✓
+  - Configure Android permissions (CAMERA, READ_MEDIA_IMAGES in AndroidManifest.xml) ✓
+  - Package already installed and permissions configured ✓
 
-- [ ] Add attachment button to chat input
-  - Paperclip icon next to text input
-  - Tap to show action sheet: "Take Photo" / "Choose from Library" / "Cancel"
+- [x] Add attachment button to chat input
+  - Paperclip icon next to text input ✓
+  - Tap to show action sheet: "Take Photo" / "Choose from Library" / "Cancel" ✓
 
-- [ ] Implement photo selection
-  - Open camera or photo library via react-native-image-picker
-  - Allow multi-select in library (max 3 photos)
-  - Show thumbnails of selected photos in chat input area (above keyboard)
-  - Add "X" button on each thumbnail to remove before sending
+- [x] Implement photo selection
+  - Open camera or photo library via image_picker ✓
+  - Allow multi-select in library (max 3 photos) ✓
+  - Show thumbnails of selected photos in chat input area (above keyboard) ✓
+  - Add "X" button on each thumbnail to remove before sending ✓
 
 - [ ] Upload photos with message
   - When user sends message with photos, upload first
