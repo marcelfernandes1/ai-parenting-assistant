@@ -210,14 +210,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       // Check current status
       final status = await Permission.microphone.status;
       print('🎤 Current status: $status');
+      print('🎤 Status details - isGranted: ${status.isGranted}, isDenied: ${status.isDenied}, isPermanentlyDenied: ${status.isPermanentlyDenied}, isRestricted: ${status.isRestricted}, isLimited: ${status.isLimited}');
 
       bool hasPermission = status.isGranted;
 
-      // If not granted, request permission
-      if (!hasPermission) {
+      // If not granted and not permanently denied, request permission
+      // This should trigger the iOS system dialog
+      if (!hasPermission && !status.isPermanentlyDenied && !status.isRestricted) {
         print('🎤 Permission not granted, requesting...');
+        print('🎤 About to show iOS permission dialog...');
+
         final result = await Permission.microphone.request();
+
         print('🎤 Permission request result: $result');
+        print('🎤 Result details - isGranted: ${result.isGranted}, isDenied: ${result.isDenied}, isPermanentlyDenied: ${result.isPermanentlyDenied}');
         hasPermission = result.isGranted;
       }
 
@@ -233,7 +239,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       // Show error if permission denied
       if (!hasPermission && mounted) {
         final isPermanentlyDenied = await Permission.microphone.isPermanentlyDenied;
-        print('🎤 Permanently denied: $isPermanentlyDenied');
+        print('🎤 Permanently denied check: $isPermanentlyDenied');
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -258,6 +264,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       return hasPermission;
     } catch (e) {
       print('🎤 Error checking permission: $e');
+      print('🎤 Error stack trace: ${StackTrace.current}');
       return false;
     }
   }
