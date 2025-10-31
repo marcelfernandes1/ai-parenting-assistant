@@ -21,6 +21,7 @@ import 'widgets/app_drawer.dart';
 import '../domain/quick_actions_config.dart';
 import '../../voice/presentation/voice_mode_screen.dart';
 import '../../onboarding/providers/onboarding_provider.dart';
+import '../../../shared/widgets/animations.dart';
 
 /// Main chat screen with message list and input area.
 /// Uses Riverpod to watch chat state and usage statistics.
@@ -571,7 +572,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           // Message list
           Expanded(
             child: chatState.isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? _buildLoadingSkeleton()
                 : chatState.messages.isEmpty
                     ? _buildEmptyState()
                     : RefreshIndicator(
@@ -642,10 +643,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Recording icon with pulsing animation
-                  Icon(
-                    Icons.fiber_manual_record,
-                    color: Theme.of(context).colorScheme.error,
+                  PulsingDot(
                     size: 20,
+                    color: Theme.of(context).colorScheme.error,
                   ),
                   const SizedBox(width: 8),
                   // Duration text
@@ -780,8 +780,26 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   // Microphone or Send button (conditional)
                   if (showMicButton)
                     // Microphone button with long press to record
-                    GestureDetector(
-                      onLongPressStart: (_) async {
+                    AnimatedButton(
+                      onPressed: chatState.isSendingMessage
+                          ? null
+                          : () async {
+                              // Capture ScaffoldMessenger before async gap
+                              final messenger = ScaffoldMessenger.of(context);
+
+                              // Check permission on tap (this will show the permission dialog)
+                              final hasPermission = await _checkMicrophonePermission();
+                              if (hasPermission && mounted) {
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Hold the microphone button to record'),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            },
+                      onLongPressStart: () async {
                         // Only start recording if permission is already granted
                         // Don't check permission during gesture to avoid interruption
                         if (_hasMicrophonePermission) {
@@ -799,7 +817,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           }
                         }
                       },
-                      onLongPressEnd: (_) {
+                      onLongPressEnd: () {
                         // Only stop if we actually started recording
                         if (_hasMicrophonePermission) {
                           _stopAndSendVoiceRecording();
@@ -841,25 +859,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     )
                   else
                     // Send button
-                    FilledButton(
+                    AnimatedButton(
                       onPressed:
                           chatState.isSendingMessage ? null : _sendMessage,
-                      style: FilledButton.styleFrom(
-                        shape: const CircleBorder(),
-                        padding: const EdgeInsets.all(12),
-                      ),
-                      child: chatState.isSendingMessage
-                          ? SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Theme.of(context).colorScheme.onPrimary,
+                      child: FilledButton(
+                        onPressed:
+                            chatState.isSendingMessage ? null : _sendMessage,
+                        style: FilledButton.styleFrom(
+                          shape: const CircleBorder(),
+                          padding: const EdgeInsets.all(12),
+                        ),
+                        child: chatState.isSendingMessage
+                            ? SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Theme.of(context).colorScheme.onPrimary,
+                                  ),
                                 ),
-                              ),
-                            )
-                          : const Icon(Icons.send),
+                              )
+                            : const Icon(Icons.send),
+                      ),
                     ),
                 ],
               ),
@@ -924,6 +946,54 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  /// Builds shimmer loading skeleton that looks like message bubbles
+  Widget _buildLoadingSkeleton() {
+    return ListView(
+      padding: const EdgeInsets.all(16.0),
+      children: [
+        // User message skeleton (right-aligned)
+        Align(
+          alignment: Alignment.centerRight,
+          child: ShimmerLoading(
+            width: 200,
+            height: 60,
+            borderRadius: 16,
+          ),
+        ),
+        const SizedBox(height: 12),
+        // AI message skeleton (left-aligned)
+        Align(
+          alignment: Alignment.centerLeft,
+          child: ShimmerLoading(
+            width: 280,
+            height: 100,
+            borderRadius: 16,
+          ),
+        ),
+        const SizedBox(height: 12),
+        // User message skeleton (right-aligned)
+        Align(
+          alignment: Alignment.centerRight,
+          child: ShimmerLoading(
+            width: 160,
+            height: 50,
+            borderRadius: 16,
+          ),
+        ),
+        const SizedBox(height: 12),
+        // AI message skeleton (left-aligned)
+        Align(
+          alignment: Alignment.centerLeft,
+          child: ShimmerLoading(
+            width: 240,
+            height: 80,
+            borderRadius: 16,
+          ),
+        ),
+      ],
     );
   }
 
