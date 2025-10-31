@@ -49,9 +49,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   // List of selected photos (max 3)
   final List<XFile> _selectedPhotos = [];
 
-  // Track if microphone permission has been granted
-  bool _hasMicrophonePermission = false;
-
   @override
   void initState() {
     super.initState();
@@ -62,29 +59,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         // Rebuilds widget to update mic/send button visibility
       });
     });
-
-    // Check microphone permission proactively when screen loads
-    _checkMicrophonePermissionOnInit();
-  }
-
-  /// Checks microphone permission when screen initializes
-  /// This ensures permission is requested before user tries to record
-  Future<void> _checkMicrophonePermissionOnInit() async {
-    try {
-      print('🎤 Checking microphone permission on init...');
-      final status = await Permission.microphone.status;
-      print('🎤 Current permission status: $status');
-
-      if (mounted) {
-        setState(() {
-          _hasMicrophonePermission = status.isGranted;
-        });
-      }
-
-      print('🎤 Permission granted: ${status.isGranted}');
-    } catch (e) {
-      print('🎤 Error checking permission: $e');
-    }
   }
 
   @override
@@ -183,70 +157,60 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     await ref.read(chatProvider.notifier).newConversation();
   }
 
-  /// Checks microphone permission before recording
-  /// Returns true if permission is granted, false otherwise
-  Future<bool> _checkMicrophonePermission() async {
+  /// Single source of truth for microphone permission.
+  /// Requests permission if needed and triggers iOS system dialog.
+  /// Returns true if permission is granted, false otherwise.
+  Future<bool> _ensureMicPermission() async {
     try {
-      print('🎤 Checking microphone permission...');
+      // 1) Check current status
+      var status = await Permission.microphone.status;
+      debugPrint('🎤 Mic status before request: $status');
 
-      // Check current status
-      final status = await Permission.microphone.status;
-      print('🎤 Current status: $status');
-      print('🎤 Status details - isGranted: ${status.isGranted}, isDenied: ${status.isDenied}, isPermanentlyDenied: ${status.isPermanentlyDenied}, isRestricted: ${status.isRestricted}, isLimited: ${status.isLimited}');
+      // 2) If granted, we're done
+      if (status.isGranted) {
+        debugPrint('🎤 Mic permission already granted');
+        return true;
+      }
 
-      bool hasPermission = status.isGranted;
-
-      // If not granted and not permanently denied, request permission
-      // This should trigger the iOS system dialog
-      if (!hasPermission && !status.isPermanentlyDenied && !status.isRestricted) {
-        print('🎤 Permission not granted, requesting...');
-        print('🎤 About to show iOS permission dialog...');
-
+      // 3) If "denied" (first time or soft deny), REQUEST -> this triggers the iOS popup
+      if (status.isDenied || status.isLimited) {
+        debugPrint('🎤 Requesting microphone permission (iOS dialog should appear)...');
         final result = await Permission.microphone.request();
+        debugPrint('🎤 Permission request result: $result');
 
-        print('🎤 Permission request result: $result');
-        print('🎤 Result details - isGranted: ${result.isGranted}, isDenied: ${result.isDenied}, isPermanentlyDenied: ${result.isPermanentlyDenied}');
-        hasPermission = result.isGranted;
+        if (result.isGranted) {
+          debugPrint('🎤 Mic permission granted!');
+          return true;
+        }
+
+        // If user denies here, fall through to Settings banner below
+        status = result;
       }
 
-      // Update state
-      if (mounted) {
-        setState(() {
-          _hasMicrophonePermission = hasPermission;
-        });
-      }
+      // 4) If permanently denied / restricted, iOS will NOT show the dialog again
+      if (status.isPermanentlyDenied || status.isRestricted) {
+        debugPrint('🎤 Mic permission permanently denied or restricted');
 
-      print('🎤 Final permission state: $hasPermission');
-
-      // Show error if permission denied
-      if (!hasPermission && mounted) {
-        final isPermanentlyDenied = await Permission.microphone.isPermanentlyDenied;
-        print('🎤 Permanently denied check: $isPermanentlyDenied');
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isPermanentlyDenied
-                  ? 'Please enable microphone permission in Settings'
-                  : 'Microphone permission is required for voice messages',
+        // Show CTA to open Settings
+        if (mounted) {
+          final messenger = ScaffoldMessenger.of(context);
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text('Microphone permission is required. Please enable it in Settings.'),
+              duration: Duration(seconds: 3),
             ),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            duration: const Duration(seconds: 4),
-            action: SnackBarAction(
-              label: 'Settings',
-              textColor: Colors.white,
-              onPressed: () async {
-                await openAppSettings();
-              },
-            ),
-          ),
-        );
+          );
+        }
+
+        // Deep-link to Settings
+        await openAppSettings();
+        return false;
       }
 
-      return hasPermission;
+      debugPrint('🎤 Mic permission denied');
+      return false;
     } catch (e) {
-      print('🎤 Error checking permission: $e');
-      print('🎤 Error stack trace: ${StackTrace.current}');
+      debugPrint('🎤 Error checking mic permission: $e');
       return false;
     }
   }
@@ -783,53 +747,31 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     GestureDetector(
                       onLongPressStart: (_) async {
                         // Request permission if needed, then start recording
-                        if (!_hasMicrophonePermission) {
-                          final hasPermission = await _checkMicrophonePermission();
-                          if (!hasPermission) {
-                            return; // Permission denied, don't start recording
-                          }
-                          setState(() {
-                            _hasMicrophonePermission = true;
-                          });
-                        }
+                        if (!mounted) return;
+                        final hasPermission = await _ensureMicPermission();
+                        if (!hasPermission) return;
 
                         // Start recording
                         await _startVoiceRecording();
                       },
-                      onLongPressEnd: (_) {
-                        // Only stop if we actually started recording
-                        if (_hasMicrophonePermission) {
-                          _stopAndSendVoiceRecording();
-                        }
+                      onLongPressEnd: (_) async {
+                        // Stop recording if it was started
+                        await _stopAndSendVoiceRecording();
                       },
                       child: FilledButton(
                         onPressed: chatState.isSendingMessage
                             ? null
                             : () async {
-                                // Capture ScaffoldMessenger before async gap
-                                final messenger = ScaffoldMessenger.of(context);
+                                // Request permission on tap (optional, or just show hint)
+                                if (!mounted) return;
+                                final hasPermission = await _ensureMicPermission();
 
-                                // Check and request permission on tap
-                                if (!_hasMicrophonePermission) {
-                                  final hasPermission = await _checkMicrophonePermission();
-                                  if (hasPermission && mounted) {
-                                    setState(() {
-                                      _hasMicrophonePermission = true;
-                                    });
-                                    messenger.showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                            'Permission granted! Hold the microphone button to record'),
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-                                  }
-                                } else if (mounted) {
-                                  // Permission already granted, show tip
+                                // Show tip if permission granted
+                                if (hasPermission && mounted) {
+                                  final messenger = ScaffoldMessenger.of(context);
                                   messenger.showSnackBar(
                                     const SnackBar(
-                                      content: Text(
-                                          'Hold the microphone button to record'),
+                                      content: Text('Hold the microphone button to record a voice message'),
                                       duration: Duration(seconds: 1),
                                     ),
                                   );
