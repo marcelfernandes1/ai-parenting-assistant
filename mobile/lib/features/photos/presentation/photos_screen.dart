@@ -241,8 +241,11 @@ class _PhotosScreenState extends ConsumerState<PhotosScreen> with SingleTickerPr
                   autofocus: true,
                   style: theme.textTheme.bodyMedium,
                   decoration: InputDecoration(
-                    hintText: 'Search photos...',
-                    hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
+                    hintText: 'Try: sleeping, happy, outdoor, toys...',
+                    hintStyle: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+                      fontSize: 13,
+                    ),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -381,13 +384,70 @@ class _PhotosScreenState extends ConsumerState<PhotosScreen> with SingleTickerPr
     );
   }
 
-  /// Builds search results
+  /// Builds search results using AI-powered categorization
   Widget _buildSearchResults(ThemeData theme, PhotoListState photoState) {
-    // Filter photos by search query
-    final query = _searchController.text.toLowerCase();
+    // Filter photos by AI categories, description, mood, activity, location, objects
+    final query = _searchController.text.toLowerCase().trim();
     final filteredPhotos = photoState.photos.where((photo) {
-      // Search by AI analysis or metadata
-      return photo.aiAnalysis?.toLowerCase().contains(query) ?? false;
+      if (query.isEmpty) return true;
+
+      final analysisResults = photo.analysisResults;
+      if (analysisResults == null) return false;
+
+      // Search in categories array (e.g., "sleeping", "playing", "smiling")
+      final categories = analysisResults['categories'] as List<dynamic>?;
+      if (categories != null) {
+        for (final category in categories) {
+          if (category.toString().toLowerCase().contains(query)) {
+            return true;
+          }
+        }
+      }
+
+      // Search in AI-generated description
+      final description = analysisResults['description'] as String?;
+      if (description != null && description.toLowerCase().contains(query)) {
+        return true;
+      }
+
+      // Search in mood (e.g., "happy", "content", "peaceful")
+      final mood = analysisResults['mood'] as String?;
+      if (mood != null && mood.toLowerCase().contains(query)) {
+        return true;
+      }
+
+      // Search in activity (e.g., "bath time", "tummy time", "feeding")
+      final activity = analysisResults['activity'] as String?;
+      if (activity != null && activity.toLowerCase().contains(query)) {
+        return true;
+      }
+
+      // Search in location (e.g., "outdoor", "park", "nursery")
+      final location = analysisResults['location'] as String?;
+      if (location != null && location.toLowerCase().contains(query)) {
+        return true;
+      }
+
+      // Search in objects array (e.g., "toys", "bottle", "pacifier")
+      final objects = analysisResults['objects'] as List<dynamic>?;
+      if (objects != null) {
+        for (final object in objects) {
+          if (object.toString().toLowerCase().contains(query)) {
+            return true;
+          }
+        }
+      }
+
+      // Fallback: search in metadata (original filename)
+      final metadata = photo.metadata;
+      if (metadata != null) {
+        final originalName = metadata['originalName'] as String?;
+        if (originalName != null && originalName.toLowerCase().contains(query)) {
+          return true;
+        }
+      }
+
+      return false;
     }).toList();
 
     if (filteredPhotos.isEmpty) {

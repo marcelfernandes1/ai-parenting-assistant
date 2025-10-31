@@ -383,6 +383,109 @@ Ranked session IDs:`;
 }
 
 /**
+ * Generates searchable categories and tags for a baby photo using OpenAI Vision API.
+ *
+ * Categories help organize photos and make them searchable by:
+ * - Activities: smiling, crying, sleeping, eating, playing, bath time, tummy time
+ * - Location: indoor, outdoor, park, home, car
+ * - People: alone, with parent, with siblings, with family
+ * - Objects: toys, bottle, pacifier, blanket, stroller
+ * - Milestones: first steps, first smile, crawling, sitting up
+ * - Mood: happy, content, fussy, peaceful, excited
+ *
+ * @param imageUrl - URL or base64-encoded image to categorize
+ * @param userContext - Optional context about the baby (age, name)
+ * @returns Object containing categories array, description, and detected objects
+ */
+export async function categorizePhoto(
+  imageUrl: string,
+  userContext?: { babyAge?: string; babyName?: string }
+): Promise<{
+  categories: string[];
+  description: string;
+  objects: string[];
+  mood?: string;
+  activity?: string;
+  location?: string;
+}> {
+  try {
+    // Build prompt for photo categorization
+    const categorizationPrompt = `You are analyzing a baby photo to generate searchable categories and tags.
+
+${userContext?.babyAge ? `Baby's age: ${userContext.babyAge}` : ''}
+${userContext?.babyName ? `Baby's name: ${userContext.babyName}` : ''}
+
+Analyze this photo and provide a JSON response with the following structure:
+{
+  "description": "A brief 1-sentence description of the photo",
+  "mood": "The baby's mood (happy, content, fussy, peaceful, excited, curious, sleepy, crying, neutral)",
+  "activity": "Main activity (sleeping, eating, playing, bath time, tummy time, crawling, walking, sitting, feeding, diaper change, outdoor play, car ride)",
+  "location": "Location setting (home, bedroom, living room, kitchen, nursery, outdoor, park, car, beach, playground, restaurant, doctor office)",
+  "objects": ["List of visible objects relevant to baby care: toys, bottle, pacifier, blanket, stroller, high chair, crib, books, stuffed animals, etc."],
+  "categories": ["All relevant categories from mood, activity, location, and key descriptors"]
+}
+
+Guidelines:
+- Be specific but concise
+- Include 5-10 relevant categories
+- Focus on searchable terms parents would use
+- Include developmental milestones if visible (first steps, first smile, sitting up, crawling)
+- Identify all baby-related objects in the scene
+- Use lowercase for all categories
+- Categories should be single words or short phrases
+
+Respond ONLY with valid JSON, no additional text.`;
+
+    // Call OpenAI Vision API with JSON response format
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o', // GPT-4o with vision capabilities
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: categorizationPrompt,
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: imageUrl,
+                detail: 'low', // Low detail is sufficient for categorization
+              },
+            },
+          ],
+        },
+      ],
+      response_format: { type: 'json_object' }, // Request JSON response
+      max_tokens: 500,
+      temperature: 0.3, // Low temperature for consistent categorization
+    });
+
+    // Parse the JSON response
+    const result = JSON.parse(response.choices[0]?.message?.content || '{}');
+
+    return {
+      categories: result.categories || [],
+      description: result.description || '',
+      objects: result.objects || [],
+      mood: result.mood,
+      activity: result.activity,
+      location: result.location,
+    };
+  } catch (error) {
+    console.error('OpenAI Vision categorization error:', error);
+
+    // Return default empty response on error
+    return {
+      categories: [],
+      description: '',
+      objects: [],
+    };
+  }
+}
+
+/**
  * Analyzes a baby photo using OpenAI Vision API (GPT-4o).
  *
  * Provides visual analysis for baby-related concerns such as:

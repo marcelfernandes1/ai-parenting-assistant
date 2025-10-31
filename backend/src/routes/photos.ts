@@ -10,7 +10,7 @@ import multer from 'multer';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 import { uploadToS3, deleteFromS3, getPresignedUrl } from '../utils/s3';
-import { analyzePhoto } from '../services/openai';
+import { analyzePhoto, categorizePhoto } from '../services/openai';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -86,6 +86,32 @@ router.post(
         }
       }
 
+      // Fetch user profile for AI context
+      const userProfile = await prisma.userProfile.findUnique({
+        where: { userId },
+        select: {
+          babyBirthDate: true,
+          babyName: true,
+        },
+      });
+
+      // Calculate baby age for context
+      let babyAge: string | undefined;
+      if (userProfile?.babyBirthDate) {
+        const today = new Date();
+        const ageInDays = Math.floor(
+          (today.getTime() - userProfile.babyBirthDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        const ageInMonths = Math.floor(ageInDays / 30);
+        const ageInWeeks = Math.floor(ageInDays / 7);
+
+        if (ageInMonths < 3) {
+          babyAge = `${ageInWeeks} weeks old`;
+        } else {
+          babyAge = `${ageInMonths} months old`;
+        }
+      }
+
       // Process each uploaded file
       const uploadedPhotos = [];
 
@@ -99,7 +125,21 @@ router.post(
             file.mimetype
           );
 
-          // Create Photo record in database
+          console.log(`✅ Uploaded photo to S3: ${s3Key}`);
+
+          // Generate presigned URL for AI categorization
+          const presignedUrl = await getPresignedUrl(s3Key);
+
+          // Automatically categorize photo using AI
+          console.log(`🤖 Categorizing photo with AI...`);
+          const categorization = await categorizePhoto(presignedUrl, {
+            babyAge,
+            babyName: userProfile?.babyName || undefined,
+          });
+
+          console.log(`✅ Photo categorized: ${categorization.categories.join(', ')}`);
+
+          // Create Photo record in database with AI categorization
           const photo = await prisma.photo.create({
             data: {
               userId,
@@ -110,23 +150,30 @@ router.post(
                 size: file.size,
                 uploadedAt: new Date().toISOString(),
               },
+              analysisResults: {
+                categories: categorization.categories,
+                description: categorization.description,
+                objects: categorization.objects,
+                mood: categorization.mood,
+                activity: categorization.activity,
+                location: categorization.location,
+                categorizedAt: new Date().toISOString(),
+              },
             },
           });
 
-          // Generate presigned URL for immediate access (24-hour expiry)
-          const url = await getPresignedUrl(s3Key);
-
           uploadedPhotos.push({
             id: photo.id,
-            url,
+            url: presignedUrl,
             s3Key: photo.s3Key,
             uploadedAt: photo.uploadedAt,
             metadata: photo.metadata,
+            analysisResults: photo.analysisResults,
           });
 
-          console.log(`✅ Uploaded photo ${photo.id} to S3: ${s3Key}`);
+          console.log(`✅ Photo saved with categorization: ${photo.id}`);
         } catch (error) {
-          console.error(`❌ Failed to upload file ${file.originalname}:`, error);
+          console.error(`❌ Failed to upload/categorize file ${file.originalname}:`, error);
           // Continue with other files even if one fails
         }
       }
