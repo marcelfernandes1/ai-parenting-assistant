@@ -28,7 +28,7 @@ class User with _$User {
     /// Whether user has completed onboarding
     @Default(false) bool onboardingComplete,
 
-    /// User profile mode (PREGNANCY or PARENT)
+    /// User profile mode (PREGNANCY or PARENTING)
     String? mode,
 
     /// Baby's name (if provided during onboarding)

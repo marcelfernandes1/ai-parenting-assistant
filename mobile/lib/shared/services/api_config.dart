@@ -65,6 +65,13 @@ class ApiConfig {
   /// Usage tracking endpoints
   static const String usageEndpoint = '/usage';
 
+  /// Settings endpoints
+  static const String changeEmailEndpoint = '/user/email';
+  static const String changePasswordEndpoint = '/user/password';
+  static const String toggleModeEndpoint = '/user/toggle-mode';
+  static const String deleteAccountEndpoint = '/user/account';
+  static const String exportDataEndpoint = '/user/data-export';
+
   /// WebSocket endpoint for voice chat
   static const String voiceSocketEndpoint = '/voice';
 

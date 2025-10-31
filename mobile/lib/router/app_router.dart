@@ -26,10 +26,11 @@ import '../features/onboarding/presentation/concerns_screen.dart';
 import '../features/onboarding/presentation/notification_preferences_screen.dart';
 import '../features/onboarding/presentation/usage_limits_explanation_screen.dart';
 import '../features/chat/presentation/chat_screen.dart';
+import '../features/photos/presentation/photos_screen.dart';
+import '../features/milestones/presentation/milestones_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/subscription/presentation/premium_screen.dart';
-import '../shared/widgets/main_navigation.dart';
 
 /// ChangeNotifier that listens to auth state changes and notifies GoRouter.
 /// This makes the router reactive to authentication state changes.
@@ -247,13 +248,31 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // ===== Main App Routes =====
 
-      /// Home screen - Main navigation with bottom tabs
+      /// Home screen - Chat interface (main screen)
       /// Path: /home
-      /// Bottom tab navigation with Chat, Photos, and Milestones screens
+      /// AI-powered parenting chat with access to all features via drawer menu
       GoRoute(
         path: '/home',
         name: 'home',
-        builder: (context, state) => const MainNavigation(),
+        builder: (context, state) => const ChatScreen(),
+      ),
+
+      /// Photos screen - Baby photo gallery
+      /// Path: /photos
+      /// View and manage baby photos, upload new photos, and get AI analysis
+      GoRoute(
+        path: '/photos',
+        name: 'photos',
+        builder: (context, state) => const PhotosScreen(),
+      ),
+
+      /// Milestones screen - Development milestone tracking
+      /// Path: /milestones
+      /// Track baby's developmental milestones and achievements
+      GoRoute(
+        path: '/milestones',
+        name: 'milestones',
+        builder: (context, state) => const MilestonesScreen(),
       ),
 
       /// Profile screen - Edit user information

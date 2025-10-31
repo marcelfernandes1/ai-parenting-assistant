@@ -249,10 +249,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       ChoiceChip(
                         label: const Text('Parenting'),
-                        selected: _selectedMode == 'PARENT',
+                        selected: _selectedMode == 'PARENTING',
                         onSelected: (selected) {
                           setState(() {
-                            _selectedMode = selected ? 'PARENT' : null;
+                            _selectedMode = selected ? 'PARENTING' : null;
                             _hasChanges = true;
                           });
                         },

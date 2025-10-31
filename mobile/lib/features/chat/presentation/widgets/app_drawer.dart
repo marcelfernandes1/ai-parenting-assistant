@@ -7,8 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/chat_provider.dart';
 import '../../../onboarding/providers/onboarding_provider.dart';
-import '../../../photos/presentation/photos_screen.dart';
-import '../conversation_list_screen.dart';
 
 /// Main app navigation drawer
 /// Displays user profile, chat history, and navigation options
@@ -111,22 +109,6 @@ class AppDrawer extends ConsumerWidget {
                     },
                   ),
 
-                  // Past conversations navigation
-                  ListTile(
-                    leading: const Icon(Icons.history),
-                    title: const Text('Past Conversations'),
-                    subtitle: const Text('View conversation history'),
-                    onTap: () {
-                      Navigator.pop(context); // Close drawer
-                      // Navigate to conversation list screen
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const ConversationListScreen(),
-                        ),
-                      );
-                    },
-                  ),
-
                   const Divider(),
 
                   // App Modules Section
@@ -146,15 +128,10 @@ class AppDrawer extends ConsumerWidget {
                   ListTile(
                     leading: const Icon(Icons.photo_library),
                     title: const Text('Photos'),
-                    subtitle: const Text('View baby photos'),
+                    subtitle: const Text('View baby photos & albums'),
                     onTap: () {
-                      Navigator.pop(context);
-                      // Navigate to photos screen
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const PhotosScreen(),
-                        ),
-                      );
+                      Navigator.pop(context); // Close drawer
+                      context.push('/photos'); // Navigate using go_router
                     },
                   ),
 
@@ -162,16 +139,10 @@ class AppDrawer extends ConsumerWidget {
                   ListTile(
                     leading: const Icon(Icons.emoji_events),
                     title: const Text('Milestones'),
-                    subtitle: const Text('Track development'),
+                    subtitle: const Text('Track baby development'),
                     onTap: () {
-                      Navigator.pop(context);
-                      // TODO: Navigate to milestones screen
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Milestones screen coming soon!'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
+                      Navigator.pop(context); // Close drawer
+                      context.push('/milestones'); // Navigate using go_router
                     },
                   ),
 
@@ -196,9 +167,8 @@ class AppDrawer extends ConsumerWidget {
                     title: const Text('Profile'),
                     subtitle: const Text('Edit your information'),
                     onTap: () {
-                      Navigator.pop(context);
-                      // Navigate to profile screen (push on top of current screen)
-                      context.push('/profile');
+                      Navigator.pop(context); // Close drawer
+                      context.push('/profile'); // Navigate using go_router
                     },
                   ),
 
@@ -206,11 +176,10 @@ class AppDrawer extends ConsumerWidget {
                   ListTile(
                     leading: const Icon(Icons.settings),
                     title: const Text('Settings'),
-                    subtitle: const Text('App preferences'),
+                    subtitle: const Text('App preferences & account'),
                     onTap: () {
-                      Navigator.pop(context);
-                      // Navigate to settings screen (push on top of current screen)
-                      context.push('/settings');
+                      Navigator.pop(context); // Close drawer
+                      context.push('/settings'); // Navigate using go_router
                     },
                   ),
 
@@ -223,9 +192,8 @@ class AppDrawer extends ConsumerWidget {
                     title: const Text('Upgrade to Premium'),
                     subtitle: const Text('Unlimited features'),
                     onTap: () {
-                      Navigator.pop(context);
-                      // Navigate to premium screen (push on top of current screen)
-                      context.push('/premium');
+                      Navigator.pop(context); // Close drawer
+                      context.push('/premium'); // Navigate using go_router
                     },
                   ),
                 ],

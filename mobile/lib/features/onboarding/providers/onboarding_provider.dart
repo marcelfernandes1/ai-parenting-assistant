@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Onboarding data model - stores all user inputs during onboarding
 class OnboardingData {
-  final String? mode; // PREGNANCY or PARENT
+  final String? mode; // PREGNANCY or PARENTING
   final String? dueDate; // For pregnancy mode
   final String? birthDate; // For parent mode
   final String? babyName;
@@ -79,7 +79,7 @@ class OnboardingData {
 class OnboardingNotifier extends StateNotifier<OnboardingData> {
   OnboardingNotifier() : super(const OnboardingData());
 
-  /// Update mode (PREGNANCY or PARENT)
+  /// Update mode (PREGNANCY or PARENTING)
   void setMode(String mode) {
     state = state.copyWith(mode: mode);
   }

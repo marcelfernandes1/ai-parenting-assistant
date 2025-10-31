@@ -103,12 +103,12 @@ class _CurrentStageScreenState extends ConsumerState<CurrentStageScreen> {
 
               _buildOptionCard(
                 context,
-                stage: 'PARENT',
+                stage: 'PARENTING',
                 icon: '👶',
                 title: 'I am already a parent',
                 description: 'Get help with your baby\'s development and care',
-                isSelected: _selectedStage == 'PARENT',
-                onTap: () => _handleSelectStage('PARENT'),
+                isSelected: _selectedStage == 'PARENTING',
+                onTap: () => _handleSelectStage('PARENTING'),
               ),
               const SizedBox(height: 48),
 

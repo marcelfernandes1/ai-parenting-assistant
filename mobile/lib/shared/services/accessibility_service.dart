@@ -3,6 +3,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 /// Service for managing accessibility features
 /// Provides utilities for screen readers, text scaling, and motion preferences
