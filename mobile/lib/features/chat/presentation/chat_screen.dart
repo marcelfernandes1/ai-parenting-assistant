@@ -721,19 +721,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     // Microphone button - tap to start recording with modal
                     FilledButton(
                       onPressed: chatState.isSendingMessage ? null : _showRecordingModal,
-                        style: FilledButton.styleFrom(
-                          shape: const CircleBorder(),
-                          padding: const EdgeInsets.all(12),
-                          backgroundColor: voiceState.state ==
-                                  RecordingState.recording
-                              ? Theme.of(context).colorScheme.error
-                              : null,
-                        ),
-                        child: Icon(
-                          voiceState.state == RecordingState.recording
-                              ? Icons.stop
-                              : Icons.mic,
-                        ),
+                      style: FilledButton.styleFrom(
+                        shape: const CircleBorder(),
+                        padding: const EdgeInsets.all(12),
+                        backgroundColor: voiceState.state ==
+                                RecordingState.recording
+                            ? Theme.of(context).colorScheme.error
+                            : null,
+                      ),
+                      child: Icon(
+                        voiceState.state == RecordingState.recording
+                            ? Icons.stop
+                            : Icons.mic,
                       ),
                     )
                   else

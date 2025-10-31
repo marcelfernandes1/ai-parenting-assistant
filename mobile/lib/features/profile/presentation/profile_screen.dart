@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../auth/providers/auth_provider.dart';
 
 /// Profile screen for viewing and editing user information
@@ -42,6 +43,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   // Image URLs from server
   String? _profileImageUrl;
   String? _babyImageUrl;
+
+  // Scroll controller for auto-scrolling to errors
+  final ScrollController _scrollController = ScrollController();
+
+  // Global keys for field focus and scrolling
+  final GlobalKey _modeFieldKey = GlobalKey();
+  final GlobalKey _babyInfoSectionKey = GlobalKey();
+
+  // Validation error messages
+  String? _modeError;
+  String? _nameError;
 
   @override
   void initState() {
@@ -97,7 +109,41 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _babyNameController.dispose();
     _parentingPhilosophyController.dispose();
     _religiousViewsController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  /// Validate form fields before saving
+  bool _validateForm() {
+    setState(() {
+      _modeError = null;
+      _nameError = null;
+    });
+
+    bool isValid = true;
+
+    // Validate mode is selected
+    if (_selectedMode == null) {
+      setState(() {
+        _modeError = 'Please select your current stage';
+      });
+      isValid = false;
+    }
+
+    return isValid;
+  }
+
+  /// Scroll to the first error field
+  void _scrollToError() {
+    if (_modeError != null && _modeFieldKey.currentContext != null) {
+      // Scroll to mode field if it has error
+      Scrollable.ensureVisible(
+        _modeFieldKey.currentContext!,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        alignment: 0.2, // Position field 20% from top of screen
+      );
+    }
   }
 
   /// Pick profile image from gallery or camera
@@ -406,6 +452,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   /// Save profile changes to backend
   Future<void> _saveProfile() async {
+    // Validate form first
+    if (!_validateForm()) {
+      // Scroll to first error
+      _scrollToError();
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -511,6 +564,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       body: user == null
           ? const Center(child: Text('No user data'))
           : SingleChildScrollView(
+              controller: _scrollController,
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -578,33 +632,98 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Mode selector (Pregnancy / Parenting)
-                  Text('Current Stage', style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 12,
-                    children: [
-                      ChoiceChip(
-                        label: const Text('Pregnancy'),
-                        selected: _selectedMode == 'PREGNANCY',
-                        onSelected: (selected) {
-                          setState(() {
-                            _selectedMode = selected ? 'PREGNANCY' : null;
-                            _hasChanges = true;
-                          });
-                        },
-                      ),
-                      ChoiceChip(
-                        label: const Text('Parenting'),
-                        selected: _selectedMode == 'PARENTING',
-                        onSelected: (selected) {
-                          setState(() {
-                            _selectedMode = selected ? 'PARENTING' : null;
-                            _hasChanges = true;
-                          });
-                        },
-                      ),
-                    ],
+                  // Mode selector (Pregnancy / Parenting) with error handling
+                  Container(
+                    key: _modeFieldKey, // Key for auto-scrolling to error
+                    padding: EdgeInsets.all(_modeError != null ? 16 : 0),
+                    decoration: _modeError != null
+                        ? BoxDecoration(
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.error,
+                              width: 2,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            color: Theme.of(context).colorScheme.errorContainer.withOpacity(0.1),
+                          )
+                        : null,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Current Stage',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: _modeError != null
+                                        ? Theme.of(context).colorScheme.error
+                                        : null,
+                                  ),
+                            ),
+                            if (_modeError != null) ...[
+                              const SizedBox(width: 4),
+                              Text(
+                                '*',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        if (_modeError != null) ...[
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                size: 16,
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  _modeError!,
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.error,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 12,
+                          children: [
+                            ChoiceChip(
+                              label: const Text('Pregnancy'),
+                              selected: _selectedMode == 'PREGNANCY',
+                              onSelected: (selected) {
+                                setState(() {
+                                  _selectedMode = selected ? 'PREGNANCY' : null;
+                                  _hasChanges = true;
+                                  _modeError = null; // Clear error when user selects
+                                });
+                              },
+                            ),
+                            ChoiceChip(
+                              label: const Text('Parenting'),
+                              selected: _selectedMode == 'PARENTING',
+                              onSelected: (selected) {
+                                setState(() {
+                                  _selectedMode = selected ? 'PARENTING' : null;
+                                  _hasChanges = true;
+                                  _modeError = null; // Clear error when user selects
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: 16),
@@ -696,7 +815,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               backgroundImage: _selectedProfileImage != null
                   ? FileImage(_selectedProfileImage!)
                   : _profileImageUrl != null
-                      ? NetworkImage(_profileImageUrl!) as ImageProvider
+                      ? CachedNetworkImageProvider(_profileImageUrl!) as ImageProvider
                       : null,
               child: _selectedProfileImage == null && _profileImageUrl == null
                   ? Icon(
@@ -775,11 +894,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               fit: BoxFit.cover,
                             )
                           : _babyImageUrl != null
-                              ? Image.network(
-                                  _babyImageUrl!,
+                              ? CachedNetworkImage(
+                                  imageUrl: _babyImageUrl!,
                                   width: 200,
                                   height: 200,
                                   fit: BoxFit.cover,
+                                  placeholder: (context, url) => Container(
+                                    width: 200,
+                                    height: 200,
+                                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                    child: const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) => Container(
+                                    width: 200,
+                                    height: 200,
+                                    color: Theme.of(context).colorScheme.errorContainer,
+                                    child: Icon(
+                                      Icons.error_outline,
+                                      color: Theme.of(context).colorScheme.error,
+                                    ),
+                                  ),
                                 )
                               : const SizedBox(),
                     ),

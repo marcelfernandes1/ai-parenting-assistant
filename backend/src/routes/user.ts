@@ -7,13 +7,32 @@
 
 import express, { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import multer from 'multer';
 import { authenticateToken } from '../middleware/auth';
 import bcrypt from 'bcrypt';
-import { deleteFromS3, getPresignedUrl } from '../utils/s3';
+import { deleteFromS3, getPresignedUrl, uploadToS3 } from '../utils/s3';
 import Stripe from 'stripe';
 
 const router = express.Router();
 const prisma = new PrismaClient();
+
+// Configure Multer for memory storage (single image uploads)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB max file size for profile images
+  },
+  fileFilter: (req, file, cb) => {
+    // Validate file types: JPEG, PNG, HEIC
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/heic', 'image/heif'];
+
+    if (allowedMimeTypes.includes(file.mimetype)) {
+      cb(null, true); // Accept file
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG, and HEIC images are allowed.'));
+    }
+  },
+});
 
 // Initialize Stripe client (only if STRIPE_SECRET_KEY is configured)
 const stripe = process.env.STRIPE_SECRET_KEY
@@ -222,10 +241,32 @@ router.get('/profile', authenticateToken, async (req: Request, res: Response) =>
       });
     }
 
-    // Return profile data
+    // Generate presigned URLs for images if they exist
+    let profileImageUrl = null;
+    let babyImageUrl = null;
+
+    if (profile.profileImageUrl) {
+      try {
+        profileImageUrl = await getPresignedUrl(profile.profileImageUrl);
+      } catch (error) {
+        console.error('Error generating presigned URL for profile image:', error);
+      }
+    }
+
+    if (profile.babyImageUrl) {
+      try {
+        babyImageUrl = await getPresignedUrl(profile.babyImageUrl);
+      } catch (error) {
+        console.error('Error generating presigned URL for baby image:', error);
+      }
+    }
+
+    // Return profile data with presigned image URLs
     return res.status(200).json({
       profile: {
         ...profile,
+        profileImageUrl, // Presigned URL for immediate access
+        babyImageUrl, // Presigned URL for immediate access
         // Parse JSON fields back to objects
         parentingPhilosophy: profile.parentingPhilosophy
           ? JSON.parse(profile.parentingPhilosophy as string)
@@ -240,6 +281,324 @@ router.get('/profile', authenticateToken, async (req: Request, res: Response) =>
 
     return res.status(500).json({
       error: 'Failed to fetch profile',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * POST /user/upload-profile-image
+ *
+ * Upload user's profile picture.
+ * Uploads image to S3 and updates profileImageUrl in database.
+ *
+ * Request: multipart/form-data with 'image' field
+ * Returns: Success message with image URL
+ */
+router.post(
+  '/upload-profile-image',
+  authenticateToken,
+  upload.single('image'),
+  async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.userId;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized - user ID not found' });
+      }
+
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
+
+      console.log(`📸 Uploading profile image for user ${userId}`);
+
+      // Delete old profile image if it exists
+      const profile = await prisma.userProfile.findUnique({
+        where: { userId },
+        select: { profileImageUrl: true },
+      });
+
+      if (profile?.profileImageUrl) {
+        try {
+          // Extract S3 key from full URL or use as-is if it's already a key
+          const oldKey = profile.profileImageUrl.includes('/')
+            ? profile.profileImageUrl.split('/').slice(-2).join('/')
+            : profile.profileImageUrl;
+          await deleteFromS3(oldKey);
+          console.log(`🗑️ Deleted old profile image: ${oldKey}`);
+        } catch (error) {
+          console.error('Error deleting old profile image:', error);
+          // Continue with upload even if deletion fails
+        }
+      }
+
+      // Upload to S3 with 'profile-images' prefix
+      const s3Key = await uploadToS3(
+        file.buffer,
+        `${userId}/profile-images`,
+        file.originalname,
+        file.mimetype
+      );
+
+      // Generate presigned URL for immediate access
+      const imageUrl = await getPresignedUrl(s3Key);
+
+      // Update profile with new image URL (store S3 key, not presigned URL)
+      await prisma.userProfile.upsert({
+        where: { userId },
+        update: {
+          profileImageUrl: s3Key,
+          updatedAt: new Date(),
+        },
+        create: {
+          userId,
+          profileImageUrl: s3Key,
+          concerns: [],
+        },
+      });
+
+      console.log(`✅ Profile image uploaded successfully: ${s3Key}`);
+
+      return res.status(200).json({
+        message: 'Profile image uploaded successfully',
+        imageUrl: imageUrl, // Return presigned URL for immediate display
+        s3Key: s3Key, // Also return key for reference
+      });
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+
+      if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({
+            error: 'File too large',
+            message: 'Profile image must be less than 5MB',
+          });
+        }
+      }
+
+      return res.status(500).json({
+        error: 'Failed to upload profile image',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+);
+
+/**
+ * POST /user/upload-baby-image
+ *
+ * Upload baby's picture.
+ * Uploads image to S3 and updates babyImageUrl in database.
+ *
+ * Request: multipart/form-data with 'image' field
+ * Returns: Success message with image URL
+ */
+router.post(
+  '/upload-baby-image',
+  authenticateToken,
+  upload.single('image'),
+  async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.userId;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized - user ID not found' });
+      }
+
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
+
+      console.log(`👶 Uploading baby image for user ${userId}`);
+
+      // Delete old baby image if it exists
+      const profile = await prisma.userProfile.findUnique({
+        where: { userId },
+        select: { babyImageUrl: true },
+      });
+
+      if (profile?.babyImageUrl) {
+        try {
+          // Extract S3 key from full URL or use as-is if it's already a key
+          const oldKey = profile.babyImageUrl.includes('/')
+            ? profile.babyImageUrl.split('/').slice(-2).join('/')
+            : profile.babyImageUrl;
+          await deleteFromS3(oldKey);
+          console.log(`🗑️ Deleted old baby image: ${oldKey}`);
+        } catch (error) {
+          console.error('Error deleting old baby image:', error);
+          // Continue with upload even if deletion fails
+        }
+      }
+
+      // Upload to S3 with 'baby-images' prefix
+      const s3Key = await uploadToS3(
+        file.buffer,
+        `${userId}/baby-images`,
+        file.originalname,
+        file.mimetype
+      );
+
+      // Generate presigned URL for immediate access
+      const imageUrl = await getPresignedUrl(s3Key);
+
+      // Update profile with new image URL (store S3 key, not presigned URL)
+      await prisma.userProfile.upsert({
+        where: { userId },
+        update: {
+          babyImageUrl: s3Key,
+          updatedAt: new Date(),
+        },
+        create: {
+          userId,
+          babyImageUrl: s3Key,
+          concerns: [],
+        },
+      });
+
+      console.log(`✅ Baby image uploaded successfully: ${s3Key}`);
+
+      return res.status(200).json({
+        message: 'Baby image uploaded successfully',
+        imageUrl: imageUrl, // Return presigned URL for immediate display
+        s3Key: s3Key, // Also return key for reference
+      });
+    } catch (error) {
+      console.error('Error uploading baby image:', error);
+
+      if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({
+            error: 'File too large',
+            message: 'Baby image must be less than 5MB',
+          });
+        }
+      }
+
+      return res.status(500).json({
+        error: 'Failed to upload baby image',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+);
+
+/**
+ * DELETE /user/profile-image
+ *
+ * Delete user's profile image.
+ * Removes image from S3 and clears profileImageUrl in database.
+ *
+ * Returns: Success message
+ */
+router.delete('/profile-image', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized - user ID not found' });
+    }
+
+    const profile = await prisma.userProfile.findUnique({
+      where: { userId },
+      select: { profileImageUrl: true },
+    });
+
+    if (!profile?.profileImageUrl) {
+      return res.status(404).json({ error: 'No profile image found' });
+    }
+
+    // Delete from S3
+    try {
+      const s3Key = profile.profileImageUrl.includes('/')
+        ? profile.profileImageUrl.split('/').slice(-2).join('/')
+        : profile.profileImageUrl;
+      await deleteFromS3(s3Key);
+    } catch (error) {
+      console.error('Error deleting profile image from S3:', error);
+      // Continue even if S3 deletion fails
+    }
+
+    // Clear URL in database
+    await prisma.userProfile.update({
+      where: { userId },
+      data: {
+        profileImageUrl: null,
+        updatedAt: new Date(),
+      },
+    });
+
+    return res.status(200).json({
+      message: 'Profile image deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting profile image:', error);
+
+    return res.status(500).json({
+      error: 'Failed to delete profile image',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * DELETE /user/baby-image
+ *
+ * Delete baby's picture.
+ * Removes image from S3 and clears babyImageUrl in database.
+ *
+ * Returns: Success message
+ */
+router.delete('/baby-image', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized - user ID not found' });
+    }
+
+    const profile = await prisma.userProfile.findUnique({
+      where: { userId },
+      select: { babyImageUrl: true },
+    });
+
+    if (!profile?.babyImageUrl) {
+      return res.status(404).json({ error: 'No baby image found' });
+    }
+
+    // Delete from S3
+    try {
+      const s3Key = profile.babyImageUrl.includes('/')
+        ? profile.babyImageUrl.split('/').slice(-2).join('/')
+        : profile.babyImageUrl;
+      await deleteFromS3(s3Key);
+    } catch (error) {
+      console.error('Error deleting baby image from S3:', error);
+      // Continue even if S3 deletion fails
+    }
+
+    // Clear URL in database
+    await prisma.userProfile.update({
+      where: { userId },
+      data: {
+        babyImageUrl: null,
+        updatedAt: new Date(),
+      },
+    });
+
+    return res.status(200).json({
+      message: 'Baby image deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting baby image:', error);
+
+    return res.status(500).json({
+      error: 'Failed to delete baby image',
       details: error instanceof Error ? error.message : 'Unknown error',
     });
   }

@@ -4,12 +4,12 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../subscription/presentation/subscription_management_screen.dart';
 import '../providers/settings_provider.dart';
 import 'change_email_screen.dart';
 import 'change_password_screen.dart';
-import 'edit_profile_screen.dart';
 import 'toggle_mode_screen.dart';
 
 /// Main Settings screen
@@ -295,12 +295,8 @@ class SettingsScreen extends ConsumerWidget {
       subtitle: Text(email ?? 'Not signed in'),
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
-        // Navigate to Edit Profile screen
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const EditProfileScreen(),
-          ),
-        );
+        // Navigate to Profile screen
+        context.push('/profile');
       },
     );
   }

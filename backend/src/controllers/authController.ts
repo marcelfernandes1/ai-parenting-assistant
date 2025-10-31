@@ -10,6 +10,7 @@ import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
 import { validationResult } from 'express-validator';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
+import { getPresignedUrl } from '../utils/s3';
 
 // Initialize Prisma Client for database operations
 const prisma = new PrismaClient();
@@ -180,6 +181,26 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Generate presigned URLs for images if they exist
+    let profileImageUrl = null;
+    let babyImageUrl = null;
+
+    if (user.profile?.profileImageUrl) {
+      try {
+        profileImageUrl = await getPresignedUrl(user.profile.profileImageUrl);
+      } catch (error) {
+        console.error('Error generating presigned URL for profile image:', error);
+      }
+    }
+
+    if (user.profile?.babyImageUrl) {
+      try {
+        babyImageUrl = await getPresignedUrl(user.profile.babyImageUrl);
+      } catch (error) {
+        console.error('Error generating presigned URL for baby image:', error);
+      }
+    }
+
     // Generate JWT tokens for authenticated session
     // Access token (7 days): Used for API requests
     // Refresh token (30 days): Used to get new access tokens
@@ -205,6 +226,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         parentingPhilosophy: user.profile?.parentingPhilosophy,
         religiousViews: user.profile?.religiousViews,
         primaryConcerns: user.profile?.concerns,
+        profileImageUrl, // Presigned URL for profile image
+        babyImageUrl, // Presigned URL for baby image
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
