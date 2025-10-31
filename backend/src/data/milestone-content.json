@@ -575,5 +575,197 @@
       "typical": 12
     },
     "sources": ["American Academy of Pediatrics", "CDC Developmental Milestones", "Zero to Three"]
+  },
+  {
+    "name": "First Tooth",
+    "milestoneType": "HEALTH",
+    "description": "The emergence of your baby's first tooth is an exciting milestone that typically occurs around 6 months, though timing varies dramatically from 3 months to 12+ months. Teething represents normal growth and development as baby teeth (primary teeth) break through the gums. Most babies get their lower central incisors (bottom front teeth) first, followed by upper central incisors. The complete set of 20 primary teeth usually comes in by age 2-3 years. Teething can be uncomfortable and may affect sleep, feeding, and mood temporarily, but it's not an illness. While teething is often blamed for various symptoms, research shows it causes only localized gum discomfort, slight temperature elevation (not true fever), and increased drooling. Understanding what's normal versus concerning helps parents support baby through teething without unnecessary worry. Dental care begins with the first tooth - establishing good oral hygiene habits early prevents cavities and sets the stage for lifelong dental health.",
+    "whatToExpect": "Before teeth appear, expect increased drooling starting around 3-4 months (though this can occur before teething too). Baby may chew on everything, have slightly swollen or sensitive gums, and be more fussy or clingy. When teeth are about to erupt, you may see a small white spot on the gum where the tooth is pushing through. The first tooth typically appears around 6 months, though anywhere from 3-12 months is normal. Some babies are born with natal teeth (very rare), while others don't get teeth until after their first birthday. Teething discomfort is usually worst right before the tooth breaks through and improves once it's in. Expect intermittent fussiness over weeks or months as multiple teeth come in. Some babies sail through teething with minimal issues, others are quite uncomfortable. Lower front teeth typically come first, followed by upper front teeth. Teeth may appear one at a time or in pairs.",
+    "howToEncourage": "While you can't make teeth appear faster (they come on their own timeline), you can ease discomfort. Provide safe teething toys made specifically for babies - chilled (not frozen) teething rings can be soothing. Let baby chew on clean, damp washcloths (you can chill them first). Gently rub baby's gums with a clean finger. Offer cold foods if baby is eating solids - chilled applesauce, cold cucumber spears (supervised). Avoid teething tablets, gels with benzocaine (can be dangerous), or amber teething necklaces (choking/strangulation risk). Give extra cuddles and patience during uncomfortable periods. Start dental care immediately when first tooth appears: brush twice daily with tiny smear of fluoride toothpaste. Schedule first dental visit by 12 months. Clean gums with soft cloth even before teeth appear. Never put baby to bed with bottle as this causes tooth decay.",
+    "redFlags": "Consult your pediatrician if baby has no teeth by 18 months (delayed eruption should be evaluated), develops high fever (over 101°F) during teething (likely illness, not teething), has severe pain that interferes significantly with eating or sleeping for more than a few days, develops teeth that appear discolored, malformed, or incorrectly positioned, shows signs of infection around gums (severe swelling, pus, bleeding), or has natal teeth (present at birth) that are very loose (choking hazard). Also consult dentist if: teeth have white or brown spots (early cavities), gums bleed frequently during brushing, or baby is having trouble eating due to dental issues. Remember that very high fever, diarrhea, rashes, or severe symptoms are not caused by teething - they indicate illness requiring medical attention. Delayed teething alone is usually not concerning but should be monitored.",
+    "expertTips": [
+      "Teething timeline is largely genetic - ask when you and your partner got teeth",
+      "Later teething doesn't mean dental problems - it's just individual variation",
+      "True fevers (>100.4°F) are not caused by teething - look for other illness",
+      "Start fluoride toothpaste right away (tiny rice-grain amount) - it prevents cavities",
+      "Amber teething necklaces are dangerous and not recommended by pediatricians"
+    ],
+    "relatedMilestones": ["First Solid Foods", "Self-Feeding with Hands", "Brushing Teeth", "First Dental Visit"],
+    "videoUrl": null,
+    "imageUrl": null,
+    "ageRangeMonths": {
+      "min": 3,
+      "max": 12,
+      "typical": 6
+    },
+    "sources": ["American Academy of Pediatrics", "American Academy of Pediatric Dentistry", "CDC Oral Health"]
+  },
+  {
+    "name": "Clapping Hands",
+    "milestoneType": "SOCIAL",
+    "description": "Clapping hands is a delightful social-motor milestone typically emerging around 9-12 months, demonstrating your baby's growing coordination, imitation skills, social awareness, and understanding of celebration and approval. This skill requires bilateral coordination (using both hands together purposefully), midline crossing (bringing hands to the center of the body), motor planning, and social motivation to participate in shared joy. Clapping represents baby's emerging understanding of social conventions - they learn that clapping expresses excitement, approval, and participation in group activities. Initially, claps may be prompted during songs or games, but eventually baby claps spontaneously when excited, proud, or copying others. The motor pattern of clapping also builds skills needed for other bilateral tasks like catching balls, playing instruments, or washing hands. This milestone shows baby's increasing social engagement and desire to communicate emotions through gestures.",
+    "whatToExpect": "Before independent clapping, baby may hit their hands on surfaces or bang toys together (around 6-8 months). Around 9-10 months, clapping attempts emerge - initially awkward with hands missing each other or one hand hitting the other's wrist. Early claps are often silent or produce only soft sounds. By 10-11 months, clapping becomes more coordinated and purposeful with hands meeting accurately. Baby may clap during familiar songs (Pat-a-Cake, If You're Happy and You Know It), when excited, or when they accomplish something. Around 11-12 months, clapping becomes spontaneous - baby claps when proud, excited, or copying others. Some babies clap constantly for weeks as they practice this new skill! Expect clapping at meal times, during play, when seeing exciting things, or when you clap. The enthusiasm matters more than perfect coordination initially.",
+    "howToEncourage": "Clap frequently yourself, especially during exciting or happy moments. Sing clapping songs daily: Pat-a-Cake, If You're Happy and You Know It, Wheels on the Bus. Take baby's hands and clap them together gently while singing 'yay!' or 'clap clap clap!' Model clapping when baby does something impressive: 'You picked up the toy! Yay!' (clap). Attend music classes or sing-alongs where group clapping happens. Clap when greeting baby in the morning or after naps - make it part of joyful reunions. Read books featuring clapping. Play peek-a-boo and clap when you reappear. Make exaggerated, enthusiastic claps that are easy to see and hear. Celebrate baby's clapping attempts even if hands miss each other. Create positive associations with clapping by doing it during happy moments, not to command performance.",
+    "redFlags": "Clapping itself is not a critical developmental milestone - absence isn't concerning if baby shows other social engagement and motor skills. However, consult your pediatrician if baby shows no bilateral hand skills (using both hands together) by 12 months, doesn't imitate any actions by 13 months, has no social gestures (clapping, waving, pointing) by 14 months, shows no response to music or songs by 12 months, demonstrates limited interest in social interaction by 12 months, or has significant motor asymmetry (one hand much weaker). Absence of clapping alone is not diagnostic, but lack of all communicative gestures and imitation may indicate developmental concerns. Some babies clap later or show preferences for other gestures. Motor challenges may affect ability to execute clapping while social understanding remains intact. Occupational therapy can address bilateral coordination difficulties.",
+    "expertTips": [
+      "Baby may clap with one hand against their leg or your hand before hand-to-hand clapping",
+      "Clapping develops around the same time as other bilateral skills like banging toys together",
+      "Some babies clap for everything once they learn - it's their way of expressing excitement!",
+      "Clapping during mealtime often means 'more' or 'I'm excited about food'",
+      "Music classes and sing-alongs provide natural, fun practice opportunities"
+    ],
+    "relatedMilestones": ["Waving Bye-Bye", "Imitates Actions", "Dancing to Music", "Playing Pat-a-Cake"],
+    "videoUrl": null,
+    "imageUrl": null,
+    "ageRangeMonths": {
+      "min": 8,
+      "max": 13,
+      "typical": 10
+    },
+    "sources": ["American Academy of Pediatrics", "CDC Developmental Milestones", "Zero to Three"]
+  },
+  {
+    "name": "Separation Anxiety",
+    "milestoneType": "SOCIAL",
+    "description": "Separation anxiety is a normal, healthy emotional milestone where babies become distressed when separated from primary caregivers, typically peaking between 8-18 months. This developmental phase occurs because babies have formed strong attachments to caregivers and gained object permanence (understanding that people exist even when out of sight), but haven't yet developed the cognitive ability to understand that separations are temporary. What may seem like regression - a previously independent baby suddenly crying hysterically when you leave the room - is actually sophisticated brain development. Separation anxiety demonstrates secure attachment, cognitive advancement, and appropriate social-emotional development. The intensity varies by temperament, with some babies showing mild worry and others experiencing intense distress. This phase is often most challenging for parents returning to work or leaving baby with caregivers. While exhausting, separation anxiety is temporary and a positive sign of healthy attachment. It typically decreases as toddlers gain confidence and language skills to understand 'Mommy will come back.'",
+    "whatToExpect": "Before separation anxiety peaks, babies may show early signs around 6-7 months: becoming clingy, crying when you leave sight, preferring one caregiver over all others. Around 8-10 months, separation anxiety intensifies - baby may cry intensely when you leave the room, resist being held by anyone but primary caregiver, follow you everywhere (even to the bathroom!), and wake more frequently at night. Drop-offs at daycare may become tearful battles. Baby may cling desperately, scream, or become inconsolable when you try to leave. This phase often coincides with stranger anxiety. Separation distress is typically worst during transitions (leaving for work, bedtime) and better once baby is engaged in activity. By 12-15 months, anxiety may lessen slightly as baby gains mobility and confidence. However, separation anxiety can resurface during stressful times (illness, moving, new sibling) throughout early childhood. Some babies show minimal separation anxiety while still being securely attached.",
+    "howToEncourage": "While you can't prevent separation anxiety (it's neurologically driven), you can ease its intensity. Practice brief separations at home: leave the room for 30 seconds, return cheerfully, gradually increase time. Always say goodbye - sneaking away teaches baby you're unpredictable. Keep goodbyes short and confident; lingering and looking worried makes baby more anxious. Develop consistent goodbye rituals: hug, kiss, 'Mommy always comes back,' wave from window. Return reliably when promised - this builds trust that you'll come back. Leave baby with familiar, trusted caregivers in familiar environments when possible. Provide comfort objects (lovey, blanket) for soothing when you're gone. Maintain consistent routines so baby feels secure. Validate feelings: 'I know you're sad I'm leaving. I'll be back after your nap!' Practice separations regularly even if baby protests - sporadic exposure makes anxiety worse. Stay calm and confident - baby reads your emotions.",
+    "redFlags": "Separation anxiety itself is not concerning - it's a normal developmental phase. However, consult your pediatrician if baby shows no attachment or preference for caregivers by 9 months, goes to anyone without any distress or preference by 12 months, shows extreme separation anxiety so severe that daily functioning is significantly impaired, demonstrates anxiety so intense that baby cannot be comforted by anyone including primary caregiver, has not formed attachments with any caregiver by 12 months, or shows regression from secure attachment to complete detachment. Also concerning: separation anxiety accompanied by developmental regression, excessive anxiety about everything (not just separations), or sudden onset of severe separation anxiety in a previously secure child without obvious trigger. Some babies show very mild separation anxiety while still being securely attached. The key is whether baby has formed clear preferences and attachments, even if separation reactions are mild.",
+    "expertTips": [
+      "Separation anxiety intensity doesn't indicate insecurity - it shows strong, healthy attachment",
+      "Sneaking away makes anxiety worse - always say goodbye even if baby cries",
+      "Separations often look worse than they are - baby usually calms quickly after you leave",
+      "Working parents often see worse separation anxiety because transitions are more dramatic",
+      "This phase is temporary - most children develop better coping skills by age 3"
+    ],
+    "relatedMilestones": ["Stranger Anxiety", "Recognizes Parents", "Object Permanence", "Seeks Comfort from Caregivers"],
+    "videoUrl": null,
+    "imageUrl": null,
+    "ageRangeMonths": {
+      "min": 6,
+      "max": 18,
+      "typical": 10
+    },
+    "sources": ["American Academy of Pediatrics", "Zero to Three", "Attachment and Human Development Journal"]
+  },
+  {
+    "name": "Following Simple Instructions",
+    "milestoneType": "SOCIAL",
+    "description": "Following simple instructions is a crucial cognitive and language milestone where babies understand and respond to one-step verbal directions, typically emerging around 10-14 months. This skill demonstrates receptive language development (understanding language), working memory (remembering the instruction long enough to execute it), motor planning (translating words into actions), and social cooperation. Initially, babies follow instructions with contextual clues (you say 'give me' while reaching), but progress to understanding words alone without gestures. Common early instructions include: 'Come here,' 'Give it to me,' 'Wave bye-bye,' 'Get the ball,' or 'Where's daddy?' This milestone is foundational for safety (responding to 'Stop!' or 'No!'), learning (following directions in daily routines), and social cooperation. Understanding significantly precedes expression - babies comprehend many instructions months before speaking in sentences themselves. This skill also builds the foundation for following multi-step directions later in toddlerhood.",
+    "whatToExpect": "Before true instruction-following, babies may respond to tone and context rather than words. Around 9-10 months, babies start following familiar instructions with gestural support: you say 'come here' while reaching toward them. Around 10-12 months, instruction-following becomes more reliable and requires fewer contextual clues. Baby responds to: 'Give me,' 'Come here,' 'Wave bye-bye,' 'Find daddy,' 'Get your book.' By 12-15 months, babies follow simple instructions without accompanying gestures, though familiarity with routine helps. Expect selective following - baby follows instructions about preferred activities better than non-preferred ones! Around 15-18 months, instruction-following expands to include two-step directions: 'Get your shoe and bring it here.' Response time varies - some babies act immediately, others process for several seconds first. Compliance isn't always perfect - understanding an instruction doesn't guarantee following it, especially as independence grows!",
+    "howToEncourage": "Use simple, clear language with one-step instructions: 'Get the ball' rather than 'Can you please go over there and get the red ball for mommy?' Say baby's name first to get attention: 'Emma, come here.' Pair instructions with actions initially to teach meanings: say 'wave bye-bye' while waving. Give instructions for activities baby enjoys first (get your favorite toy) before less preferred tasks. Wait several seconds for response - babies need processing time. Praise enthusiastically when baby follows instructions: 'You did it! You brought me the book!' Make it a game: 'Where's teddy? Can you find teddy?' Incorporate instructions into daily routines: 'Time to get your bib,' 'Let's find your shoes.' Avoid overloading with instructions - babies tune out constant commands. Use positive instructions ('Sit down') rather than negatives ('Don't stand up') when possible. Be consistent - use same words for same actions.",
+    "redFlags": "Consult your pediatrician if baby doesn't respond to their name by 10 months, shows no understanding of any words or instructions by 14 months, doesn't follow simple familiar instructions (like 'come here' or 'give me') by 16 months, shows no interest in communication or interaction by 14 months, doesn't point or gesture to communicate by 14 months, or has lost previously acquired receptive language skills. Also concerning: no response to any sounds or voices (potential hearing loss), extreme difficulty with attention or focus, or significant delay between receptive and expressive language. Request hearing evaluation if concerned about baby's hearing. Speech-language evaluation assesses receptive language development. Remember that compliance and comprehension are different - a baby may understand but choose not to follow instructions, especially as independence develops. Temperamentally strong-willed babies may understand perfectly but refuse to comply.",
+    "expertTips": [
+      "Understanding language develops months before speaking - don't underestimate what baby comprehends",
+      "Make instructions fun rather than constant commands - games are more motivating",
+      "Baby may not follow instructions when deeply focused on play - get their attention first",
+      "Compliance decreases as independence grows - understanding doesn't guarantee cooperation!",
+      "Using baby's name before instructions improves response rate significantly"
+    ],
+    "relatedMilestones": ["Responds to Name", "First Words", "Points to Objects", "Understanding 'No'"],
+    "videoUrl": null,
+    "imageUrl": null,
+    "ageRangeMonths": {
+      "min": 10,
+      "max": 16,
+      "typical": 12
+    },
+    "sources": ["American Academy of Pediatrics", "CDC Developmental Milestones", "ASHA"]
+  },
+  {
+    "name": "Drinking from Cup",
+    "milestoneType": "FEEDING",
+    "description": "Learning to drink from a cup is an important feeding milestone that typically begins around 6-9 months (with significant help) and becomes increasingly independent by 12-18 months. This skill involves complex oral motor coordination, hand-eye coordination, understanding cause-and-effect, and motor control to avoid spilling. Cup drinking progresses through stages: sipping from cup held by adult, holding cup with two hands (lots of spilling!), coordinating tilting and sipping simultaneously, and eventually drinking neatly with one hand. There are two main approaches: sippy cups with spouts (easier initially but can delay oral motor development if used too long) and open cups or straw cups (messier initially but better for oral development). The American Academy of Pediatrics recommends transitioning from bottles to cups around 12 months and avoiding sippy cups with valve mechanisms that require strong sucking. Cup drinking is important for oral health (constant bottle or sippy cup use causes tooth decay) and developmental progression toward mature eating and drinking patterns.",
+    "whatToExpect": "Around 6-7 months, baby can take sips from an open cup you hold, though more liquid escapes than enters the mouth. By 8-10 months, baby grabs at cups and may get some liquid in their mouth independently (with massive spills!). Around 10-12 months, baby holds cup with two hands, attempts to drink, and manages small sips between spills. Expect soaking wet clothes and lots of practice! By 12-15 months, cup drinking improves with better control and less spilling, though accidents remain common. Some babies master straw cups before open cups. By 15-18 months, cup drinking is reasonably efficient though still somewhat messy. Neat, spill-free cup drinking typically doesn't develop until age 2-3. Babies often prefer bottles initially because they're easier and faster. Expect resistance and protest when transitioning from bottle, especially at bedtime. Some babies take to cups immediately, others resist for months.",
+    "howToEncourage": "Introduce open cups or straw cups around 6 months during meals. Start with small amounts of liquid (1-2 ounces) to minimize mess. Use small cups sized for baby hands. Try both open cups and straw cups to see what baby prefers. Demonstrate drinking from a cup yourself. Help baby tip the cup initially so they experience the sensation of liquid in mouth. Make it fun rather than stressful. Use water initially to avoid sticky messes. Gradually increase opportunities to use cups at meals and snacks. Phase out bottles starting around 12 months, replacing one bottle feeding at a time with cup. Offer milk and water in cups only. Make bottles less appealing (room temperature vs. warm) while making cups appealing (fun colors, let baby choose). Eliminate bedtime bottle first or last depending on your strategy. Avoid sippy cups with valves - use open cups or straw cups preferentially.",
+    "redFlags": "Consult your pediatrician if baby cannot sip from a cup with assistance by 15 months, shows no interest in cups by 15 months, has difficulty coordinating sucking and swallowing by 12 months, frequently chokes or gags on liquids from cups after several months of practice, refuses all liquids except from bottle by 18 months, or has significant oral motor difficulties affecting eating and drinking. Also concerning: excessive drooling with drinking after 15 months, inability to manage thin liquids without choking, or avoidance of drinking altogether. Occupational therapy or feeding therapy can address oral motor challenges. Some babies are naturally more cautious and take longer to accept cups - this alone isn't concerning. Prolonged bottle use beyond 18 months is associated with tooth decay and speech delays. Cultural practices vary regarding bottle weaning timing.",
+    "expertTips": [
+      "Open cups and straw cups promote better oral motor development than sippy cups",
+      "Expect epic messes during learning - it's necessary practice, not naughtiness",
+      "Cold liquids in cups might be more motivating than room temperature initially",
+      "Tiny amounts (1-2 ounces) make messes more manageable while baby learns",
+      "Transitioning from bottles is often harder on parents than babies - stay consistent!"
+    ],
+    "relatedMilestones": ["First Solid Foods", "Self-Feeding with Hands", "Using a Spoon", "Weaning from Bottle"],
+    "videoUrl": null,
+    "imageUrl": null,
+    "ageRangeMonths": {
+      "min": 6,
+      "max": 18,
+      "typical": 12
+    },
+    "sources": ["American Academy of Pediatrics", "CDC Nutrition Guidelines", "Solid Starts"]
+  },
+  {
+    "name": "Pretend Play",
+    "milestoneType": "SOCIAL",
+    "description": "Pretend play, also called symbolic or imaginative play, is a sophisticated cognitive milestone where children use objects symbolically and act out scenarios, typically emerging around 12-18 months. This skill demonstrates remarkable brain development: symbolic thinking (understanding that one thing can represent another), memory (recalling observed actions to recreate them), creativity, Theory of Mind (understanding pretense), and language development (often accompanied by vocalizations). Early pretend play is simple: pretending to drink from empty cup, feeding baby doll, putting phone to ear. It progresses to more complex scenarios: cooking meals, putting dolls to bed with elaborate routines, or acting out grocery shopping. Pretend play is crucial for cognitive, social, emotional, and language development. It allows children to process experiences, explore roles, practice social scripts, work through emotions, and develop problem-solving skills. The complexity and duration of pretend play increases throughout toddlerhood and early childhood, becoming increasingly elaborate and social.",
+    "whatToExpect": "Before true pretend play, babies engage in functional play: using objects for their intended purpose (pushing toy car, putting shapes in sorter). Around 12-15 months, first pretend play emerges: simple, self-directed actions like pretending to drink from empty cup, pretending to eat toy food, or putting phone to ear saying 'hi.' Around 15-18 months, pretend play extends to others: feeding doll, putting teddy to bed, offering you pretend food. By 18-24 months, pretend play becomes more complex: sequences of actions (making meal, serving it, eating it), using substitutes (block becomes phone, stick becomes spoon), and incorporating language. Initially, pretend play is brief (seconds) with simple actions. Duration and complexity increase gradually. Some toddlers are highly imaginative with elaborate pretend scenarios, others show minimal interest preferring physical or construction play. Both are normal variations in play preferences.",
+    "howToEncourage": "Provide props for pretend play: baby dolls, toy dishes, toy phones, stuffed animals, toy tools, dress-up clothes. Start simple: model pretending to drink from empty cup, feed teddy, or rock baby. Narrate your pretend actions: 'I'm feeding baby. Baby is hungry!' Play alongside your child engaging in parallel pretend play. Respond to child's pretend offerings: 'Mmm! This pretend pizza is delicious! Thank you!' Read books about daily routines that child can act out. Create play spaces: kitchen area, doll corner, doctor's office. Avoid electronic toys - simple props support imagination better. Allow child to see and help with real activities (cooking, cleaning) that they can then imitate. Don't direct or correct pretend play - follow child's lead. Provide diverse props representing various roles and activities. Join pretend play when invited but let child control the narrative.",
+    "redFlags": "Consult your pediatrician if child shows no pretend play at all by 18 months, engages in repetitive, non-functional play only (spinning wheels constantly with no pretend element) by 20 months, shows no interest in dolls, stuffed animals, or social toys by 18 months, doesn't imitate daily activities by 18 months, demonstrates extremely rigid, repetitive play patterns with no variation, or has lost previously acquired play skills. Absence of pretend play is included in autism screening, as difficulty with symbolic thinking and imitation can indicate developmental differences. However, play preference variations are normal - some children prefer construction or physical play while still showing some pretend elements. Limited pretend play opportunities (no toys, props, or modeling) affect development. Language delays often accompany pretend play delays as they're interconnected skills.",
+    "expertTips": [
+      "Simple props (cardboard boxes, fabric pieces) often inspire more creative play than elaborate toys",
+      "Pretend play skills correlate with language development - they develop together",
+      "Don't worry if your child's pretend play themes seem repetitive - this is how they process experiences",
+      "Screen time doesn't promote pretend play - hands-on, interactive play does",
+      "Children with rich pretend play tend to have better problem-solving and social skills"
+    ],
+    "relatedMilestones": ["Imitates Actions", "Using a Spoon", "First Words", "Playing with Other Children"],
+    "videoUrl": null,
+    "imageUrl": null,
+    "ageRangeMonths": {
+      "min": 12,
+      "max": 20,
+      "typical": 15
+    },
+    "sources": ["American Academy of Pediatrics", "Zero to Three", "CDC Developmental Milestones"]
+  },
+  {
+    "name": "Running",
+    "milestoneType": "PHYSICAL",
+    "description": "Running is an advanced gross motor milestone where children progress from walking to faster-paced movement with brief periods of both feet off the ground, typically emerging around 16-24 months. True running requires significant balance, coordination, leg strength, motor planning, and confidence that develops gradually after walking is well-established. Early 'running' looks more like fast walking with stiff movements and frequent falls. As balance and coordination improve, running becomes smoother with more rhythmic, efficient movements. This milestone dramatically expands a child's exploration range and play possibilities - chasing games, playing tag, and active outdoor play become possible. Running also presents new safety challenges as children can move quickly into dangerous situations. The development of running parallels other advanced gross motor skills like jumping, climbing, and kicking balls that emerge in the second year of life.",
+    "whatToExpect": "Most children start attempting to run around 15-18 months after several months of confident walking. Early attempts look like very fast, stiff-legged walking with arms held high for balance and frequent tumbles. Around 18-20 months, running becomes slightly smoother but remains somewhat awkward with starts and stops, difficulty navigating turns, and lots of falls. By 20-24 months, running is more coordinated with better speed control and fewer falls, though stopping suddenly or turning sharply remains challenging. Children often run with exaggerated, enthusiastic movements. Running typically happens when excited, playing chase, or trying to keep up with older children. Some cautious children walk everywhere until 24+ months before attempting running. Adventurous children may try running as soon as they can walk. Surface matters - running on grass is easier and safer than hard surfaces initially. Expect lots of scraped knees and bumps as running develops!",
+    "howToEncourage": "Provide safe, open spaces for running practice: parks, backyards, empty hallways. Playgrounds and open fields are ideal. Play chasing games: 'I'm gonna get you!' runs are highly motivating. Let child run alongside you at parks. Avoid overly cautioning or hovering - children need freedom to test their limits (within safe bounds). Ensure proper footwear: flexible shoes or bare feet outdoors on grass. Create fun reasons to run: 'Let's run to the big tree!' Model running yourself during play. Accept falls as learning opportunities - comfort quickly but don't overreact. Praise effort: 'You ran so fast!' Avoid pushing fearful children - they'll run when ready. Provide opportunities to watch and play with older children who run. Keep running playful and fun rather than instructional. Baby-proof outdoor spaces as much as indoor once running begins.",
+    "redFlags": "Consult your pediatrician if child isn't walking confidently by 18 months (prerequisite for running), shows no attempts at faster movement by 24 months, falls constantly during walking or running by 30 months despite practice, demonstrates significant asymmetry (favoring one side, limping), runs only on tiptoes, has extreme stiffness or floppiness affecting movement quality, shows no progression in gross motor skills between 18-24 months, or has regressed in mobility skills. Also concerning: extreme fearfulness of movement, avoidance of all physical activity, or inability to navigate environment safely by 30 months. Physical therapy evaluation can assess gait, balance, coordination, and strength. Some children walk and run later than peers without concerning underlying issues - family history and overall development matter. Cultural and environmental factors affect running opportunities. Children with less outdoor/active play access develop running skills more slowly.",
+    "expertTips": [
+      "Running develops months after walking - don't rush it",
+      "Falls and scraped knees are inevitable and necessary for learning",
+      "Running is often motivated by social play - playmates help!",
+      "Cautious children may not run until well after age 2 and still be developmentally normal",
+      "Save good shoes for running outdoors - bare feet are better for balance development"
+    ],
+    "relatedMilestones": ["Walking Confidently", "Jumping with Two Feet", "Kicking a Ball", "Climbing"],
+    "videoUrl": null,
+    "imageUrl": null,
+    "ageRangeMonths": {
+      "min": 15,
+      "max": 24,
+      "typical": 18
+    },
+    "sources": ["American Academy of Pediatrics", "CDC Developmental Milestones", "Pathways.org"]
+  },
+  {
+    "name": "Two-Word Phrases",
+    "milestoneType": "SOCIAL",
+    "description": "Combining two words into simple phrases is a major language milestone typically emerging around 18-24 months, representing a critical transition from single words to sentence structures. Two-word phrases demonstrate understanding of word order, semantic relationships (how words relate to create meaning), grammar basics, and expanding expressive language. Common early phrases include: 'More milk,' 'Daddy go,' 'Big dog,' 'My turn,' 'All done,' 'Want cookie.' These telegraphic utterances omit function words (articles, prepositions) but convey clear meaning. This milestone marks the beginning of grammar development and significantly expands communication possibilities - children can now express more complex ideas, make requests more specifically, describe observations, and participate in back-and-forth conversations more effectively. Vocabulary typically explodes around this time (the 'word spurt') with children learning new words daily. Two-word phrases rapidly progress to three-word phrases and simple sentences by age 2-3.",
+    "whatToExpect": "Before two-word phrases, children use single words (around 12-18 months) and may combine word + gesture ('up!' while pointing). Around 18-20 months, first two-word combinations emerge: 'Mommy up,' 'More juice,' 'Bye dog.' These are often inconsistent initially - child may say two-word phrases occasionally but rely primarily on single words. By 20-24 months, two-word phrases become frequent and varied, expressing multiple concepts: possession ('My ball'), actions ('Doggie run'), locations ('Toy down'), descriptions ('Big truck'), requests ('Want more'). Pronunciation is often unclear - you may be the only one who understands! Around 24 months, most children regularly use two-word phrases and begin experimenting with three-word combinations. Expressive language development varies enormously - some 18-month-olds speak in phrases while some 24-month-olds use primarily single words. Both can be within normal range if comprehension is strong.",
+    "howToEncourage": "Expand child's single words into two-word phrases: child says 'dog,' you respond 'Yes! Big dog! Brown dog!' This models phrase structure naturally. Talk constantly throughout the day, using simple two-word phrases naturally: 'Get shoes,' 'Wash hands,' 'More banana?' Ask simple questions encouraging two-word responses: 'What do you want? More juice?' Read books daily, using simple language to describe pictures. Avoid baby talk - use clear, grammatically correct (if simple) language. Pause expectantly for child to fill in words: 'Let's put on your...' (shoes). Respond enthusiastically to all communication attempts even if unclear. Limit screen time - language develops through interaction, not passive watching. Narrate daily activities: 'Daddy cooking,' 'Baby eating,' 'Mommy reading.' Sing songs with repetitive phrases. Don't correct pronunciation - model correct form naturally. Provide rich language environment with varied experiences and vocabulary.",
+    "redFlags": "Consult your pediatrician if child has fewer than 50 words by 24 months, uses no two-word phrases by 30 months, lost previously acquired language skills, doesn't understand simple instructions by 24 months, isn't interested in communicating wants and needs by 24 months, has unclear speech that family members can't understand by 24 months, or shows frustration with inability to communicate. Also concerning: not imitating words, no back-and-forth communication attempts, extremely limited interests or repetitive language, or significant gap between comprehension and expression lasting beyond 24 months. Speech-language evaluation should assess both receptive and expressive language. Late talkers with strong comprehension often catch up, but early intervention accelerates progress. Hearing loss, oral motor difficulties, autism, or cognitive delays can impact language development. Boys typically develop language slightly later than girls on average. Bilingual children may have slightly different timelines.",
+    "expertTips": [
+      "Understanding vocabulary is typically 4-6 times larger than speaking vocabulary",
+      "Late talkers with good comprehension usually catch up by age 3",
+      "Expanding child's utterances rather than correcting teaches grammar naturally",
+      "Reading aloud daily is the single best language-building activity",
+      "Speech clarity matters less than communication intent at this age"
+    ],
+    "relatedMilestones": ["First Words", "Babbling", "Following Simple Instructions", "Three-Word Sentences"],
+    "videoUrl": null,
+    "imageUrl": null,
+    "ageRangeMonths": {
+      "min": 16,
+      "max": 30,
+      "typical": 20
+    },
+    "sources": ["American Academy of Pediatrics", "CDC Developmental Milestones", "ASHA"]
   }
 ]
