@@ -782,22 +782,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     // Microphone button with long press to record
                     GestureDetector(
                       onLongPressStart: (_) async {
-                        // Only start recording if permission is already granted
-                        // Don't check permission during gesture to avoid interruption
-                        if (_hasMicrophonePermission) {
-                          await _startVoiceRecording();
-                        } else {
-                          // Permission not granted, show error
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text('Please tap the microphone button first to grant permission'),
-                                backgroundColor: Theme.of(context).colorScheme.error,
-                                duration: const Duration(seconds: 2),
-                              ),
-                            );
+                        // Request permission if needed, then start recording
+                        if (!_hasMicrophonePermission) {
+                          final hasPermission = await _checkMicrophonePermission();
+                          if (!hasPermission) {
+                            return; // Permission denied, don't start recording
                           }
+                          setState(() {
+                            _hasMicrophonePermission = true;
+                          });
                         }
+
+                        // Start recording
+                        await _startVoiceRecording();
                       },
                       onLongPressEnd: (_) {
                         // Only stop if we actually started recording
@@ -812,14 +809,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 // Capture ScaffoldMessenger before async gap
                                 final messenger = ScaffoldMessenger.of(context);
 
-                                // Check permission on tap (this will show the permission dialog)
-                                final hasPermission = await _checkMicrophonePermission();
-                                if (hasPermission && mounted) {
+                                // Check and request permission on tap
+                                if (!_hasMicrophonePermission) {
+                                  final hasPermission = await _checkMicrophonePermission();
+                                  if (hasPermission && mounted) {
+                                    setState(() {
+                                      _hasMicrophonePermission = true;
+                                    });
+                                    messenger.showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'Permission granted! Hold the microphone button to record'),
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+                                  }
+                                } else if (mounted) {
+                                  // Permission already granted, show tip
                                   messenger.showSnackBar(
                                     const SnackBar(
                                       content: Text(
                                           'Hold the microphone button to record'),
-                                      duration: Duration(seconds: 2),
+                                      duration: Duration(seconds: 1),
                                     ),
                                   );
                                 }
