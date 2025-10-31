@@ -393,6 +393,87 @@ router.delete(
 );
 
 /**
+ * GET /milestones/content/:name
+ * Fetch comprehensive educational content for a specific milestone
+ *
+ * Path params:
+ * - name: string - milestone name (e.g., "First Smile", "Sitting Up") - required
+ *
+ * Returns rich educational content including:
+ * - Comprehensive description (250-500 words)
+ * - What to expect section
+ * - How to encourage section
+ * - Red flags section
+ * - Expert tips array
+ * - Related milestones array
+ * - Age range (min, max, typical months)
+ * - Medical sources
+ * - Optional video/image URLs
+ *
+ * This endpoint is PUBLIC (no authentication) to allow previewing milestone content.
+ * Milestone names are case-sensitive and must match exactly.
+ */
+router.get(
+  '/content/:name',
+  async (req, res: Response) => {
+    try {
+      // Extract and decode milestone name from URL parameter
+      // URL encoding handles names with spaces (e.g., "First%20Smile")
+      const milestoneName = decodeURIComponent(req.params.name);
+
+      console.log(`📚 Fetching educational content for milestone: "${milestoneName}"`);
+
+      // Fetch milestone content from database
+      const milestoneContent = await prisma.milestoneContent.findUnique({
+        where: {
+          name: milestoneName,
+        },
+        select: {
+          id: true,
+          name: true,
+          milestoneType: true,
+          description: true,
+          whatToExpect: true,
+          howToEncourage: true,
+          redFlags: true,
+          expertTips: true,
+          relatedMilestones: true,
+          videoUrl: true,
+          imageUrl: true,
+          ageRangeMonths: true,
+          sources: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      // Handle milestone not found
+      if (!milestoneContent) {
+        console.log(`❌ Milestone content not found: "${milestoneName}"`);
+        return res.status(404).json({
+          error: 'Milestone content not found',
+          message: `No educational content found for milestone: "${milestoneName}"`,
+          suggestion: 'Check milestone name spelling and capitalization',
+        });
+      }
+
+      console.log(`✅ Retrieved educational content for "${milestoneName}" (${milestoneContent.milestoneType})`);
+
+      // Return comprehensive educational content
+      res.status(200).json({
+        milestone: milestoneContent,
+      });
+    } catch (error) {
+      console.error('Error fetching milestone content:', error);
+      res.status(500).json({
+        error: 'Failed to fetch milestone content',
+        message: 'An unexpected error occurred while retrieving educational content',
+      });
+    }
+  }
+);
+
+/**
  * GET /milestones/suggestions
  * Get age-appropriate milestone suggestions for baby
  *
