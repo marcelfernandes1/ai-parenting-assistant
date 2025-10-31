@@ -1,15 +1,17 @@
 /// Profile Screen - Edit user information
-/// Allows users to update their profile data, baby info, and preferences
+/// Allows users to update their profile data, baby info, preferences, and manage account security
 library;
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../auth/providers/auth_provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import '../../auth/providers/auth_provider.dart';
 
 /// Profile screen for viewing and editing user information
-/// Displays all user profile data in editable sections
+/// Displays all user profile data in editable sections with image upload capabilities
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
@@ -29,6 +31,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   DateTime? _selectedDate;
   bool _isLoading = false;
   bool _hasChanges = false;
+
+  // Image picker
+  final ImagePicker _imagePicker = ImagePicker();
+
+  // Selected images (local files before upload)
+  File? _selectedProfileImage;
+  File? _selectedBabyImage;
+
+  // Image URLs from server
+  String? _profileImageUrl;
+  String? _babyImageUrl;
 
   @override
   void initState() {
@@ -65,6 +78,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           print('Error parsing date: $e');
         }
       }
+
+      // TODO: Load profile image URL and baby image URL from user object
+      // _profileImageUrl = user.profileImageUrl;
+      // _babyImageUrl = user.babyImageUrl;
     });
 
     // Add listeners to track changes
@@ -83,6 +100,135 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.dispose();
   }
 
+  /// Pick profile image from gallery or camera
+  Future<void> _pickProfileImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _selectedProfileImage = File(pickedFile.path);
+          _hasChanges = true;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error selecting image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Pick baby image from gallery or camera
+  Future<void> _pickBabyImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _selectedBabyImage = File(pickedFile.path);
+          _hasChanges = true;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error selecting image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Show image source picker (Camera or Gallery)
+  Future<void> _showImageSourcePicker(bool isProfilePicture) async {
+    await showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                isProfilePicture ? 'Choose Profile Picture' : 'Choose Baby Picture',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 24),
+              ListTile(
+                leading: const Icon(Icons.photo_camera),
+                title: const Text('Take Photo'),
+                onTap: () {
+                  Navigator.pop(context);
+                  if (isProfilePicture) {
+                    _pickProfileImage(ImageSource.camera);
+                  } else {
+                    _pickBabyImage(ImageSource.camera);
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose from Gallery'),
+                onTap: () {
+                  Navigator.pop(context);
+                  if (isProfilePicture) {
+                    _pickProfileImage(ImageSource.gallery);
+                  } else {
+                    _pickBabyImage(ImageSource.gallery);
+                  }
+                },
+              ),
+              if ((isProfilePicture && (_selectedProfileImage != null || _profileImageUrl != null)) ||
+                  (!isProfilePicture && (_selectedBabyImage != null || _babyImageUrl != null)))
+                ListTile(
+                  leading: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+                  title: Text(
+                    'Remove Photo',
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      if (isProfilePicture) {
+                        _selectedProfileImage = null;
+                        _profileImageUrl = null;
+                      } else {
+                        _selectedBabyImage = null;
+                        _babyImageUrl = null;
+                      }
+                      _hasChanges = true;
+                    });
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Show date picker for baby birth date or due date
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
@@ -99,6 +245,163 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         _hasChanges = true;
       });
     }
+  }
+
+  /// Show change email dialog
+  Future<void> _showChangeEmailDialog() async {
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Change Email'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(
+                labelText: 'New Email',
+                hintText: 'Enter new email address',
+                prefixIcon: Icon(Icons.email),
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: passwordController,
+              decoration: const InputDecoration(
+                labelText: 'Current Password',
+                hintText: 'Confirm your password',
+                prefixIcon: Icon(Icons.lock),
+              ),
+              obscureText: true,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'You will need to verify your new email address',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              // TODO: Implement email change via backend API
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Email change will be implemented with backend'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            },
+            child: const Text('Change Email'),
+          ),
+        ],
+      ),
+    );
+
+    emailController.dispose();
+    passwordController.dispose();
+  }
+
+  /// Show change password dialog
+  Future<void> _showChangePasswordDialog() async {
+    final TextEditingController currentPasswordController = TextEditingController();
+    final TextEditingController newPasswordController = TextEditingController();
+    final TextEditingController confirmPasswordController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Change Password'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: currentPasswordController,
+                decoration: const InputDecoration(
+                  labelText: 'Current Password',
+                  hintText: 'Enter current password',
+                  prefixIcon: Icon(Icons.lock_outline),
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: newPasswordController,
+                decoration: const InputDecoration(
+                  labelText: 'New Password',
+                  hintText: 'Enter new password',
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: confirmPasswordController,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm New Password',
+                  hintText: 'Re-enter new password',
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Password must be at least 8 characters',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              // Validate passwords match
+              if (newPasswordController.text != confirmPasswordController.text) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Passwords do not match'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              // TODO: Implement password change via backend API
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Password change will be implemented with backend'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            },
+            child: const Text('Change Password'),
+          ),
+        ],
+      ),
+    );
+
+    currentPasswordController.dispose();
+    newPasswordController.dispose();
+    confirmPasswordController.dispose();
   }
 
   /// Save profile changes to backend
@@ -133,6 +436,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         updates['religiousViews'] = _religiousViewsController.text.trim();
       }
 
+      // TODO: Upload profile image to S3 and include URL in updates
+      // if (_selectedProfileImage != null) {
+      //   final profileImageUrl = await uploadImageToS3(_selectedProfileImage!);
+      //   updates['profileImageUrl'] = profileImageUrl;
+      // }
+
+      // TODO: Upload baby image to S3 and include URL in updates
+      // if (_selectedBabyImage != null) {
+      //   final babyImageUrl = await uploadImageToS3(_selectedBabyImage!);
+      //   updates['babyImageUrl'] = babyImageUrl;
+      // }
+
       // Call update method
       await ref.read(authProvider.notifier).updateProfile(updates);
 
@@ -146,6 +461,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
         setState(() {
           _hasChanges = false;
+          // Clear selected images after successful upload
+          _selectedProfileImage = null;
+          _selectedBabyImage = null;
         });
       }
     } catch (e) {
@@ -197,7 +515,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Profile header with avatar
+                  // Profile header with avatar and change picture button
                   _buildProfileHeader(user.email ?? 'No email'),
 
                   const SizedBox(height: 32),
@@ -215,13 +533,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Email (read-only)
+                  // Email with change button
                   TextField(
                     enabled: false,
                     decoration: InputDecoration(
                       labelText: 'Email',
                       hintText: user.email ?? 'No email',
                       prefixIcon: const Icon(Icons.email),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: _showChangeEmailDialog,
+                        tooltip: 'Change email',
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 32),
+
+                  // Account Security Section
+                  _buildSectionHeader('Account Security'),
+                  const SizedBox(height: 16),
+                  ListTile(
+                    leading: const Icon(Icons.lock),
+                    title: const Text('Change Password'),
+                    subtitle: const Text('Update your account password'),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: _showChangePasswordDialog,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                      ),
                     ),
                   ),
 
@@ -230,6 +572,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   // Baby Information Section
                   _buildSectionHeader('Baby Information'),
                   const SizedBox(height: 16),
+
+                  // Baby picture upload
+                  _buildBabyPictureSection(),
+
+                  const SizedBox(height: 24),
 
                   // Mode selector (Pregnancy / Parenting)
                   Text('Current Stage', style: Theme.of(context).textTheme.titleMedium),
@@ -340,15 +687,43 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildProfileHeader(String email) {
     return Column(
       children: [
-        // Avatar circle
-        CircleAvatar(
-          radius: 50,
-          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          child: Icon(
-            Icons.person,
-            size: 50,
-            color: Theme.of(context).colorScheme.onPrimaryContainer,
-          ),
+        // Avatar circle with edit button overlay
+        Stack(
+          children: [
+            CircleAvatar(
+              radius: 60,
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              backgroundImage: _selectedProfileImage != null
+                  ? FileImage(_selectedProfileImage!)
+                  : _profileImageUrl != null
+                      ? NetworkImage(_profileImageUrl!) as ImageProvider
+                      : null,
+              child: _selectedProfileImage == null && _profileImageUrl == null
+                  ? Icon(
+                      Icons.person,
+                      size: 60,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    )
+                  : null,
+            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                child: IconButton(
+                  icon: Icon(
+                    Icons.camera_alt,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                  onPressed: () => _showImageSourcePicker(true),
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         Text(
@@ -357,7 +732,104 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
         ),
+        const SizedBox(height: 4),
+        TextButton.icon(
+          onPressed: () => _showImageSourcePicker(true),
+          icon: const Icon(Icons.edit, size: 16),
+          label: const Text('Change Profile Picture'),
+        ),
       ],
+    );
+  }
+
+  /// Build baby picture section
+  Widget _buildBabyPictureSection() {
+    final hasBabyPicture = _selectedBabyImage != null || _babyImageUrl != null;
+
+    return Card(
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Baby\'s Picture',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            if (hasBabyPicture)
+              Center(
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: _selectedBabyImage != null
+                          ? Image.file(
+                              _selectedBabyImage!,
+                              width: 200,
+                              height: 200,
+                              fit: BoxFit.cover,
+                            )
+                          : _babyImageUrl != null
+                              ? Image.network(
+                                  _babyImageUrl!,
+                                  width: 200,
+                                  height: 200,
+                                  fit: BoxFit.cover,
+                                )
+                              : const SizedBox(),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: Theme.of(context).colorScheme.surface,
+                        child: IconButton(
+                          icon: const Icon(Icons.edit, size: 20),
+                          onPressed: () => _showImageSourcePicker(false),
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.baby_changing_station,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No baby picture yet',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _showImageSourcePicker(false),
+                icon: Icon(hasBabyPicture ? Icons.edit : Icons.add_photo_alternate),
+                label: Text(hasBabyPicture ? 'Change Baby Picture' : 'Add Baby Picture'),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

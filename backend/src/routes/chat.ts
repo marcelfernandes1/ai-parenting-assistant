@@ -10,7 +10,15 @@ import { PrismaClient } from '@prisma/client';
 import multer from 'multer';
 import fs from 'fs/promises';
 import { authenticateToken } from '../middleware/auth';
-import { generateChatResponse, transcribeAudio, ChatMessage, analyzePhoto } from '../services/openai';
+import {
+  generateChatResponse,
+  transcribeAudio,
+  ChatMessage,
+  analyzePhoto,
+  generateConversationTitle,
+  generateConversationSummary,
+  searchConversations
+} from '../services/openai';
 import { checkUsageLimit, incrementUsage } from '../utils/usageLimit';
 
 const router = express.Router();
@@ -239,6 +247,122 @@ router.post('/message', authenticateToken, async (req: Request, res: Response) =
     // Increment usage counter (works for both FREE and PREMIUM tiers)
     await incrementUsage(userId, 'message', 1);
 
+    // Auto-generate conversation title and summary after second message
+    // This runs asynchronously in the background (don't await)
+    const messageCount = await prisma.message.count({
+      where: {
+        userId: userId,
+        sessionId: sessionId,
+      },
+    });
+
+    // Generate title if conversation has 2+ messages but no title yet
+    // Check if title already exists
+    const hasTitle = await prisma.message.findFirst({
+      where: {
+        userId: userId,
+        sessionId: sessionId,
+        conversationTitle: { not: null },
+      },
+    });
+
+    if (messageCount >= 2 && !hasTitle) {
+      console.log(`🏷️ Auto-generating title for session ${sessionId}...`);
+
+      // Run title generation in background (don't block response)
+      (async () => {
+        try {
+          // Get the first two messages for title generation
+          const messages = await prisma.message.findMany({
+            where: {
+              userId: userId,
+              sessionId: sessionId,
+            },
+            orderBy: {
+              timestamp: 'asc',
+            },
+            take: 2,
+            select: {
+              role: true,
+              content: true,
+            },
+          });
+
+          // Convert to ChatMessage format
+          const chatMessages: ChatMessage[] = messages.map((msg) => ({
+            role: msg.role === 'USER' ? 'user' : 'assistant',
+            content: msg.content,
+          }));
+
+          // Generate title
+          const title = await generateConversationTitle(chatMessages);
+          console.log(`✅ Generated title: "${title}"`);
+
+          // Update all messages with title (so any message can show the conversation title)
+          await prisma.message.updateMany({
+            where: {
+              userId: userId,
+              sessionId: sessionId,
+            },
+            data: {
+              conversationTitle: title,
+            },
+          });
+        } catch (error) {
+          console.error('Error generating conversation title:', error);
+        }
+      })();
+    }
+
+    // Generate or update summary for conversations with 4+ messages
+    // Update every 2 exchanges to keep summary fresh
+    if (messageCount >= 4 && messageCount % 2 === 0) {
+      console.log(`📝 Updating conversation summary for session ${sessionId}...`);
+
+      // Run summary generation in background (don't block response)
+      (async () => {
+        try {
+          // Get all messages for summary
+          const messages = await prisma.message.findMany({
+            where: {
+              userId: userId,
+              sessionId: sessionId,
+            },
+            orderBy: {
+              timestamp: 'asc',
+            },
+            select: {
+              role: true,
+              content: true,
+            },
+          });
+
+          // Convert to ChatMessage format
+          const chatMessages: ChatMessage[] = messages.map((msg) => ({
+            role: msg.role === 'USER' ? 'user' : 'assistant',
+            content: msg.content,
+          }));
+
+          // Generate summary
+          const summary = await generateConversationSummary(chatMessages);
+          console.log(`✅ Generated summary`);
+
+          // Update all messages with summary (for search functionality)
+          await prisma.message.updateMany({
+            where: {
+              userId: userId,
+              sessionId: sessionId,
+            },
+            data: {
+              conversationSummary: summary,
+            },
+          });
+        } catch (error) {
+          console.error('Error generating conversation summary:', error);
+        }
+      })();
+    }
+
     // Return AI response
     return res.status(200).json({
       message: 'Message sent successfully',
@@ -396,15 +520,14 @@ router.get('/conversations', authenticateToken, async (req: Request, res: Respon
       take: limit,
     });
 
-    // For each session, fetch the first user message as preview
+    // For each session, fetch the first message to get title and preview
     const conversationsWithPreview = await Promise.all(
       sessions.map(async (session) => {
-        // Get first user message for preview
-        const firstUserMessage = await prisma.message.findFirst({
+        // Get first message (has title and summary)
+        const firstMessage = await prisma.message.findFirst({
           where: {
             userId: userId,
             sessionId: session.sessionId,
-            role: 'USER',
           },
           orderBy: {
             timestamp: 'asc',
@@ -412,22 +535,30 @@ router.get('/conversations', authenticateToken, async (req: Request, res: Respon
           select: {
             content: true,
             contentType: true,
+            conversationTitle: true,
+            conversationSummary: true,
+            role: true,
           },
         });
 
         // Create a preview text (first 100 chars of first message)
-        const previewText = firstUserMessage
-          ? firstUserMessage.content.substring(0, 100) +
-            (firstUserMessage.content.length > 100 ? '...' : '')
+        const previewText = firstMessage
+          ? firstMessage.content.substring(0, 100) +
+            (firstMessage.content.length > 100 ? '...' : '')
           : 'Empty conversation';
+
+        // Use AI-generated title if available, otherwise use preview
+        const title = firstMessage?.conversationTitle || previewText;
 
         return {
           sessionId: session.sessionId,
+          title: title, // AI-generated title
           messageCount: session._count.id,
           firstMessageAt: session._min.timestamp,
           lastMessageAt: session._max.timestamp,
           preview: previewText,
-          previewType: firstUserMessage?.contentType || 'TEXT',
+          previewType: firstMessage?.contentType || 'TEXT',
+          summary: firstMessage?.conversationSummary || null,
         };
       })
     );
@@ -695,6 +826,102 @@ router.post('/voice', authenticateToken, upload.single('audio'), async (req: Req
 
     return res.status(500).json({
       error: 'Failed to process voice message',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * POST /chat/conversations/search
+ *
+ * AI-powered semantic search through conversation history.
+ * Uses AI to understand search intent and find relevant conversations.
+ *
+ * Request body:
+ * - query: string (search query, e.g., "sleep training", "feeding advice")
+ *
+ * Returns: Array of matching conversations ranked by relevance
+ */
+router.post('/conversations/search', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    // Extract userId from JWT token
+    const userId = (req as any).user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized - user ID not found' });
+    }
+
+    // Extract search query from request body
+    const { query } = req.body;
+
+    if (!query || typeof query !== 'string' || query.trim().length === 0) {
+      return res.status(400).json({ error: 'Search query is required' });
+    }
+
+    // Fetch all conversations with titles and summaries
+    // We need the first message with conversationTitle and conversationSummary for each session
+    const sessions = await prisma.message.groupBy({
+      by: ['sessionId'],
+      where: {
+        userId: userId,
+        conversationTitle: { not: null }, // Only include titled conversations
+      },
+      _max: {
+        timestamp: true,
+      },
+    });
+
+    // Get title and summary for each session
+    const conversationsWithMetadata = await Promise.all(
+      sessions.map(async (session) => {
+        // Get first message with title/summary
+        const firstMessage = await prisma.message.findFirst({
+          where: {
+            userId: userId,
+            sessionId: session.sessionId,
+          },
+          orderBy: {
+            timestamp: 'asc',
+          },
+          select: {
+            conversationTitle: true,
+            conversationSummary: true,
+          },
+        });
+
+        return {
+          sessionId: session.sessionId,
+          title: firstMessage?.conversationTitle || 'Untitled Conversation',
+          summary: firstMessage?.conversationSummary || '',
+          lastMessageAt: session._max.timestamp,
+        };
+      })
+    );
+
+    // Filter out conversations without summaries (can't search them)
+    const searchableConversations = conversationsWithMetadata.filter(
+      (conv) => conv.summary && conv.summary.length > 0
+    );
+
+    // Use AI to search and rank conversations
+    const rankedSessionIds = await searchConversations(
+      query,
+      searchableConversations.map((conv) => ({
+        sessionId: conv.sessionId,
+        title: conv.title,
+        summary: conv.summary,
+      }))
+    );
+
+    return res.status(200).json({
+      query: query,
+      rankedSessionIds: rankedSessionIds,
+      total: rankedSessionIds.length,
+    });
+  } catch (error) {
+    console.error('Error searching conversations:', error);
+
+    return res.status(500).json({
+      error: 'Failed to search conversations',
       details: error instanceof Error ? error.message : 'Unknown error',
     });
   }

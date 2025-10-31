@@ -267,6 +267,39 @@ class ChatRepository {
     }
   }
 
+  /// Performs AI-powered semantic search through conversations.
+  ///
+  /// Parameters:
+  /// - query: The search query text
+  ///
+  /// Returns: List of session IDs ranked by relevance (most relevant first)
+  Future<List<String>> searchConversations(String query) async {
+    try {
+      // Call backend search endpoint
+      final response = await _apiClient.post(
+        '/chat/conversations/search',
+        data: {
+          'query': query,
+        },
+      );
+
+      // Check response status
+      if (response.statusCode == 200) {
+        // Extract ranked session IDs from response
+        final rankedSessionIds = (response.data['rankedSessionIds'] as List)
+            .map((id) => id as String)
+            .toList();
+
+        return rankedSessionIds;
+      } else {
+        throw Exception(
+            response.data['error'] ?? 'Failed to search conversations');
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
   /// Gets today's usage statistics.
   ///
   /// Returns: Map containing messagesUsed, voiceMinutesUsed, photosStored

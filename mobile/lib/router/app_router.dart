@@ -26,6 +26,7 @@ import '../features/onboarding/presentation/concerns_screen.dart';
 import '../features/onboarding/presentation/notification_preferences_screen.dart';
 import '../features/onboarding/presentation/usage_limits_explanation_screen.dart';
 import '../features/chat/presentation/chat_screen.dart';
+import '../features/chat/presentation/conversation_list_screen.dart';
 import '../features/photos/presentation/photos_screen.dart';
 import '../features/milestones/presentation/milestones_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
@@ -255,6 +256,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/home',
         name: 'home',
         builder: (context, state) => const ChatScreen(),
+      ),
+
+      /// Conversation list screen - Past conversations
+      /// Path: /conversations
+      /// View and access past conversation history
+      GoRoute(
+        path: '/conversations',
+        name: 'conversations',
+        builder: (context, state) => const ConversationListScreen(),
       ),
 
       /// Photos screen - Baby photo gallery

@@ -17,11 +17,19 @@ class Conversation {
   /// Timestamp of the most recent message in this conversation
   final DateTime lastMessageAt;
 
+  /// AI-generated conversation title (e.g., "Sleep training for 4-month-old")
+  /// Falls back to preview text if title hasn't been generated yet
+  final String title;
+
   /// Preview text (first ~100 chars of the first user message)
   final String preview;
 
   /// Type of the preview message (TEXT, VOICE, or IMAGE)
   final String previewType;
+
+  /// AI-generated conversation summary for semantic search (optional)
+  /// Contains 2-3 sentence summary with keywords
+  final String? summary;
 
   /// Constructor with all required fields
   const Conversation({
@@ -29,19 +37,26 @@ class Conversation {
     required this.messageCount,
     required this.firstMessageAt,
     required this.lastMessageAt,
+    required this.title,
     required this.preview,
     required this.previewType,
+    this.summary,
   });
 
   /// Creates a Conversation from JSON data (from API response)
   factory Conversation.fromJson(Map<String, dynamic> json) {
+    // Use title if available, otherwise fall back to preview
+    final title = json['title'] as String? ?? json['preview'] as String;
+
     return Conversation(
       sessionId: json['sessionId'] as String,
       messageCount: json['messageCount'] as int,
       firstMessageAt: DateTime.parse(json['firstMessageAt'] as String),
       lastMessageAt: DateTime.parse(json['lastMessageAt'] as String),
+      title: title,
       preview: json['preview'] as String,
       previewType: json['previewType'] as String? ?? 'TEXT',
+      summary: json['summary'] as String?,
     );
   }
 
@@ -52,8 +67,10 @@ class Conversation {
       'messageCount': messageCount,
       'firstMessageAt': firstMessageAt.toIso8601String(),
       'lastMessageAt': lastMessageAt.toIso8601String(),
+      'title': title,
       'preview': preview,
       'previewType': previewType,
+      'summary': summary,
     };
   }
 

@@ -211,6 +211,15 @@ model Message {
   // Used to provide context for AI (last 10 messages in session)
   sessionId String
 
+  // AI-generated conversation title (only set on first message in session)
+  // Generated automatically based on conversation content
+  // e.g., "Sleep training tips for 4-month-old"
+  conversationTitle String? @db.Text
+
+  // AI-generated conversation summary for semantic search
+  // Generated from conversation content for better search results
+  conversationSummary String? @db.Text
+
   // Message metadata
   role        MessageRole        // USER or ASSISTANT
   content     String             @db.Text // Message text (can be very long)

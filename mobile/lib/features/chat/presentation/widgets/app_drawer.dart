@@ -109,6 +109,17 @@ class AppDrawer extends ConsumerWidget {
                     },
                   ),
 
+                  // Past conversations navigation
+                  ListTile(
+                    leading: const Icon(Icons.history),
+                    title: const Text('Past Conversations'),
+                    subtitle: const Text('View conversation history'),
+                    onTap: () {
+                      Navigator.pop(context); // Close drawer
+                      context.push('/conversations'); // Navigate using go_router
+                    },
+                  ),
+
                   const Divider(),
 
                   // App Modules Section

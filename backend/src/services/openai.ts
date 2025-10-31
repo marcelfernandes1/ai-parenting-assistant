@@ -236,6 +236,153 @@ export async function transcribeAudio(audioFilePath: string): Promise<string> {
 }
 
 /**
+ * Generates a concise, descriptive title for a conversation based on its content.
+ * Uses GPT-4 to analyze the conversation and create a meaningful title (like ChatGPT does).
+ *
+ * @param messages - Array of conversation messages (first 3-4 messages work best)
+ * @returns Conversation title string (e.g., "Sleep training tips for 4-month-old")
+ */
+export async function generateConversationTitle(messages: ChatMessage[]): Promise<string> {
+  try {
+    // Build prompt for title generation
+    const titlePrompt = `Based on the following conversation, generate a short, descriptive title (max 6 words).
+The title should capture the main topic or question being discussed.
+Use simple, clear language that a parent would understand.
+
+Examples of good titles:
+- "Sleep training for 4-month-old"
+- "Introducing solid foods advice"
+- "Diaper rash treatment options"
+- "First smile milestone questions"
+- "Breastfeeding latch problems"
+
+Conversation:
+${messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n')}
+
+Generate ONLY the title, nothing else:`;
+
+    // Call OpenAI with a smaller, faster model for title generation
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini', // Faster and cheaper model for simple tasks
+      messages: [{ role: 'user', content: titlePrompt }],
+      temperature: 0.5, // Lower temperature for consistent, focused titles
+      max_tokens: 20, // Short titles only
+    });
+
+    // Extract and clean the title
+    let title = completion.choices[0]?.message?.content?.trim() || 'New Conversation';
+
+    // Remove quotes if AI added them
+    title = title.replace(/^["']|["']$/g, '');
+
+    // Limit title length
+    if (title.length > 50) {
+      title = title.substring(0, 47) + '...';
+    }
+
+    return title;
+  } catch (error) {
+    console.error('Failed to generate conversation title:', error);
+    // Return default title on error
+    return 'New Conversation';
+  }
+}
+
+/**
+ * Generates a summary of the conversation for semantic search.
+ * Creates a comprehensive summary that captures key topics and questions.
+ *
+ * @param messages - Array of all conversation messages
+ * @returns Conversation summary string for search indexing
+ */
+export async function generateConversationSummary(messages: ChatMessage[]): Promise<string> {
+  try {
+    // Build prompt for summary generation
+    const summaryPrompt = `Summarize the following conversation in 2-3 sentences.
+Focus on the main topics, questions, and key advice given.
+Use keywords that would help someone search for this conversation later.
+
+Conversation:
+${messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n')}
+
+Summary:`;
+
+    // Call OpenAI for summary generation
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini', // Fast model for summarization
+      messages: [{ role: 'user', content: summaryPrompt }],
+      temperature: 0.3, // Very focused, factual summaries
+      max_tokens: 150, // Concise summaries
+    });
+
+    const summary = completion.choices[0]?.message?.content?.trim() || '';
+    return summary;
+  } catch (error) {
+    console.error('Failed to generate conversation summary:', error);
+    // Return empty string on error
+    return '';
+  }
+}
+
+/**
+ * Performs AI-powered semantic search through conversation summaries.
+ * Uses GPT to understand the search intent and find relevant conversations.
+ *
+ * @param searchQuery - User's search query (e.g., "sleep problems", "feeding advice")
+ * @param conversations - Array of conversations with their summaries
+ * @returns Array of relevant conversation IDs ranked by relevance
+ */
+export async function searchConversations(
+  searchQuery: string,
+  conversations: Array<{ sessionId: string; title: string; summary: string }>
+): Promise<string[]> {
+  try {
+    // Build search prompt that asks AI to rank conversations by relevance
+    const conversationList = conversations.map((conv, index) => {
+      return `${index + 1}. [${conv.sessionId}] ${conv.title}\n   Summary: ${conv.summary}`;
+    }).join('\n\n');
+
+    const searchPrompt = `You are helping a parent search through their past conversations about parenting and baby care.
+
+Search query: "${searchQuery}"
+
+Available conversations:
+${conversationList}
+
+Based on the search query, rank the conversations from most to least relevant.
+Return ONLY the session IDs in order of relevance, separated by commas.
+Include only conversations that are actually relevant to the search query.
+If no conversations match well, return an empty list.
+
+Example response: session-id-1, session-id-2, session-id-3
+
+Ranked session IDs:`;
+
+    // Call OpenAI for semantic search
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini', // Fast model for search ranking
+      messages: [{ role: 'user', content: searchPrompt }],
+      temperature: 0.2, // Very consistent, focused results
+      max_tokens: 200,
+    });
+
+    const result = completion.choices[0]?.message?.content?.trim() || '';
+
+    // Parse the comma-separated session IDs
+    const sessionIds = result
+      .split(',')
+      .map(id => id.trim())
+      .filter(id => id.length > 0);
+
+    return sessionIds;
+  } catch (error) {
+    console.error('Failed to perform AI search:', error);
+    // Return empty array on error (no results)
+    return [];
+  }
+}
+
+/**
  * Analyzes a baby photo using OpenAI Vision API (GPT-4o).
  *
  * Provides visual analysis for baby-related concerns such as:

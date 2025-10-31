@@ -24,17 +24,36 @@ class _ConversationListScreenState
   /// Holds the list of conversations loaded from the backend
   List<Conversation> _conversations = [];
 
+  /// Filtered conversations based on search query
+  List<Conversation> _filteredConversations = [];
+
   /// Loading state indicator
   bool _isLoading = true;
 
+  /// Search loading state (when performing AI search)
+  bool _isSearching = false;
+
   /// Error message if loading fails
   String? _errorMessage;
+
+  /// Search query text controller
+  final TextEditingController _searchController = TextEditingController();
+
+  /// Current search query
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     // Load conversations when screen initializes
     _loadConversations();
+  }
+
+  @override
+  void dispose() {
+    // Clean up text controller
+    _searchController.dispose();
+    super.dispose();
   }
 
   /// Loads conversation list from backend via repository
@@ -54,6 +73,7 @@ class _ConversationListScreenState
       if (mounted) {
         setState(() {
           _conversations = conversations;
+          _filteredConversations = conversations;
           _isLoading = false;
         });
       }
@@ -139,6 +159,65 @@ class _ConversationListScreenState
     }
   }
 
+  /// Performs AI-powered search through conversations
+  Future<void> _performSearch(String query) async {
+    // Clear search if query is empty
+    if (query.trim().isEmpty) {
+      setState(() {
+        _searchQuery = '';
+        _filteredConversations = _conversations;
+      });
+      return;
+    }
+
+    setState(() {
+      _searchQuery = query;
+      _isSearching = true;
+    });
+
+    try {
+      // Get chat repository from provider
+      final chatRepository = ref.read(chatRepositoryProvider);
+
+      // Perform AI-powered semantic search
+      final rankedSessionIds = await chatRepository.searchConversations(query);
+
+      if (mounted) {
+        // Filter and reorder conversations based on search results
+        final ranked = rankedSessionIds
+            .map((sessionId) {
+              try {
+                return _conversations.firstWhere((c) => c.sessionId == sessionId);
+              } catch (e) {
+                return null;
+              }
+            })
+            .whereType<Conversation>()
+            .toList();
+
+        setState(() {
+          _filteredConversations = ranked;
+          _isSearching = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSearching = false;
+        });
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Search failed: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -154,6 +233,56 @@ class _ConversationListScreenState
             onPressed: _loadConversations,
           ),
         ],
+        // Search bar below AppBar
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(64),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search conversations with AI...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          _performSearch('');
+                        },
+                      )
+                    : _isSearching
+                        ? const Padding(
+                            padding: EdgeInsets.all(12.0),
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          )
+                        : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                filled: true,
+                fillColor: theme.colorScheme.surfaceContainerHighest,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+              ),
+              onChanged: (value) {
+                // Debounce search - wait 500ms after user stops typing
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  if (_searchController.text == value) {
+                    _performSearch(value);
+                  }
+                });
+              },
+              onSubmitted: _performSearch,
+            ),
+          ),
+        ),
       ),
       body: _buildBody(theme),
     );
@@ -200,7 +329,7 @@ class _ConversationListScreenState
     }
 
     if (_conversations.isEmpty) {
-      // Show empty state
+      // Show empty state - no conversations at all
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
@@ -233,15 +362,58 @@ class _ConversationListScreenState
       );
     }
 
-    // Show list of conversations
+    if (_filteredConversations.isEmpty && _searchQuery.isNotEmpty) {
+      // Show no search results state
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.search_off,
+                size: 80,
+                color: theme.colorScheme.primary.withOpacity(0.3),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'No Results Found',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Try a different search query or clear the search to see all conversations.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                onPressed: () {
+                  _searchController.clear();
+                  _performSearch('');
+                },
+                icon: const Icon(Icons.clear),
+                label: const Text('Clear Search'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Show list of conversations (filtered or all)
     return RefreshIndicator(
       onRefresh: _loadConversations,
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: _conversations.length,
+        itemCount: _filteredConversations.length,
         separatorBuilder: (context, index) => const Divider(height: 1),
         itemBuilder: (context, index) {
-          final conversation = _conversations[index];
+          final conversation = _filteredConversations[index];
           return _buildConversationTile(conversation, theme);
         },
       ),
@@ -267,12 +439,14 @@ class _ConversationListScreenState
           color: theme.colorScheme.onPrimaryContainer,
         ),
       ),
-      // Conversation preview text
+      // AI-generated conversation title
       title: Text(
-        conversation.preview,
+        conversation.title,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
-        style: theme.textTheme.bodyLarge,
+        style: theme.textTheme.bodyLarge?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
       ),
       // Message count and timestamp
       subtitle: Padding(
