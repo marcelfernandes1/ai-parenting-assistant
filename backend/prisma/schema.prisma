@@ -80,11 +80,11 @@ enum MessageContentType {
 
 // Milestone types for baby development tracking
 enum MilestoneType {
-  PHYSICAL    // Rolling over, crawling, walking, etc.
-  FEEDING     // First solid food, self-feeding, etc.
-  SLEEP       // Sleeping through night, sleep schedule, etc.
-  SOCIAL      // First smile, waving, playing with others, etc.
-  HEALTH      // Vaccinations, checkups, etc.
+  PHYSICAL // Rolling over, crawling, walking, etc.
+  FEEDING // First solid food, self-feeding, etc.
+  SLEEP // Sleeping through night, sleep schedule, etc.
+  SOCIAL // First smile, waving, playing with others, etc.
+  HEALTH // Vaccinations, checkups, etc.
 }
 
 // ===========================
@@ -95,11 +95,11 @@ enum MilestoneType {
 // Stores authentication and subscription information
 model User {
   // Primary identifier - UUID for security and scalability
-  id        String   @id @default(uuid())
+  id String @id @default(uuid())
 
   // Authentication fields
   // Email is unique and used for login
-  email     String   @unique
+  email String @unique
 
   // Password stored as bcrypt hash (never store plain text)
   // Hash uses 10 salt rounds for security
@@ -107,8 +107,8 @@ model User {
 
   // Subscription information
   // Determines user's access level and features
-  subscriptionTier      SubscriptionTier   @default(FREE)
-  subscriptionStatus    SubscriptionStatus @default(ACTIVE)
+  subscriptionTier   SubscriptionTier   @default(FREE)
+  subscriptionStatus SubscriptionStatus @default(ACTIVE)
 
   // When premium subscription expires (null for FREE tier)
   // Used to enforce access control and trigger renewals
@@ -116,16 +116,16 @@ model User {
 
   // Stripe customer ID for payment processing
   // Stored for subscription management and billing
-  stripeCustomerId      String?  @unique
+  stripeCustomerId String? @unique
 
   // Stripe subscription ID for tracking active subscription
   // Links to Stripe subscription object for status checks and cancellation
-  stripeSubscriptionId  String?  @unique
+  stripeSubscriptionId String? @unique
 
   // Onboarding completion flag
   // true if user has completed onboarding flow, false otherwise
   // Used by frontend router to determine if user should see onboarding screens
-  onboardingComplete    Boolean  @default(false)
+  onboardingComplete Boolean @default(false)
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -133,19 +133,19 @@ model User {
 
   // Relations
   // One user has one profile (1:1 relationship)
-  profile        UserProfile?
+  profile UserProfile?
 
   // One user has many messages (1:N relationship)
-  messages       Message[]
+  messages Message[]
 
   // One user has many milestones (1:N relationship)
-  milestones     Milestone[]
+  milestones Milestone[]
 
   // One user has many photos (1:N relationship)
-  photos         Photo[]
+  photos Photo[]
 
   // One user has many usage tracking records (1:N relationship)
-  usageTracking  UsageTracking[]
+  usageTracking UsageTracking[]
 
   // Indexes for fast queries
   // Email is frequently queried for login
@@ -156,7 +156,7 @@ model User {
 // Stores personal information and preferences for AI personalization
 model UserProfile {
   // Primary identifier
-  id     String @id @default(uuid())
+  id String @id @default(uuid())
 
   // Foreign key to User (one-to-one relationship)
   userId String @unique
@@ -227,7 +227,7 @@ model Message {
   conversationSummary String? @db.Text
 
   // Message metadata
-  role        MessageRole        // USER or ASSISTANT
+  role        MessageRole // USER or ASSISTANT
   content     String             @db.Text // Message text (can be very long)
   contentType MessageContentType // TEXT, VOICE, or IMAGE
 
@@ -263,7 +263,7 @@ model Milestone {
   type MilestoneType
 
   // Milestone details
-  name         String   // e.g., "First steps", "First word"
+  name         String // e.g., "First steps", "First word"
   achievedDate DateTime // When milestone was achieved
   notes        String?  @db.Text // Optional notes from parent
 
@@ -354,4 +354,68 @@ model UsageTracking {
   // Prevents duplicate entries and enables efficient updates
   @@unique([userId, date])
   @@index([userId, date])
+}
+
+// MilestoneContent model
+// Stores comprehensive educational content for each milestone type
+// This is reference data (not user-specific) that provides guidance to parents
+model MilestoneContent {
+  // Primary identifier
+  id String @id @default(uuid())
+
+  // Milestone classification (references MilestoneType enum)
+  milestoneType MilestoneType
+
+  // Milestone name (unique identifier for content lookup)
+  // e.g., "First Steps", "First Smile", "Sitting Up"
+  name String @unique
+
+  // Comprehensive overview (250-500 words)
+  // Explains what the milestone is, why it's important, and typical characteristics
+  description String @db.Text
+
+  // "What to Expect" section (100-150 words)
+  // Detailed developmental explanation, age ranges, variations, signs baby is close
+  whatToExpect String @db.Text
+
+  // "How to Encourage" section (100-150 words)
+  // Practical activities parents can do, daily routine integration tips
+  howToEncourage String @db.Text
+
+  // "Red Flags" section (50-100 words)
+  // Warning signs requiring pediatrician consultation, developmental delay indicators
+  redFlags String @db.Text
+
+  // Expert tips (array of 3-5 tips)
+  // Pediatrician-approved advice, common mistakes to avoid, pro tips
+  expertTips String[]
+
+  // Related milestones (array of milestone names)
+  // Links to 3-5 related milestone names for navigation
+  relatedMilestones String[]
+
+  // Optional video URL (YouTube/Vimeo embed)
+  // Educational video demonstrating the milestone
+  videoUrl String?
+
+  // Optional image URL (illustration)
+  // Visual representation or diagram for the milestone
+  imageUrl String?
+
+  // Age range in months (JSON format)
+  // Structure: { "min": 3, "max": 5, "typical": 4 }
+  // Represents the typical age range when milestone occurs
+  ageRangeMonths Json
+
+  // Medical/research sources (array of source names)
+  // e.g., ["American Academy of Pediatrics", "CDC Developmental Milestones"]
+  sources String[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes for fast content lookup
+  @@index([name])
+  @@index([milestoneType])
 }
