@@ -175,6 +175,12 @@ model UserProfile {
   babyName   String?
   babyGender BabyGender?
 
+  // Profile images stored in S3
+  // profileImageUrl: User's profile picture URL
+  // babyImageUrl: Baby's picture URL
+  profileImageUrl String?
+  babyImageUrl    String?
+
   // User preferences for AI personalization
   // parentingPhilosophy: e.g., {"style": "attachment", "discipline": "gentle"}
   // religiousViews: e.g., {"religion": "Christian", "observance": "moderate"}

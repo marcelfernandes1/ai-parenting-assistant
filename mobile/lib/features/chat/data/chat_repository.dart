@@ -300,6 +300,25 @@ class ChatRepository {
     }
   }
 
+  /// Generates AI titles and summaries for all existing conversations.
+  /// This is a one-time migration endpoint for conversations created before this feature.
+  ///
+  /// Returns: void (success or throws exception)
+  Future<void> generateConversationTitles() async {
+    try {
+      // Call backend migration endpoint
+      final response = await _apiClient.post('/chat/conversations/generate-titles');
+
+      // Check response status
+      if (response.statusCode != 200) {
+        throw Exception(
+            response.data['error'] ?? 'Failed to generate titles');
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
   /// Gets today's usage statistics.
   ///
   /// Returns: Map containing messagesUsed, voiceMinutesUsed, photosStored

@@ -857,24 +857,22 @@ router.post('/conversations/search', authenticateToken, async (req: Request, res
       return res.status(400).json({ error: 'Search query is required' });
     }
 
-    // Fetch all conversations with titles and summaries
-    // We need the first message with conversationTitle and conversationSummary for each session
+    // Fetch all conversations for this user
     const sessions = await prisma.message.groupBy({
       by: ['sessionId'],
       where: {
         userId: userId,
-        conversationTitle: { not: null }, // Only include titled conversations
       },
       _max: {
         timestamp: true,
       },
     });
 
-    // Get title and summary for each session
+    // Get title, summary, and message content for each session
     const conversationsWithMetadata = await Promise.all(
       sessions.map(async (session) => {
-        // Get first message with title/summary
-        const firstMessage = await prisma.message.findFirst({
+        // Get messages for this session
+        const messages = await prisma.message.findMany({
           where: {
             userId: userId,
             sessionId: session.sessionId,
@@ -885,19 +883,32 @@ router.post('/conversations/search', authenticateToken, async (req: Request, res
           select: {
             conversationTitle: true,
             conversationSummary: true,
+            content: true,
+            role: true,
           },
         });
 
+        const firstMessage = messages[0];
+
+        // Get title or use first message content as fallback
+        const title = firstMessage?.conversationTitle ||
+                     (firstMessage?.content.substring(0, 50) + '...') ||
+                     'Untitled Conversation';
+
+        // Get summary or combine all message content as fallback
+        const summary = firstMessage?.conversationSummary ||
+                       messages.map(m => m.content).join(' ').substring(0, 500);
+
         return {
           sessionId: session.sessionId,
-          title: firstMessage?.conversationTitle || 'Untitled Conversation',
-          summary: firstMessage?.conversationSummary || '',
+          title: title,
+          summary: summary,
           lastMessageAt: session._max.timestamp,
         };
       })
     );
 
-    // Filter out conversations without summaries (can't search them)
+    // All conversations are now searchable (we use message content as fallback)
     const searchableConversations = conversationsWithMetadata.filter(
       (conv) => conv.summary && conv.summary.length > 0
     );
@@ -922,6 +933,132 @@ router.post('/conversations/search', authenticateToken, async (req: Request, res
 
     return res.status(500).json({
       error: 'Failed to search conversations',
+      details: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+/**
+ * POST /chat/conversations/generate-titles
+ *
+ * One-time migration endpoint to generate titles and summaries for all existing conversations.
+ * This endpoint processes all conversations that don't have titles yet.
+ *
+ * Returns: Progress information and number of conversations processed
+ */
+router.post('/conversations/generate-titles', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    // Extract userId from JWT token
+    const userId = (req as any).user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized - user ID not found' });
+    }
+
+    console.log(`🔄 Starting title generation for user ${userId}...`);
+
+    // Get all unique sessions for this user
+    const sessions = await prisma.message.groupBy({
+      by: ['sessionId'],
+      where: {
+        userId: userId,
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    let processedCount = 0;
+    let skippedCount = 0;
+    const errors: string[] = [];
+
+    // Process each session
+    for (const session of sessions) {
+      try {
+        // Check if this session already has a title
+        const hasTitle = await prisma.message.findFirst({
+          where: {
+            userId: userId,
+            sessionId: session.sessionId,
+            conversationTitle: { not: null },
+          },
+        });
+
+        // Skip if already has title
+        if (hasTitle) {
+          skippedCount++;
+          continue;
+        }
+
+        // Get messages for this session
+        const messages = await prisma.message.findMany({
+          where: {
+            userId: userId,
+            sessionId: session.sessionId,
+          },
+          orderBy: {
+            timestamp: 'asc',
+          },
+          select: {
+            role: true,
+            content: true,
+          },
+        });
+
+        // Need at least 2 messages to generate a title
+        if (messages.length < 2) {
+          skippedCount++;
+          continue;
+        }
+
+        // Convert to ChatMessage format
+        const chatMessages: ChatMessage[] = messages.map((msg) => ({
+          role: msg.role === 'USER' ? 'user' : 'assistant',
+          content: msg.content,
+        }));
+
+        // Generate title using first 2 messages
+        const titleMessages = chatMessages.slice(0, 2);
+        const title = await generateConversationTitle(titleMessages);
+        console.log(`✅ Generated title for session ${session.sessionId}: "${title}"`);
+
+        // Generate summary if we have enough messages (4+)
+        let summary: string | null = null;
+        if (messages.length >= 4) {
+          summary = await generateConversationSummary(chatMessages);
+          console.log(`📝 Generated summary for session ${session.sessionId}`);
+        }
+
+        // Update all messages in this session with title and summary
+        await prisma.message.updateMany({
+          where: {
+            userId: userId,
+            sessionId: session.sessionId,
+          },
+          data: {
+            conversationTitle: title,
+            ...(summary && { conversationSummary: summary }),
+          },
+        });
+
+        processedCount++;
+      } catch (error) {
+        console.error(`Error processing session ${session.sessionId}:`, error);
+        errors.push(`Session ${session.sessionId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    return res.status(200).json({
+      message: 'Title generation completed',
+      total: sessions.length,
+      processed: processedCount,
+      skipped: skippedCount,
+      errors: errors.length > 0 ? errors : undefined,
+    });
+  } catch (error) {
+    console.error('Error generating titles:', error);
+
+    return res.status(500).json({
+      error: 'Failed to generate titles',
       details: error instanceof Error ? error.message : 'Unknown error',
     });
   }

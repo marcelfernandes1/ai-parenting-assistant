@@ -159,6 +159,71 @@ class _ConversationListScreenState
     }
   }
 
+  /// Generates AI titles and summaries for all existing conversations
+  /// This is a one-time migration for conversations created before this feature
+  Future<void> _generateTitles() async {
+    // Show loading dialog
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Generating AI titles...\nThis may take a minute.'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      // Get chat repository from provider
+      final chatRepository = ref.read(chatRepositoryProvider);
+
+      // Call the migration endpoint
+      await chatRepository.generateConversationTitles();
+
+      if (mounted) {
+        // Close loading dialog
+        Navigator.pop(context);
+
+        // Reload conversations to show new titles
+        await _loadConversations();
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('AI titles generated successfully!'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        // Close loading dialog
+        Navigator.pop(context);
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to generate titles: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
   /// Performs AI-powered search through conversations
   Future<void> _performSearch(String query) async {
     // Clear search if query is empty
@@ -226,6 +291,12 @@ class _ConversationListScreenState
       appBar: AppBar(
         title: const Text('Conversation History'),
         actions: [
+          // Generate titles button (one-time migration)
+          IconButton(
+            icon: const Icon(Icons.auto_fix_high),
+            tooltip: 'Generate AI Titles',
+            onPressed: _generateTitles,
+          ),
           // Refresh button
           IconButton(
             icon: const Icon(Icons.refresh),
