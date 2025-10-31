@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/photo_list_provider.dart';
 import '../domain/photo_model.dart';
 import 'photo_viewer_screen.dart';
@@ -42,6 +43,9 @@ class _PhotosScreenState extends ConsumerState<PhotosScreen> with SingleTickerPr
     // Load photos on screen init
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(photoListProvider.notifier).loadPhotos();
+
+      // Show AI search tutorial on first visit
+      _showAISearchTutorialIfNeeded();
     });
 
     // Setup infinite scroll listener
@@ -59,6 +63,32 @@ class _PhotosScreenState extends ConsumerState<PhotosScreen> with SingleTickerPr
     );
 
     _fabAnimationController.forward();
+  }
+
+  /// Shows AI search tutorial dialog on first visit to photos screen
+  Future<void> _showAISearchTutorialIfNeeded() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenTutorial = prefs.getBool('photos_ai_search_tutorial_seen') ?? false;
+
+    if (!hasSeenTutorial && mounted) {
+      // Wait a bit for photos to load first
+      await Future.delayed(const Duration(milliseconds: 800));
+
+      if (mounted) {
+        _showAISearchTutorial();
+        // Mark tutorial as seen
+        await prefs.setBool('photos_ai_search_tutorial_seen', true);
+      }
+    }
+  }
+
+  /// Displays the AI search tutorial dialog
+  void _showAISearchTutorial() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => _buildAISearchTutorialDialog(context),
+    );
   }
 
   @override
@@ -856,6 +886,140 @@ class _PhotosScreenState extends ConsumerState<PhotosScreen> with SingleTickerPr
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Builds AI search tutorial dialog widget
+  Widget _buildAISearchTutorialDialog(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 400),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // AI sparkle icon
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    theme.colorScheme.primary,
+                    theme.colorScheme.tertiary,
+                  ],
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.auto_awesome,
+                color: Colors.white,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Title
+            Text(
+              'AI-Powered Photo Search',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+
+            // Description
+            Text(
+              'Your photos are automatically analyzed by AI! Search naturally using any of these:',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+
+            // Search examples
+            _buildSearchExample(theme, Icons.bedtime, 'Mood & Activity',
+                '"sleeping", "happy", "playing"'),
+            const SizedBox(height: 12),
+            _buildSearchExample(theme, Icons.place_outlined, 'Location',
+                '"outdoor", "park", "nursery"'),
+            const SizedBox(height: 12),
+            _buildSearchExample(theme, Icons.toys_outlined, 'Objects',
+                '"toys", "bottle", "pacifier"'),
+            const SizedBox(height: 12),
+            _buildSearchExample(theme, Icons.celebration_outlined, 'Milestones',
+                '"first steps", "bath time"'),
+
+            const SizedBox(height: 24),
+
+            // Got it button
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+              ),
+              child: const Text('Got It!'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds a search example row
+  Widget _buildSearchExample(ThemeData theme, IconData icon, String title, String examples) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: theme.colorScheme.onPrimaryContainer,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  examples,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
