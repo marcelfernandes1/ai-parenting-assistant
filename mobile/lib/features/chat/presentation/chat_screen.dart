@@ -612,13 +612,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     color: Theme.of(context).colorScheme.error,
                   ),
                   const SizedBox(width: 8),
-                  // Duration text
-                  Text(
-                    'Recording: ${_formatDuration(voiceState.duration)}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onErrorContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  // Duration and instructions
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Recording: ${_formatDuration(voiceState.duration)}',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onErrorContainer,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      Text(
+                        'Release to send',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onErrorContainer
+                                  .withOpacity(0.8),
+                            ),
+                      ),
+                    ],
                   ),
                   const Spacer(),
                   // Cancel button
