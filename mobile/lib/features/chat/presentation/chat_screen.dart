@@ -22,6 +22,7 @@ import '../domain/quick_actions_config.dart';
 import '../../voice/presentation/voice_mode_screen.dart';
 import '../../onboarding/providers/onboarding_provider.dart';
 import '../../../shared/widgets/animations.dart';
+import '../../../shared/widgets/voice_waveform.dart';
 
 /// Main chat screen with message list and input area.
 /// Uses Riverpod to watch chat state and usage statistics.
@@ -260,6 +261,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   /// Cancels voice recording without sending
   Future<void> _cancelVoiceRecording() async {
     await ref.read(voiceRecorderProvider.notifier).cancelRecording();
+  }
+
+  /// Shows ChatGPT-style recording modal with waveform animation
+  /// Tap once to start recording, tap checkmark to send or X to cancel
+  Future<void> _showRecordingModal() async {
+    // Check and request permission first
+    final hasPermission = await _ensureMicPermission();
+    if (!hasPermission || !mounted) return;
+
+    // Start recording
+    await _startVoiceRecording();
+    if (!mounted) return;
+
+    // Show the modal
+    await showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const _RecordingModal(),
+    );
   }
 
   /// Opens voice mode screen for real-time conversation
@@ -587,68 +609,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           ),
 
-          // Recording duration indicator (shown when recording)
-          if (voiceState.state == RecordingState.recording)
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 12.0,
-              ),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.errorContainer,
-                border: Border(
-                  top: BorderSide(
-                    color: Theme.of(context).colorScheme.error,
-                    width: 2,
-                  ),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Recording icon with pulsing animation
-                  PulsingDot(
-                    size: 20,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(width: 8),
-                  // Duration and instructions
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Recording: ${_formatDuration(voiceState.duration)}',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onErrorContainer,
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      Text(
-                        'Release to send',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onErrorContainer
-                                  .withOpacity(0.8),
-                            ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  // Cancel button
-                  TextButton(
-                    onPressed: _cancelVoiceRecording,
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
           // Selected photos thumbnails (shown above input when photos are selected)
           if (_selectedPhotos.isNotEmpty)
@@ -758,40 +718,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
                   // Microphone or Send button (conditional)
                   if (showMicButton)
-                    // Microphone button with long press to record
-                    GestureDetector(
-                      onLongPressStart: (_) async {
-                        // Request permission if needed, then start recording
-                        if (!mounted) return;
-                        final hasPermission = await _ensureMicPermission();
-                        if (!hasPermission) return;
-
-                        // Start recording
-                        await _startVoiceRecording();
-                      },
-                      onLongPressEnd: (_) async {
-                        // Stop recording if it was started
-                        await _stopAndSendVoiceRecording();
-                      },
-                      child: FilledButton(
-                        onPressed: chatState.isSendingMessage
-                            ? null
-                            : () async {
-                                // Request permission on tap (optional, or just show hint)
-                                if (!mounted) return;
-                                final hasPermission = await _ensureMicPermission();
-
-                                // Show tip if permission granted
-                                if (hasPermission && mounted) {
-                                  final messenger = ScaffoldMessenger.of(context);
-                                  messenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Hold the microphone button to record a voice message'),
-                                      duration: Duration(seconds: 1),
-                                    ),
-                                  );
-                                }
-                              },
+                    // Microphone button - tap to start recording with modal
+                    FilledButton(
+                      onPressed: chatState.isSendingMessage ? null : _showRecordingModal,
                         style: FilledButton.styleFrom(
                           shape: const CircleBorder(),
                           padding: const EdgeInsets.all(12),
@@ -1041,5 +970,125 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom();
     });
+  }
+}
+
+/// ChatGPT-style recording modal with animated waveform
+/// Shows waveform animation while recording with X (cancel) and checkmark (send) buttons
+class _RecordingModal extends ConsumerWidget {
+  const _RecordingModal();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final voiceState = ref.watch(voiceRecorderProvider);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Title
+            Text(
+              'Ask anything',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Waveform animation
+            const VoiceWaveform(
+              isAnimating: true,
+              barCount: 40,
+            ),
+
+            const SizedBox(height: 24),
+
+            // Duration counter
+            Text(
+              _formatDuration(voiceState.duration),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // Action buttons row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Cancel button (X)
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: theme.colorScheme.surfaceContainerHighest,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.close, size: 28),
+                    onPressed: () async {
+                      // Cancel recording
+                      await ref.read(voiceRecorderProvider.notifier).cancelRecording();
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    iconSize: 48,
+                    padding: const EdgeInsets.all(16),
+                  ),
+                ),
+
+                const SizedBox(width: 48),
+
+                // Send button (Checkmark)
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: theme.colorScheme.primary,
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.check,
+                      size: 28,
+                      color: theme.colorScheme.onPrimary,
+                    ),
+                    onPressed: () async {
+                      // Stop recording and send
+                      final audioPath = await ref.read(voiceRecorderProvider.notifier).stopRecording();
+
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+
+                        if (audioPath != null) {
+                          // Send voice message via chat provider
+                          final chatNotifier = ref.read(chatProvider.notifier);
+                          await chatNotifier.sendVoiceMessage(audioPath);
+                        }
+                      }
+                    },
+                    iconSize: 48,
+                    padding: const EdgeInsets.all(16),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Format duration in MM:SS format
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return '$minutes:$seconds';
   }
 }
