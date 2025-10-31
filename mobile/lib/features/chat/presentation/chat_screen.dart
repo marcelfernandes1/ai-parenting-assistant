@@ -780,44 +780,26 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   // Microphone or Send button (conditional)
                   if (showMicButton)
                     // Microphone button with long press to record
-                    AnimatedButton(
-                      onPressed: chatState.isSendingMessage
-                          ? null
-                          : () async {
-                              // Capture ScaffoldMessenger before async gap
-                              final messenger = ScaffoldMessenger.of(context);
-
-                              // Check permission on tap (this will show the permission dialog)
-                              final hasPermission = await _checkMicrophonePermission();
-                              if (hasPermission && mounted) {
-                                messenger.showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                        'Hold the microphone button to record'),
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              }
-                            },
-                      onLongPressStart: () async {
-                        // Check and request permission if needed, then start recording
-                        if (!_hasMicrophonePermission) {
-                          // Request permission on first use
-                          final hasPermission = await _checkMicrophonePermission();
-                          if (!hasPermission) {
-                            // Permission denied, error message already shown by _checkMicrophonePermission
-                            return;
+                    GestureDetector(
+                      onLongPressStart: (_) async {
+                        // Only start recording if permission is already granted
+                        // Don't check permission during gesture to avoid interruption
+                        if (_hasMicrophonePermission) {
+                          await _startVoiceRecording();
+                        } else {
+                          // Permission not granted, show error
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text('Please tap the microphone button first to grant permission'),
+                                backgroundColor: Theme.of(context).colorScheme.error,
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
                           }
-                          // Update state
-                          setState(() {
-                            _hasMicrophonePermission = true;
-                          });
                         }
-
-                        // Start recording
-                        await _startVoiceRecording();
                       },
-                      onLongPressEnd: () {
+                      onLongPressEnd: (_) {
                         // Only stop if we actually started recording
                         if (_hasMicrophonePermission) {
                           _stopAndSendVoiceRecording();
@@ -827,29 +809,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         onPressed: chatState.isSendingMessage
                             ? null
                             : () async {
-                                // On tap, just check/request permission for better UX
-                                // The actual recording happens on long press
-                                if (!_hasMicrophonePermission) {
-                                  final hasPermission = await _checkMicrophonePermission();
-                                  if (hasPermission && mounted) {
-                                    setState(() {
-                                      _hasMicrophonePermission = true;
-                                    });
-                                    // Show helpful tip after granting permission
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                            'Hold the microphone button to record a voice message'),
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-                                  }
-                                } else {
-                                  // Permission already granted, show tip
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                // Capture ScaffoldMessenger before async gap
+                                final messenger = ScaffoldMessenger.of(context);
+
+                                // Check permission on tap (this will show the permission dialog)
+                                final hasPermission = await _checkMicrophonePermission();
+                                if (hasPermission && mounted) {
+                                  messenger.showSnackBar(
                                     const SnackBar(
                                       content: Text(
-                                          'Hold the microphone button to record a voice message'),
+                                          'Hold the microphone button to record'),
                                       duration: Duration(seconds: 2),
                                     ),
                                   );
@@ -962,48 +931,63 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  /// Builds shimmer loading skeleton that looks like message bubbles
+  /// Builds loading skeleton that looks like message bubbles
   Widget _buildLoadingSkeleton() {
+    final theme = Theme.of(context);
+    final skeletonColor = theme.colorScheme.surfaceContainerHighest;
+
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
         // User message skeleton (right-aligned)
         Align(
           alignment: Alignment.centerRight,
-          child: ShimmerLoading(
+          child: Container(
             width: 200,
             height: 60,
-            borderRadius: 16,
+            decoration: BoxDecoration(
+              color: skeletonColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
           ),
         ),
         const SizedBox(height: 12),
         // AI message skeleton (left-aligned)
         Align(
           alignment: Alignment.centerLeft,
-          child: ShimmerLoading(
+          child: Container(
             width: 280,
             height: 100,
-            borderRadius: 16,
+            decoration: BoxDecoration(
+              color: skeletonColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
           ),
         ),
         const SizedBox(height: 12),
         // User message skeleton (right-aligned)
         Align(
           alignment: Alignment.centerRight,
-          child: ShimmerLoading(
+          child: Container(
             width: 160,
             height: 50,
-            borderRadius: 16,
+            decoration: BoxDecoration(
+              color: skeletonColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
           ),
         ),
         const SizedBox(height: 12),
         // AI message skeleton (left-aligned)
         Align(
           alignment: Alignment.centerLeft,
-          child: ShimmerLoading(
+          child: Container(
             width: 240,
             height: 80,
-            borderRadius: 16,
+            decoration: BoxDecoration(
+              color: skeletonColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
           ),
         ),
       ],
